@@ -42,7 +42,7 @@ int main() {
              Field::StaticVar::Init<size_t>(0)
              // no attrs
          }},
-        {TypeInfo::InternalField::default_constructor,
+        {FieldList::default_constructor,
          {
              Field::Func::Init([]() -> Object {
                auto ptr = malloc(2 * sizeof(float));
@@ -51,7 +51,7 @@ int main() {
              })
              // no attrs
          }},
-        {TypeInfo::InternalField::destructor,
+        {FieldList::destructor,
          {
              Field::Func::Init([](Object obj) {
                cout << "destruct Point @" << obj.Pointer() << endl;
@@ -70,9 +70,9 @@ int main() {
 
   // ======================
 
-  /*const*/ TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(0);
+  TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(0);
 
-  auto point = type.DefaultConstruct();
+  auto point = type.fields.DefaultConstruct();
 
   // set
   type.fields.Set("x", point, 1.f);
@@ -133,5 +133,5 @@ int main() {
     }
   }
 
-  type.Destruct(point);
+  type.fields.Destruct(point);
 }
