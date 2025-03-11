@@ -3,9 +3,7 @@
 //
 
 #pragma once
-
 #include <any>
-#include <cassert>
 #include <functional>
 #include <map>
 #include <string>
@@ -14,6 +12,9 @@
 
 namespace My::MyDRefl {
 class Object {
+  size_t id;
+  void* ptr;
+
  public:
   Object(size_t id, void* ptr) noexcept : id{id}, ptr{ptr} {}
 
@@ -27,29 +28,24 @@ class Object {
 
   const size_t& ID() const noexcept { return id; }
 
-  // non-static
   template <typename T>
   T& Var(size_t offset) noexcept {
-    return *reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(ptr) + offset);
+    return *(T*)((uint8_t*)ptr + offset);
   }
 
   template <typename T>
   const T& Var(size_t offset) const noexcept {
     return const_cast<Object*>(this)->Var<T>(offset);
   }
-
- private:
-  size_t id;
-  void* ptr;
 };
 
 struct AnyWrapper {
+  std::any data;
+
   template <typename T>
   AnyWrapper(T data) : data{data} {}
 
   AnyWrapper() = default;
-
-  std::any data;
 
   bool HasValue() const noexcept { return data.has_value(); }
 
@@ -67,7 +63,6 @@ struct AnyWrapper {
 
   template <typename T>
   T& Cast() {
-    assert(HasValue() && TypeIs<T>());
     return std::any_cast<T&>(data);
   }
 
@@ -132,7 +127,6 @@ struct AttrList {
 
   template <typename T>
   T& Get(std::string_view name) {
-    assert(Contains(name));
     return data.find(name)->second.Cast<T>();
   }
 };
@@ -142,8 +136,8 @@ struct Var {
 
   template <typename T>
   static Var Init(size_t offset) {
-    return {std::function{[=](Object obj) -> T& {
-      return obj.Var<T>(offset);
+    return {std::function{[=](Object u) -> T& {
+      return u.Var<T>(offset);
     }}};
   }
 
@@ -154,7 +148,6 @@ struct Var {
 
   template <typename T>
   T& Get(Object obj) const {
-    assert(TypeIs<T>());
     return std::any_cast<std::function<T&(Object)>>(getter)(obj);
   }
 
@@ -190,8 +183,9 @@ struct Field {
   bool operator<(const Field& rhs) const {
     if (!value.TypeIs<Func>() || !rhs.value.TypeIs<Func>())
       return false;
-    return value.Cast<Func>().data.type().hash_code() <
-           rhs.value.Cast<Func>().data.type().hash_code();
+    else
+      return value.Cast<Func>().data.type().hash_code() <
+             rhs.value.Cast<Func>().data.type().hash_code();
   }
 };
 
@@ -201,65 +195,50 @@ struct FieldList {
   static constexpr const char move_constructor[] = "__move_constructor";
   static constexpr const char destructor[] = "__destructor";
   static constexpr const char enum_value[] = "__enum_value";
-
   std::multimap<std::string, Field, std::less<>> data;
   using Iterator = std::multimap<std::string, Field, std::less<>>::iterator;
   using ConstIterator =
       std::multimap<std::string, Field, std::less<>>::const_iterator;
 
-  // static
   template <typename T>
-  T& Get(std::string_view name) {
-    static_assert(!std::is_reference_v<T>);
-    assert(data.count(name) == 1);
-    StaticVar& v = data.find(name)->second.value.Cast<StaticVar>();
-    return v.Cast<T>();
-  }
-
-  // static
-  template <typename T>
-  const T& Get(std::string_view name) const {
-    return const_cast<FieldList*>(this)->Get<T>(name);
+  T& Get(std::string_view n) {
+    return data.find(n)->second.value.Cast<StaticVar>().Cast<T>();
   }
 
   template <typename T>
-  T& Get(std::string_view name, Object obj) const {
-    assert(data.count(name) == 1);
-    auto& v = data.find(name)->second.value.Cast<Var>();
-    return v.Get<T>(obj);
+  const T& Get(std::string_view n) const {
+    return const_cast<FieldList*>(this)->Get<T>(n);
+  }
+
+  template <typename T>
+  T& Get(std::string_view n, Object u) const {
+    return data.find(n)->second.value.Cast<Var>().Get<T>(u);
   }
 
   template <typename Arg>
-  void Set(std::string_view name, Object obj, Arg arg) const {
-    Get<Arg>(name, obj) = std::forward<Arg>(arg);
+  void Set(std::string_view n, Object u, Arg arg) const {
+    Get<Arg>(n, u) = std::forward<Arg>(arg);
   }
 
-  // static
   template <typename T>
   std::pair<std::string_view, Field*> FindStaticField(const T& value) {
     for (auto iter = data.begin(); iter != data.end(); ++iter) {
-      if (auto pV = iter->second.value.CastIf<StaticVar>()) {
-        if ((*pV) == value)
-          return {iter->first, &iter->second};
-      }
+      if (auto pV = iter->second.value.CastIf<StaticVar>();
+          pV && (*pV) == value)
+        return {iter->first, &iter->second};
     }
     return {"", nullptr};
   }
 
   template <typename Ret, typename... Args>
   Ret Call(std::string_view name, Args... args) const {
-    static_assert(std::is_void_v<Ret> || std::is_constructible_v<Ret>);
-
     auto low = data.lower_bound(name);
     auto up = data.upper_bound(name);
     for (auto iter = low; iter != up; ++iter) {
-      if (auto pFunc = low->second.value.CastIf<Func>()) {
-        if (pFunc->FuncTypeIs<Ret(Args...)>())
-          return pFunc->Call<Ret, Args...>(std::forward<Args>(args)...);
-      }
+      if (auto pFunc = low->second.value.CastIf<Func>();
+          pFunc && pFunc->FuncTypeIs<Ret(Args...)>())
+        return pFunc->Call<Ret, Args...>(std::forward<Args>(args)...);
     }
-
-    assert("arguments' types are matching failure with functions" && false);
     if constexpr (!std::is_void_v<Ret>)
       return {};
   }
@@ -283,27 +262,16 @@ struct TypeInfo {
   TypeInfo(size_t ID) : ID{ID} {}
 
   const size_t ID;
-
   std::string name;
-
   size_t size{0};
   size_t alignment{alignof(std::max_align_t)};
-
   AttrList attrs;
   FieldList fields;
 
-  // TODO: alignment
-  // no construct
-  Object Malloc() const {
-    assert(size != 0);
-    void* ptr = malloc(size);
-    assert(ptr != nullptr);
-    return {ID, ptr};
-  }
+  Object Malloc() const { return {ID, malloc(size)}; }
 
   void Free(Object obj) const { free(obj.Pointer()); }
 
-  // call Allocate and fields.DefaultConstruct
   Object New() const {
     Object obj = Malloc();
     fields.DefaultConstruct(obj);
@@ -317,20 +285,17 @@ struct TypeInfo {
     return obj;
   }
 
-  // call Allocate and fields.DefaultConstruct
   void Delete(Object obj) const {
     if (obj.Pointer() != nullptr)
       fields.Destruct(obj);
     Free(obj);
   }
-
-  TypeInfo(const TypeInfo&) = delete;
-  TypeInfo(TypeInfo&&) = delete;
-  TypeInfo& operator==(const TypeInfo&) = delete;
-  TypeInfo& operator==(TypeInfo&&) = delete;
 };
 
 class TypeInfoMngr {
+  std::unordered_map<size_t, TypeInfo> id2typeinfo;
+  TypeInfoMngr() = default;
+
  public:
   static TypeInfoMngr& Instance() {
     static TypeInfoMngr instance;
@@ -341,15 +306,8 @@ class TypeInfoMngr {
     auto target = id2typeinfo.find(id);
     if (target != id2typeinfo.end())
       return target->second;
-
     auto [iter, success] = id2typeinfo.try_emplace(id, id);
-    assert(success);
     return iter->second;
   }
-
- private:
-  std::unordered_map<size_t, TypeInfo> id2typeinfo;
-
-  TypeInfoMngr() = default;
 };
 }  // namespace My::MyDRefl
