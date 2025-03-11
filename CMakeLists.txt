@@ -10,7 +10,7 @@ INIT_PROJECT()
 
 OPTION(MyDRefl_Test_lua "MyDRefl Test lua" OFF)
 IF (MyDRefl_Test_lua)
-    ADD_DEP(ULua 0.1.0)
+    ADD_DEP(MyLua 0.1.0)
 ENDIF ()
 
 ADD_SUB_DIRS_REC(include)

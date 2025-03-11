@@ -9,6 +9,8 @@
 #include <cstdint>
 
 namespace My::MyDRefl {
+struct TypeInfo;
+
 class MYDREFL_DESC Object {
  public:
   Object(size_t id, void* ptr) noexcept : id{id}, ptr{ptr} {}
@@ -19,6 +21,16 @@ class MYDREFL_DESC Object {
 
   const void* Pointer() const noexcept {
     return const_cast<Object*>(this)->Pointer();
+  }
+
+  template <typename T>
+  T* As() noexcept {
+    return reinterpret_cast<T*>(ptr);
+  }
+
+  template <typename T>
+  const T* As() const noexcept {
+    return const_cast<Object*>(this)->As<T>();
   }
 
   const size_t& ID() const noexcept { return id; }
@@ -37,6 +49,8 @@ class MYDREFL_DESC Object {
   bool Valid() const noexcept {
     return id != static_cast<size_t>(-1) && ptr != nullptr;
   }
+
+  TypeInfo* GetTypeInfo() const;
 
  private:
   size_t id;

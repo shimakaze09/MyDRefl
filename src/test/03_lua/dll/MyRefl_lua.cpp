@@ -47,10 +47,8 @@ int New(lua_State* L) {
 }
 
 int Delete(lua_State* L) {
-  auto pptypeinfo =
-      (MyDRefl::TypeInfo**)luaL_checkudata(L, 1, MetaName::TypeInfo);
-  auto obj = (MyDRefl::Object*)luaL_checkudata(L, 2, MetaName::Object);
-  (*pptypeinfo)->Delete(*obj);
+  auto obj = (MyDRefl::Object*)luaL_checkudata(L, 1, MetaName::Object);
+  MyDRefl::TypeInfo::Delete(*obj);
   return 0;
 }
 }  // namespace TypeInfo

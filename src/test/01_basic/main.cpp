@@ -177,5 +177,5 @@ int main() {
   cout << "contain info : " << type->attrs.Contains("info") << endl;
   cout << "info : " << type->attrs.Get<string>("info") << endl;
 
-  type->Delete(point);
+  TypeInfo::Delete(point);
 }

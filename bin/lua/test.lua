@@ -11,6 +11,6 @@ print("TypeInfo metatable name: " .. meta.__name)
 
 local type = MyDRefl_lua.TypeInfoMngr.GetTypeInfo(0)
 local point = MyDRefl_lua.TypeInfo.New(type)
-MyDRefl_lua.TypeInfo.Delete(type, point)
+MyDRefl_lua.TypeInfo.Delete(point)
 
 return MyDRefl_lua

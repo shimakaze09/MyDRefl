@@ -29,7 +29,7 @@ struct MYDREFL_DESC TypeInfo {
     return {ID, ptr};
   }
 
-  void Free(Object obj) const { free(obj.Pointer()); }
+  static void Free(Object obj) { free(obj.Pointer()); }
 
   // call Allocate and fields.DefaultConstruct
   Object New() {
@@ -46,10 +46,12 @@ struct MYDREFL_DESC TypeInfo {
   }
 
   // call Allocate and fields.DefaultConstruct
-  void Delete(Object obj) {
-    if (obj.Pointer() != nullptr)
-      fields.Destruct(obj);
-    Free(obj);
+  static void Delete(Object obj) {
+    if (obj.Pointer() != nullptr) {
+      auto type = obj.GetTypeInfo();
+      type->fields.Destruct(obj);
+      Free(obj);
+    }
   }
 
   TypeInfo(const TypeInfo&) = delete;
