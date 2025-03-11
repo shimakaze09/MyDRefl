@@ -18,6 +18,8 @@
 using namespace My::MyDRefl;
 using namespace std;
 
+// TODO : better API
+
 int main() {
   {  // register
     TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(0);

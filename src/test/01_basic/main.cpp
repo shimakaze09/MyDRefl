@@ -32,12 +32,12 @@ int main() {
     TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(0);
     type.size = 2 * sizeof(float);
     type.name = "struct Point";
-    type.attrs = {{"info", std::string("hello world")}};
+    type.attrs.data = {{"info", std::string("hello world")}};
     type.fields.data = {
-        {"x", {Var::Init<float>(0), AttrList{{"not_serialize", Attr{}}}}},
+        {"x", {Var::Init<float>(0), AttrList{{{"not_serialize", Attr{}}}}}},
         {"y",
          {Var::Init<float>(sizeof(float)),
-          AttrList{{"range", std::pair<float, float>{0.f, 10.f}}}}},
+          AttrList{{{"range", std::pair<float, float>{0.f, 10.f}}}}}},
         {"num",
          {
              StaticVar{static_cast<size_t>(0)}
@@ -96,7 +96,7 @@ int main() {
   // dump
   cout << type.name << endl;
 
-  for (const auto& [name, attr] : type.attrs) {
+  for (const auto& [name, attr] : type.attrs.data) {
     cout << name;
     if (attr.HasValue()) {
       cout << ": ";
@@ -155,7 +155,7 @@ int main() {
         field.value.data);
     cout << endl;
 
-    for (const auto& [name, attr] : field.attrs) {
+    for (const auto& [name, attr] : field.attrs.data) {
       cout << name;
       if (attr.HasValue()) {
         cout << " : ";
@@ -169,6 +169,10 @@ int main() {
       cout << endl;
     }
   }
+
+  // query attr
+  cout << "contain info : " << type.attrs.Contains("info") << endl;
+  cout << "info : " << type.attrs.Get<string>("info") << endl;
 
   type.Delete(point);
 }
