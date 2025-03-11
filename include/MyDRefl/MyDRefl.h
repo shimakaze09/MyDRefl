@@ -36,12 +36,7 @@ class Object {
   void* ptr;
 };
 
-struct Attr {
-  template <typename T>
-  Attr(T value) : value{value} {}
-
-  Attr() = default;
-
+struct AnyWrapper {
   std::any value;
 
   bool HasValue() const { return value.has_value(); }
@@ -64,8 +59,15 @@ struct Attr {
 
   template <typename T>
   const T& CastTo() const {
-    return const_cast<Attr*>(this)->CastTo<T>();
+    return const_cast<AnyWrapper*>(this)->CastTo<T>();
   }
+};
+
+struct Attr : AnyWrapper {
+  template <typename T>
+  Attr(T value) : AnyWrapper{value} {}
+
+  Attr() = default;
 };
 
 using AttrList = std::map<std::string, Attr, std::less<>>;
@@ -98,7 +100,7 @@ struct Field {
     }
   };
 
-  using StaticVar = std::any;
+  struct StaticVar : AnyWrapper {};
 
   struct Func {
     std::any data;
@@ -148,8 +150,9 @@ struct FieldList {
   T& Get(std::string_view name) {
     static_assert(!std::is_reference_v<T>);
     assert(data.count(name) == 1);
-    auto& v = std::get<Field::StaticVar>(data.find(name)->second.value);
-    return std::any_cast<T&>(v);
+    Field::StaticVar& v =
+        std::get<Field::StaticVar>(data.find(name)->second.value);
+    return v.CastTo<T>();
   }
 
   // static
