@@ -4,7 +4,9 @@ IF (MSVC)
 ENDIF ()
 
 ADD_TARGET(
-        MODE INTERFACE
+        MODE STATIC
+        SOURCE
+        "${PROJECT_SOURCE_DIR}/include/MyDRefl"
         INC
         "${PROJECT_SOURCE_DIR}/include"
         C_OPTION
