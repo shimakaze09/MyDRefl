@@ -10,6 +10,8 @@
 static constexpr size_t PointID = 0;
 //
 //struct [[info("hello world")]] Point {
+//  Point() : x{0.f}, y{0.f} {}
+//  Point(float x, float y) : x{0.f}, y{0.f} {}
 //	[[not_serialize]]
 //	float x;
 //	[[range(std::pair<float, float>{0.f, 10.f})]]
@@ -28,6 +30,7 @@ using namespace std;
 int main() {
   {  // register
     TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(PointID);
+    type.size = 2 * sizeof(float);
     type.name = "struct Point";
     type.attrs = {{"info", std::string("hello world")}};
     type.fields.data = {
@@ -44,18 +47,32 @@ int main() {
          }},
         {FieldList::default_constructor,
          {
-             Field::Func::Init([]() -> Object {
-               auto ptr = malloc(2 * sizeof(float));
-               cout << "construct Point @" << ptr << endl;
-               return {PointID, ptr};
+             Field::Func::Init([](Object obj) {
+               TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(obj.ID());
+               type.fields.Set("x", obj, 0.f);
+               type.fields.Set("y", obj, 0.f);
+               cout << "[ " << FieldList::default_constructor << " ] construct "
+                    << type.name << " @" << obj.Pointer() << endl;
+             })
+             // no attrs
+         }},
+        {"constructor",
+         {
+             Field::Func::Init([](Object obj, float x, float y) {
+               TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(obj.ID());
+               type.fields.Set("x", obj, x);
+               type.fields.Set("y", obj, y);
+               cout << "[ constructor ] construct " << type.name << " @"
+                    << obj.Pointer() << endl;
              })
              // no attrs
          }},
         {FieldList::destructor,
          {
              Field::Func::Init([](Object obj) {
-               cout << "destruct Point @" << obj.Pointer() << endl;
-               free(obj.Pointer());
+               TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(obj.ID());
+               cout << "[ " << FieldList::destructor << " ] destruct "
+                    << type.name << " @" << obj.Pointer() << endl;
              })
              // no attrs
          }},
@@ -72,11 +89,7 @@ int main() {
 
   TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(0);
 
-  auto point = type.fields.DefaultConstruct();
-
-  // set
-  type.fields.Set("x", point, 1.f);
-  type.fields.Set("y", point, 2.f);
+  auto point = type.New("constructor", 1.f, 2.f);
 
   // call func
   cout << "Sum : " << type.fields.Call<float, Object>("Sum", point) << endl;
@@ -133,5 +146,5 @@ int main() {
     }
   }
 
-  type.fields.Destruct(point);
+  type.Delete(point);
 }
