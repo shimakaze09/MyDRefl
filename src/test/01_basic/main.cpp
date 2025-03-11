@@ -15,6 +15,10 @@ static constexpr size_t PointID = 0;
 //	[[range(std::pair<float, float>{0.f, 10.f})]]
 //	float y;
 //  static size_t num{0};
+//
+//  float Sum() {
+//    return x + y;
+//  }
 //};
 //
 
@@ -27,11 +31,9 @@ int main() {
     type.name = "struct Point";
     type.attrs["info"].value = std::string("hello world");
 
-    Field& field_x = type.fields["x"];
-    Field& field_y = type.fields["y"];
-    Field& field_num = type.fields["num"];
-    Field& field_default_constructor = type.fields[Field::default_constructor];
-    Field& field_destructor = type.fields[Field::destructor];
+    Field field_x;
+    Field field_y;
+    Field field_num;
 
     field_x.value = Field::NonStaticVar::Init<float>(0);
     field_x.attrs["not_serialize"];
@@ -39,18 +41,27 @@ int main() {
     field_y.value = Field::NonStaticVar::Init<float>(sizeof(float));
     field_y.attrs["range"].value = std::pair<float, float>{0.f, 10.f};
 
-    field_num.value = Field::StaticVar{static_cast<size_t>(0)};
+    field_num.value = Field::StaticVar::Init<size_t>(0);
 
-    field_default_constructor.value =
-        Field::Funcs{std::function{[]() -> Object {
-          auto ptr = malloc(2 * sizeof(float));
-          cout << "construct Point @" << ptr << endl;
-          return {PointID, ptr};
-        }}};
-    field_destructor.value = Field::Funcs{std::function{[](Object obj) {
-      cout << "destruct Point @" << obj.Pointer() << endl;
-      free(obj.Pointer());
-    }}};
+    type.fields.emplace("x", move(field_x));
+    type.fields.emplace("y", move(field_y));
+    type.fields.emplace("num", move(field_num));
+
+    type.fields.emplace(Field::default_constructor,
+                        Field{Field::Func::Init([]() -> Object {
+                          auto ptr = malloc(2 * sizeof(float));
+                          cout << "construct Point @" << ptr << endl;
+                          return {PointID, ptr};
+                        })});
+    type.fields.emplace(Field::destructor,
+                        Field{Field::Func::Init([](Object obj) {
+                          cout << "destruct Point @" << obj.Pointer() << endl;
+                          free(obj.Pointer());
+                        })});
+    type.fields.emplace("Sum", Field{Field::Func::Init([](Object obj) -> float {
+                          return obj.Var<float>(0) +
+                                 obj.Var<float>(sizeof(float));
+                        })});
   }
 
   // ======================
@@ -60,8 +71,11 @@ int main() {
   auto point = type.DefaultConstruct();
 
   // set
-  get<Field::NonStaticVar>(type.fields["x"].value).set(point, 1.f);
-  get<Field::NonStaticVar>(type.fields["y"].value).set(point, 2.f);
+  get<Field::NonStaticVar>(type.fields.find("x")->second.value).set(point, 1.f);
+  get<Field::NonStaticVar>(type.fields.find("y")->second.value).set(point, 2.f);
+
+  // call func
+  cout << "Sum : " << type.Call<float, Object>("Sum", point) << endl;
 
   // dump
   cout << type.name << endl;
@@ -92,8 +106,8 @@ int main() {
         cout << "[NOT SUPPORT]";
     } else if (auto pV = get_if<Field::StaticVar>(&field.value)) {
       cout << ": ";
-      if (pV->type() == typeid(size_t))
-        cout << any_cast<size_t>(*pV);
+      if (pV->data.type() == typeid(size_t))
+        cout << any_cast<size_t>(pV->data);
       else
         cout << "[NOT SUPPORT]";
     }
