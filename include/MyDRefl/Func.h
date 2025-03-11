@@ -10,7 +10,7 @@
 #include <functional>
 
 namespace My::MyDRefl {
-struct Func {
+struct MYDREFL_DESC Func {
   std::function<AnyWrapper(ArgList)> func;
   FuncSig signature;
 

@@ -7,7 +7,7 @@
 #include "FieldList.h"
 
 namespace My::MyDRefl {
-struct TypeInfo {
+struct MYDREFL_DESC TypeInfo {
   TypeInfo(size_t ID) : ID{ID} {}
 
   const size_t ID;

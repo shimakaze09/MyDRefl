@@ -4,7 +4,12 @@
 
 #include <lua.hpp>
 
+#include "point.h"
+
 int main() {
+  My::Point_init();
+  My::Point_test();
+
   char buff[256];
   int error;
   lua_State* L = luaL_newstate(); /* opens Lua */

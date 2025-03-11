@@ -9,7 +9,7 @@
 
 namespace My::MyDRefl {
 // TODO : compact
-class ArgList {
+class MYDREFL_DESC ArgList {
  public:
   template <typename... Args>
   ArgList(Args... args) {

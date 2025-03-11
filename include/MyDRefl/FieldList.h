@@ -9,7 +9,7 @@
 #include <map>
 
 namespace My::MyDRefl {
-struct FieldList {
+struct MYDREFL_DESC FieldList {
   static constexpr const char default_constructor[] = "__default_constructor";
   static constexpr const char copy_constructor[] = "__copy_constructor";
   static constexpr const char move_constructor[] = "__move_constructor";

@@ -11,7 +11,7 @@
 #include <string>
 
 namespace My::MyDRefl {
-struct AttrList {
+struct MYDREFL_DESC AttrList {
   std::map<std::string, Attr, std::less<>> data;
 
   bool Contains(std::string_view name) const {

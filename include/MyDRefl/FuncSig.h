@@ -4,12 +4,14 @@
 
 #pragma once
 
+#include "Export.h"
+
 #include <typeinfo>
 #include <utility>
 #include <vector>
 
 namespace My::MyDRefl {
-class FuncSig {
+class MYDREFL_DESC FuncSig {
  public:
   template <typename... Hashcodes>  // size_t
   FuncSig(Hashcodes... hashcodes) : argHashcodes{hashcodes...} {}

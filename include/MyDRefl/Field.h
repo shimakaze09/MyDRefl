@@ -11,7 +11,7 @@
 #include "VariantWrapper.h"
 
 namespace My::MyDRefl {
-struct Field {
+struct MYDREFL_DESC Field {
   VariantWrapper<Var, StaticVar, Func> value;
   AttrList attrs;
 

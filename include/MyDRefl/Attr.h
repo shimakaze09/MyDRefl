@@ -7,7 +7,7 @@
 #include "AnyWrapper.h"
 
 namespace My::MyDRefl {
-struct Attr : AnyWrapper {
+struct MYDREFL_DESC Attr : AnyWrapper {
   using AnyWrapper::AnyWrapper;
 };
 }  // namespace My::MyDRefl

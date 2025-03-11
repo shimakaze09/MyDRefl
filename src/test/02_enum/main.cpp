@@ -22,10 +22,10 @@ using namespace std;
 
 int main() {
   {  // register
-    TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(0);
-    type.size = sizeof(int);
-    type.name = "enum Color";
-    type.fields.data = {
+    TypeInfo* type = TypeInfoMngr::Instance().GetTypeInfo(0);
+    type->size = sizeof(int);
+    type->name = "enum Color";
+    type->fields.data = {
         {FieldList::enum_value,
          {
              Var::Init<int>(0)
@@ -46,19 +46,19 @@ int main() {
         {FieldList::default_constructor,
          {
              Func{[](Object obj) {
-               TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(obj.ID());
-               type.fields.Set(FieldList::enum_value, obj, 0);
+               TypeInfo* type = TypeInfoMngr::Instance().GetTypeInfo(obj.ID());
+               type->fields.Set(FieldList::enum_value, obj, 0);
                cout << "[ " << FieldList::default_constructor << " ] construct "
-                    << type.name << " @" << obj.Pointer() << endl;
+                    << type->name << " @" << obj.Pointer() << endl;
              }}
              // no attrs
          }},
         {"constructor",
          {
              Func{[](Object obj, int v) {
-               TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(obj.ID());
-               type.fields.Set(FieldList::enum_value, obj, v);
-               cout << "[ constructor ] construct " << type.name << " @"
+               TypeInfo* type = TypeInfoMngr::Instance().GetTypeInfo(obj.ID());
+               type->fields.Set(FieldList::enum_value, obj, v);
+               cout << "[ constructor ] construct " << type->name << " @"
                     << obj.Pointer() << endl;
              }}
              // no attrs
@@ -66,9 +66,9 @@ int main() {
         {FieldList::destructor,
          {
              Func{[](Object obj) {
-               TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(obj.ID());
+               TypeInfo* type = TypeInfoMngr::Instance().GetTypeInfo(obj.ID());
                cout << "[ " << FieldList::destructor << " ] destruct "
-                    << type.name << " @" << obj.Pointer() << endl;
+                    << type->name << " @" << obj.Pointer() << endl;
              }}
              // no attrs
          }}};
@@ -76,14 +76,14 @@ int main() {
 
   // ======================
 
-  TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(0);
+  TypeInfo* type = TypeInfoMngr::Instance().GetTypeInfo(0);
 
-  auto color = type.New("constructor", 1);
+  auto color = type->New("constructor", 1);
 
   // dump
-  cout << type.name << endl;
+  cout << type->name << endl;
 
-  for (const auto& [name, field] : type.fields.data) {
+  for (const auto& [name, field] : type->fields.data) {
     cout << name;
     /*
 		if (auto pV = field.value.CastIf<Var>()) {
@@ -133,10 +133,10 @@ int main() {
   // string <-> value
   std::string_view str = "RED";
   int value = 1;
-  cout << str << " : " << type.fields.Get<int>(str) << endl;
-  auto [name, field] = type.fields.FindStaticField(value);
+  cout << str << " : " << type->fields.Get<int>(str) << endl;
+  auto [name, field] = type->fields.FindStaticField(value);
   assert(field != nullptr);
   cout << value << " : " << name << endl;
 
-  type.Delete(color);
+  type->Delete(color);
 }

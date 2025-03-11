@@ -11,7 +11,7 @@
 #include <functional>
 
 namespace My::MyDRefl {
-struct Var {
+struct MYDREFL_DESC Var {
   std::any getter;
 
   template <typename T>

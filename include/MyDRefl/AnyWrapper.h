@@ -4,11 +4,13 @@
 
 #pragma once
 
+#include "Export.h"
+
 #include <any>
 #include <cassert>
 
 namespace My::MyDRefl {
-struct AnyWrapper {
+struct MYDREFL_DESC AnyWrapper {
   template <typename T>
   AnyWrapper(T data) : data{data} {}
 

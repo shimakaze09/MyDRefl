@@ -7,7 +7,7 @@
 #include "AnyWrapper.h"
 
 namespace My::MyDRefl {
-struct StaticVar : AnyWrapper {
+struct MYDREFL_DESC StaticVar : AnyWrapper {
   using AnyWrapper::AnyWrapper;
 };
 }  // namespace My::MyDRefl

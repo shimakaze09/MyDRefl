@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include "Export.h"
+
 #include <cstdint>
 
 namespace My::MyDRefl {
-class Object {
+class MYDREFL_DESC Object {
  public:
   Object(size_t id, void* ptr) noexcept : id{id}, ptr{ptr} {}
 
