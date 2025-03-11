@@ -40,11 +40,11 @@ using Attr = std::any;
 using AttrList = std::map<std::string, Attr, std::less<>>;
 
 struct Field {
-  struct NonStaticVar {
+  struct Var {
     std::any getter;
 
     template <typename T>
-    static NonStaticVar Init(size_t offset) {
+    static Var Init(size_t offset) {
       return {std::function{[=](Object obj) -> T& {
         return obj.Var<T>(offset);
       }}};
@@ -91,7 +91,7 @@ struct Field {
     }
   };
 
-  using Value = std::variant<NonStaticVar, StaticVar, Func>;
+  using Value = std::variant<Var, StaticVar, Func>;
 
   Value value;
   AttrList attrs;
@@ -130,7 +130,7 @@ struct FieldList {
   template <typename T>
   T& Get(std::string_view name, Object obj) const {
     assert(data.count(name) == 1);
-    auto& v = std::get<Field::NonStaticVar>(data.find(name)->second.value);
+    auto& v = std::get<Field::Var>(data.find(name)->second.value);
     return v.Get<T>(obj);
   }
 
