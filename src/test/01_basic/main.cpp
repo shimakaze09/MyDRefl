@@ -29,39 +29,43 @@ int main() {
   {  // register
     TypeInfo& type = TypeInfoMngr::Instance().GetTypeInfo(PointID);
     type.name = "struct Point";
-    type.attrs["info"].value = std::string("hello world");
-
-    Field field_x;
-    Field field_y;
-    Field field_num;
-
-    field_x.value = Field::NonStaticVar::Init<float>(0);
-    field_x.attrs["not_serialize"];
-
-    field_y.value = Field::NonStaticVar::Init<float>(sizeof(float));
-    field_y.attrs["range"].value = std::pair<float, float>{0.f, 10.f};
-
-    field_num.value = Field::StaticVar::Init<size_t>(0);
-
-    type.fields.emplace("x", move(field_x));
-    type.fields.emplace("y", move(field_y));
-    type.fields.emplace("num", move(field_num));
-
-    type.fields.emplace(Field::default_constructor,
-                        Field{Field::Func::Init([]() -> Object {
-                          auto ptr = malloc(2 * sizeof(float));
-                          cout << "construct Point @" << ptr << endl;
-                          return {PointID, ptr};
-                        })});
-    type.fields.emplace(Field::destructor,
-                        Field{Field::Func::Init([](Object obj) {
-                          cout << "destruct Point @" << obj.Pointer() << endl;
-                          free(obj.Pointer());
-                        })});
-    type.fields.emplace("Sum", Field{Field::Func::Init([](Object obj) -> float {
-                          return obj.Var<float>(0) +
-                                 obj.Var<float>(sizeof(float));
-                        })});
+    type.attrs = {{"info", std::string("hello world")}};
+    type.fields.data = {
+        {"x",
+         {Field::NonStaticVar::Init<float>(0),
+          AttrList{{"not_serialize", Attr{}}}}},
+        {"y",
+         {Field::NonStaticVar::Init<float>(sizeof(float)),
+          AttrList{{"range", std::pair<float, float>{0.f, 10.f}}}}},
+        {"num",
+         {
+             Field::StaticVar::Init<size_t>(0)
+             // no attrs
+         }},
+        {TypeInfo::InternalField::default_constructor,
+         {
+             Field::Func::Init([]() -> Object {
+               auto ptr = malloc(2 * sizeof(float));
+               cout << "construct Point @" << ptr << endl;
+               return {PointID, ptr};
+             })
+             // no attrs
+         }},
+        {TypeInfo::InternalField::destructor,
+         {
+             Field::Func::Init([](Object obj) {
+               cout << "destruct Point @" << obj.Pointer() << endl;
+               free(obj.Pointer());
+             })
+             // no attrs
+         }},
+        {"Sum",
+         {
+             Field::Func::Init([](Object obj) -> float {
+               return obj.Var<float>(0) + obj.Var<float>(sizeof(float));
+             })
+             // no attrs
+         }}};
   }
 
   // ======================
@@ -71,23 +75,23 @@ int main() {
   auto point = type.DefaultConstruct();
 
   // set
-  get<Field::NonStaticVar>(type.fields.find("x")->second.value).set(point, 1.f);
-  get<Field::NonStaticVar>(type.fields.find("y")->second.value).set(point, 2.f);
+  type.fields.Set("x", point, 1.f);
+  type.fields.Set("y", point, 2.f);
 
   // call func
-  cout << "Sum : " << type.Call<float, Object>("Sum", point) << endl;
+  cout << "Sum : " << type.fields.Call<float, Object>("Sum", point) << endl;
 
   // dump
   cout << type.name << endl;
 
-  for (const auto& [name, attr] : type.attrs) {
+  for (const auto& [name, value] : type.attrs) {
     cout << name;
-    if (attr.value.has_value()) {
+    if (value.has_value()) {
       cout << ": ";
-      if (attr.value.type() == typeid(string))
-        cout << any_cast<string>(attr.value);
-      else if (attr.value.type() == typeid(std::pair<float, float>)) {
-        auto r = any_cast<std::pair<float, float>>(attr.value);
+      if (value.type() == typeid(string))
+        cout << any_cast<string>(value);
+      else if (value.type() == typeid(std::pair<float, float>)) {
+        auto r = any_cast<std::pair<float, float>>(value);
         cout << r.first << " - " << r.second;
       } else
         cout << "[NOT SUPPORT]";
@@ -95,7 +99,7 @@ int main() {
     cout << endl;
   }
 
-  for (const auto& [name, field] : type.fields) {
+  for (const auto& [name, field] : type.fields.data) {
     cout << name;
     if (auto pV = get_if<Field::NonStaticVar>(&field.value)) {
       cout << ": ";
@@ -113,14 +117,14 @@ int main() {
     }
     cout << endl;
 
-    for (const auto& [name, attr] : field.attrs) {
+    for (const auto& [name, value] : field.attrs) {
       cout << name;
-      if (attr.value.has_value()) {
+      if (value.has_value()) {
         cout << ": ";
-        if (attr.value.type() == typeid(string))
-          cout << any_cast<string>(attr.value);
-        else if (attr.value.type() == typeid(std::pair<float, float>)) {
-          auto r = any_cast<std::pair<float, float>>(attr.value);
+        if (value.type() == typeid(string))
+          cout << any_cast<string>(value);
+        else if (value.type() == typeid(std::pair<float, float>)) {
+          auto r = any_cast<std::pair<float, float>>(value);
           cout << r.first << " - " << r.second;
         } else
           cout << "[NOT SUPPORT]";
