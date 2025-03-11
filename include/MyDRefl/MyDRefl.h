@@ -25,6 +25,7 @@ class Object {
 
   size_t ID() { return id; }
 
+  // non-static
   template <typename T>
   T& Var(size_t offset) {
     return *reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(ptr) + offset);
@@ -43,6 +44,9 @@ using AttrList = std::map<std::string, Attr, std::less<>>;
 
 struct Field {
   struct NonStaticVar {
+    std::function<std::any(Object)> get;
+    std::function<void(Object, std::any)> set;
+
     template <typename T>
     static NonStaticVar Init(size_t offset) {
       return {std::function{[=](Object obj) -> std::any {
@@ -52,16 +56,9 @@ struct Field {
                 obj.Var<T>(offset) = std::any_cast<T>(value);
               }}};
     }
-
-    std::function<std::any(Object)> get;
-    std::function<void(Object, std::any)> set;
   };
 
-  struct StaticVar {
-    std::function<std::any()> get;
-    std::function<void(std::any)> set;
-  };
-
+  using StaticVar = std::any;
   using Funcs = std::vector<std::any>;
   using Value = std::variant<NonStaticVar, StaticVar, Funcs>;
 
