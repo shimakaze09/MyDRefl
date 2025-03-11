@@ -92,6 +92,8 @@ int main() {
 
   // call func
   cout << "Sum : " << type.fields.Call<float, Object>("Sum", point) << endl;
+  cout << "Sum : " << type.fields.Call("Sum", ArgList{point}).Cast<float>()
+       << endl;
 
   // dump
   cout << type.name << endl;
