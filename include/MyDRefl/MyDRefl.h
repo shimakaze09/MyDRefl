@@ -226,6 +226,11 @@ struct TypeInfo {
       fields.Destruct(obj);
     Free(obj);
   }
+
+  TypeInfo(const TypeInfo&) = delete;
+  TypeInfo(TypeInfo&&) = delete;
+  TypeInfo& operator==(const TypeInfo&) = delete;
+  TypeInfo& operator==(TypeInfo&&) = delete;
 };
 
 class TypeInfoMngr {
