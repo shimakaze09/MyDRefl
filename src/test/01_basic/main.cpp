@@ -30,7 +30,8 @@ int main() {
                          {// attrs
                           {ID_MyInspector_range, std::pair{0.f, 10.f}}}};
     FieldInfo fieldinfoY{ptrY};
-    TypeInfo typeinfo{{// fields
+    TypeInfo typeinfo{{},  // attrs
+                      {    // fields
                        {ID_x, fieldinfoX},
                        {ID_y, fieldinfoY}}};
     TypeInfoMngr::Instance().typeinfos.emplace(ID_Point, std::move(typeinfo));

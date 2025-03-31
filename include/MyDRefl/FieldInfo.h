@@ -3,15 +3,20 @@
 //
 
 #pragma once
- 
- #include "FieldPtr.h"
- 
- #include <unordered_map>
- #include <any>
- 
- namespace My::MyDRefl {
- struct FieldInfo {
-   FieldPtr fieldptr;
-   std::unordered_map<size_t, std::any> attrs;
- };
- }
+
+#include "FieldPtr.h"
+
+#include <any>
+#include <unordered_map>
+
+namespace My::MyDRefl {
+struct FieldInfo {
+  FieldPtr fieldptr;
+  std::unordered_map<size_t, std::any> attrs;
+};
+
+struct StaticFieldInfo {
+  ObjectPtr objptr;
+  std::unordered_map<size_t, std::any> attrs;
+};
+}  // namespace My::MyDRefl

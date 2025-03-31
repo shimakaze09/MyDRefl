@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cassert>
+
 namespace My::MyDRefl {
 class ConstObjectPtr {
  public:
@@ -27,6 +29,7 @@ class ConstObjectPtr {
 
   template <typename T>
   const T& As() const noexcept {
+    assert(*this);
     return *AsPtr<T>();
   }
 
@@ -66,6 +69,7 @@ class ObjectPtr {
 
   template <typename T>
   T& As() const noexcept {
+    assert(*this);
     return *AsPtr<T>();
   }
 
