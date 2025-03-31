@@ -4,56 +4,81 @@
 
 #pragma once
 
-#include "Export.h"
-
-#include <cstdint>
-
 namespace My::MyDRefl {
-struct TypeInfo;
-
-class MYDREFL_DESC Object {
+class ConstObjectPtr {
  public:
-  Object(size_t id, void* ptr) noexcept : id{id}, ptr{ptr} {}
+  constexpr ConstObjectPtr() noexcept
+      : ID{static_cast<size_t>(-1)}, ptr{nullptr} {}
 
-  Object() noexcept : id{static_cast<size_t>(-1)}, ptr{nullptr} {}
+  constexpr ConstObjectPtr(std::nullptr_t) noexcept : ConstObjectPtr{} {}
 
-  void* Pointer() noexcept { return ptr; }
+  template <typename T>
+  constexpr ConstObjectPtr(size_t ID, const T* ptr) noexcept
+      : ID{ID}, ptr{ptr} {}
 
-  const void* Pointer() const noexcept {
-    return const_cast<Object*>(this)->Pointer();
+  size_t GetID() const noexcept { return ID; }
+
+  const void* GetPtr() const noexcept { return ptr; }
+
+  template <typename T>
+  T* AsPtr() const noexcept {
+    return reinterpret_cast<const T*>(ptr);
   }
 
   template <typename T>
-  T* As() noexcept {
+  const T& As() const noexcept {
+    return *AsPtr<T>();
+  }
+
+  constexpr void Reset() noexcept { *this = ConstObjectPtr{}; }
+
+  constexpr operator bool() const noexcept { return ptr != nullptr; }
+
+  ConstObjectPtr& operator=(std::nullptr_t) noexcept { Reset(); }
+
+ private:
+  size_t ID;
+  const void* ptr;
+};
+
+class ObjectPtr {
+ public:
+  constexpr ObjectPtr() noexcept : ID{static_cast<size_t>(-1)}, ptr{nullptr} {}
+
+  constexpr ObjectPtr(std::nullptr_t) noexcept : ObjectPtr{} {}
+
+  template <typename T>
+  constexpr ObjectPtr(size_t ID, T* ptr) noexcept : ID{ID}, ptr{ptr} {}
+
+  size_t GetID() const noexcept { return ID; }
+
+  void* GetPtr() const noexcept { return ptr; }
+
+  template <typename T>
+  T* GetPtr() const noexcept {
+    return ptr;
+  }
+
+  template <typename T>
+  T* AsPtr() const noexcept {
     return reinterpret_cast<T*>(ptr);
   }
 
   template <typename T>
-  const T* As() const noexcept {
-    return const_cast<Object*>(this)->As<T>();
+  T& As() const noexcept {
+    return *AsPtr<T>();
   }
 
-  const size_t& ID() const noexcept { return id; }
+  constexpr void Reset() noexcept { *this = ObjectPtr{}; }
 
-  // non-static
-  template <typename T>
-  T& Var(size_t offset) noexcept {
-    return *reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(ptr) + offset);
-  }
+  constexpr operator bool() const noexcept { return ptr != nullptr; }
 
-  template <typename T>
-  const T& Var(size_t offset) const noexcept {
-    return const_cast<Object*>(this)->Var<T>(offset);
-  }
+  constexpr operator ConstObjectPtr() const noexcept { return {ID, ptr}; }
 
-  bool Valid() const noexcept {
-    return id != static_cast<size_t>(-1) && ptr != nullptr;
-  }
-
-  TypeInfo* GetTypeInfo() const;
+  ConstObjectPtr& operator=(std::nullptr_t) noexcept { Reset(); }
 
  private:
-  size_t id;
+  size_t ID;
   void* ptr;
 };
 }  // namespace My::MyDRefl
