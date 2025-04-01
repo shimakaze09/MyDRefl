@@ -9,6 +9,7 @@
 
 namespace My::MyDRefl {
 using OffsetFunction = const void*(const void*) noexcept;
+using Destructor = void(void*);
 
 struct has_virtual_base_void {};
 
@@ -113,6 +114,21 @@ constexpr InheritCastFunctions inherit_cast_functions() noexcept {
       return {static_cast_functor<Derived, Base>(),
               static_cast_functor<Base, Derived>(), nullptr};
     }
+  }
+}
+
+template <typename T>
+constexpr Destructor* destructor() noexcept {
+  if constexpr (std::is_fundamental_v<T> || std::is_compound_v<T>)
+    return nullptr;
+  else {
+    static_assert(std::is_destructible_v<T>);
+    if constexpr (!std::is_trivially_destructible_v<T>) {
+      return [](void* ptr) {
+        reinterpret_cast<T*>(ptr)->~T();
+      };
+    } else
+      return nullptr;
   }
 }
 

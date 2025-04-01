@@ -81,11 +81,12 @@ class ReflMngr {
                    Span<size_t> argTypeIDs) const noexcept;
 
   InvokeResult Invoke(size_t typeID, size_t methodID, Span<size_t> argTypeIDs,
-                      void* buffer) const;
+                      void* args_buffer, void* result_buffer) const;
   InvokeResult Invoke(ConstObjectPtr obj, size_t methodID,
-                      Span<size_t> argTypeIDs, void* buffer) const;
+                      Span<size_t> argTypeIDs, void* args_buffer,
+                      void* result_buffer) const;
   InvokeResult Invoke(ObjectPtr obj, size_t methodID, Span<size_t> argTypeIDs,
-                      void* buffer) const;
+                      void* args_buffer, void* result_buffer) const;
 
  private:
   ReflMngr() = default;
