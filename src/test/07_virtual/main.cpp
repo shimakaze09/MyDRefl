@@ -36,31 +36,32 @@ int main() {
   size_t ID_d = ReflMngr::Instance().registry.Register("d");
   size_t ID_float = ReflMngr::Instance().registry.Register("float");
 
-  {  // register
-    TypeInfo typeinfo_A{
-        {},                                     // attrs
-        {{ID_a, {{ID_float, offsetof(A, a)}}}}  // fieldinfos
-    };
+  {                      // register
+    TypeInfo typeinfo_A{{// fieldinfos
+                         {ID_a, {{ID_float, offsetof(A, a)}}}}};
     TypeInfo typeinfo_B{
-        {},                                                      // attrs
-        {{ID_b, {{ID_float, field_offset_function<&B::b>()}}}},  // fieldinfos
-        {},                                                      // methodinfos
-        {{ID_A, BaseInfo::Make<B, A>()}},                        // baseinfos
+        {// fieldinfos
+         {ID_b, {{ID_float, field_offset_function<&B::b>()}}}},
+        {},  // methodinfos
+        {    // baseinfos
+         {ID_A, BaseInfo::Make<B, A>()}},
     };
     TypeInfo typeinfo_C{
-        {},                                                      // attrs
-        {{ID_c, {{ID_float, field_offset_function<&C::c>()}}}},  // fieldinfos
-        {},                                                      // methodinfos
-        {{ID_A, BaseInfo::Make<C, A>()}},                        // baseinfos
+        {// fieldinfos
+         {ID_c, {{ID_float, field_offset_function<&C::c>()}}}},
+        {},  // methodinfos
+        {    // baseinfos
+         {ID_A, BaseInfo::Make<C, A>()}},
     };
     TypeInfo typeinfo_D{
-        {},                                                      // attrs
-        {{ID_d, {{ID_float, field_offset_function<&D::d>()}}}},  // fieldinfos
-        {},                                                      // methodinfos
+        {// fieldinfos
+         {ID_d, {{ID_float, field_offset_function<&D::d>()}}}},
+        {},  // methodinfos
         {
+            //baseinfos
             {ID_B, BaseInfo::Make<D, B>()},
             {ID_C, BaseInfo::Make<D, C>()},
-        },  //baseinfos
+        },
     };
 
     ReflMngr::Instance().typeinfos.emplace(ID_A, std::move(typeinfo_A));

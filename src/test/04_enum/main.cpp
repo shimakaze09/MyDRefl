@@ -21,9 +21,9 @@ int main() {
     EnumeratorInfo einfo_RED{Color::RED};
     EnumeratorInfo einfo_GREEN{Color::GREEN};
     EnumeratorInfo einfo_BLUE{Color::BLUE};
-    EnumInfo enuminfo{{},  // attrs
-                      Enumerator::UnderlyingTypeOf<Color>(),
+    EnumInfo enuminfo{Enumerator::UnderlyingTypeOf<Color>(),
                       {
+                          // enumerators
                           {ID_RED, einfo_RED},
                           {ID_GREEN, einfo_GREEN},
                           {ID_BLUE, einfo_BLUE},

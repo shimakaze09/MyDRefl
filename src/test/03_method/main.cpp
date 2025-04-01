@@ -80,8 +80,7 @@ int main() {
     MethodInfo methodinfo_Norm2{method_Norm2};
 
     TypeInfo typeinfo{
-        {},  // attrs
-        {    // fields
+        {// fields
          {ID_x, fieldinfo_x},
          {ID_y, fieldinfo_y}},
         {// methods

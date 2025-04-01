@@ -36,32 +36,27 @@ int main() {
   size_t ID_d = ReflMngr::Instance().registry.Register("d");
   size_t ID_float = ReflMngr::Instance().registry.Register("float");
 
-  {  // register
-    TypeInfo typeinfo_A{
-        {},                                     // attrs
-        {{ID_a, {{ID_float, offsetof(A, a)}}}}  // fieldinfos
-    };
-    TypeInfo typeinfo_B{
-        {},                                         // attrs
-        {{ID_b, {{ID_float, offsetof(B, b)}}}},     // fieldinfos
-        {},                                         // methodinfos
-        {{ID_A, {inherit_cast_functions<B, A>()}}}  //baseinfos
-    };
-    TypeInfo typeinfo_C{
-        {},                                         // attrs
-        {{ID_c, {{ID_float, offsetof(C, c)}}}},     // fieldinfos
-        {},                                         // methodinfos
-        {{ID_A, {inherit_cast_functions<C, A>()}}}  //baseinfos
-    };
-    TypeInfo typeinfo_D{
-        {},                                      // attrs
-        {{ID_d, {{ID_float, offsetof(D, d)}}}},  // fieldinfos
-        {},                                      // methodinfos
-        {
-            {ID_B, {inherit_cast_functions<D, B>()}},
-            {ID_C, {inherit_cast_functions<D, C>()}},
-        }  //baseinfos
-    };
+  {                      // register
+    TypeInfo typeinfo_A{{// fieldinfos
+                         {ID_a, {{ID_float, offsetof(A, a)}}}}};
+    TypeInfo typeinfo_B{{// fieldinfos
+                         {ID_b, {{ID_float, offsetof(B, b)}}}},
+                        {},  // methodinfos
+                        {    //baseinfos
+                         {ID_A, {inherit_cast_functions<B, A>()}}}};
+    TypeInfo typeinfo_C{{// fieldinfos
+                         {ID_c, {{ID_float, offsetof(C, c)}}}},
+                        {},  // methodinfos
+                        {    //baseinfos
+                         {ID_A, {inherit_cast_functions<C, A>()}}}};
+    TypeInfo typeinfo_D{{// fieldinfos
+                         {ID_d, {{ID_float, offsetof(D, d)}}}},
+                        {},  // methodinfos
+                        {
+                            //baseinfos
+                            {ID_B, {inherit_cast_functions<D, B>()}},
+                            {ID_C, {inherit_cast_functions<D, C>()}},
+                        }};
 
     ReflMngr::Instance().typeinfos.emplace(ID_A, std::move(typeinfo_A));
     ReflMngr::Instance().typeinfos.emplace(ID_B, std::move(typeinfo_B));

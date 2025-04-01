@@ -9,7 +9,6 @@
 using namespace My::MyDRefl;
 
 struct Point {
-  [[MyInspector::range(std::pair{0.f, 10.f})]]
   float x;
   float y;
 };
@@ -19,16 +18,9 @@ int main() {
   size_t ID_float = ReflMngr::Instance().registry.Register("float");
   size_t ID_x = ReflMngr::Instance().registry.Register("x");
   size_t ID_y = ReflMngr::Instance().registry.Register("y");
-  size_t ID_MyInspector_range =
-      ReflMngr::Instance().registry.Register("MyInspector_range");
 
-  {                        // register Point
-    TypeInfo typeinfo{{},  // attrs
-                      {    // fields
-                       {ID_x,
-                        {{ID_float, offsetof(Point, x)},
-                         {// attrs
-                          {ID_MyInspector_range, std::pair{0.f, 10.f}}}}},
+  {  // register Point
+    TypeInfo typeinfo{{{ID_x, {{ID_float, offsetof(Point, x)}}},
                        {ID_y, {{ID_float, offsetof(Point, y)}}}}};
     ReflMngr::Instance().typeinfos.emplace(ID_Point, std::move(typeinfo));
   }
@@ -41,14 +33,6 @@ int main() {
   ReflMngr::Instance().ForEachRField(
       ptr, [](size_t typeID, const TypeInfo& typeinfo, size_t fieldID,
               const FieldInfo& fieldinfo, ConstObjectPtr field) {
-        for (const auto& [attrID, attr] : fieldinfo.attrs) {
-          if (attrID ==
-              ReflMngr::Instance().registry.GetID("MyInspector_range")) {
-            auto range = std::any_cast<std::pair<float, float>>(attr);
-            std::cout << "[MyInspector_range]" << " " << range.first << ", "
-                      << range.second << std::endl;
-          }
-        }
         std::cout << ReflMngr::Instance().registry.Nameof(fieldID) << ": "
                   << field.As<float>() << std::endl;
       });
