@@ -44,19 +44,19 @@ int main() {
                          {ID_b, {{ID_float, offsetof(B, b)}}}},
                         {},  // methodinfos
                         {    //baseinfos
-                         {ID_A, {inherit_cast_functions<B, A>()}}}};
+                         {ID_A, {MakeBaseInfo<B, A>()}}}};
     TypeInfo typeinfo_C{{// fieldinfos
                          {ID_c, {{ID_float, offsetof(C, c)}}}},
                         {},  // methodinfos
                         {    //baseinfos
-                         {ID_A, {inherit_cast_functions<C, A>()}}}};
+                         {ID_A, {MakeBaseInfo<C, A>()}}}};
     TypeInfo typeinfo_D{{// fieldinfos
                          {ID_d, {{ID_float, offsetof(D, d)}}}},
                         {},  // methodinfos
                         {
                             //baseinfos
-                            {ID_B, {inherit_cast_functions<D, B>()}},
-                            {ID_C, {inherit_cast_functions<D, C>()}},
+                            {ID_B, {MakeBaseInfo<D, B>()}},
+                            {ID_C, {MakeBaseInfo<D, C>()}},
                         }};
 
     ReflMngr::Instance().typeinfos.emplace(ID_A, std::move(typeinfo_A));

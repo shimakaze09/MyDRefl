@@ -160,5 +160,3 @@ class FieldPtr {
   };
 };
 }  // namespace My::MyDRefl
-
-#include "details/FieldPtr.inl"

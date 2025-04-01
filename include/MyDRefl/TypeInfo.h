@@ -17,7 +17,7 @@ struct TypeInfo {
   std::unordered_map<NameID, FieldInfo> fieldinfos;
   std::unordered_multimap<NameID, MethodInfo> methodinfos;
   std::unordered_map<TypeID, BaseInfo> baseinfos;
-  std::unordered_map<TypeID, std::any> attrs;
+  std::unordered_map<TypeID, Attr> attrs;
 
   //
   // Field

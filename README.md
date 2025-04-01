@@ -84,3 +84,4 @@ y: 2
 - [x] attr
 - [ ] life cycle (ctor, dtor, copy, etc.)
 - [ ] global
+- [ ] MySRefl

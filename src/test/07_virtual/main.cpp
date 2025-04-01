@@ -45,14 +45,14 @@ int main() {
          {ID_b, {{ID_float, field_offset_function<&B::b>()}}}},
         {},  // methodinfos
         {    // baseinfos
-         {ID_A, BaseInfo::Make<B, A>()}},
+         {ID_A, MakeBaseInfo<B, A>()}},
     };
     TypeInfo typeinfo_C{
         {// fieldinfos
          {ID_c, {{ID_float, field_offset_function<&C::c>()}}}},
         {},  // methodinfos
         {    // baseinfos
-         {ID_A, BaseInfo::Make<C, A>()}},
+         {ID_A, MakeBaseInfo<C, A>()}},
     };
     TypeInfo typeinfo_D{
         {// fieldinfos
@@ -60,8 +60,8 @@ int main() {
         {},  // methodinfos
         {
             //baseinfos
-            {ID_B, BaseInfo::Make<D, B>()},
-            {ID_C, BaseInfo::Make<D, C>()},
+            {ID_B, MakeBaseInfo<D, B>()},
+            {ID_C, MakeBaseInfo<D, C>()},
         },
     };
 
