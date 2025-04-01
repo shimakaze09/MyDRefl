@@ -23,7 +23,7 @@ class ConstObjectPtr {
   const void* GetPtr() const noexcept { return ptr; }
 
   template <typename T>
-  T* AsPtr() const noexcept {
+  const T* AsPtr() const noexcept {
     return reinterpret_cast<const T*>(ptr);
   }
 
