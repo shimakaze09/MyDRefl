@@ -8,6 +8,8 @@ INIT_MYCMAKE()
 
 INIT_PROJECT()
 
+ADD_DEP(MyContainer 0.0.9)
+
 ADD_SUB_DIRS_REC(include)
 ADD_SUB_DIRS_REC(src)
 

@@ -10,5 +10,5 @@
 #include "MethodInfo.h"
 #include "NameRegistry.h"
 #include "Object.h"
+#include "ReflMngr.h"
 #include "TypeInfo.h"
-#include "TypeInfoMngr.h"

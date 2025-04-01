@@ -11,4 +11,6 @@ ADD_TARGET(
         "${PROJECT_SOURCE_DIR}/include"
         C_OPTION
         ${c_options}
+        LIB
+        My::MyContainer_core
 )

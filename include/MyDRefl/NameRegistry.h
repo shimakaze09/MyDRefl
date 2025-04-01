@@ -11,11 +11,6 @@
 namespace My::MyDRefl {
 class NameRegistry {
  public:
-  static NameRegistry& Instance() noexcept {
-    static NameRegistry instance;
-    return instance;
-  }
-
   size_t Register(std::string_view name);
   size_t GetID(std::string_view name) const noexcept;
 

@@ -6,6 +6,8 @@
 
 #include "Object.h"
 
+#include <MyContainer/Span.h>
+
 #include <any>
 #include <functional>
 #include <vector>
@@ -13,10 +15,9 @@
 namespace My::MyDRefl {
 struct Parameter {
   size_t typeID;
-  size_t nameID;
-  bool isConst;
   size_t size;
   size_t alignment;
+  size_t nameID{static_cast<size_t>(-1)};
 };
 
 class ParamList {
@@ -33,6 +34,8 @@ class ParamList {
     return params;
   }
 
+  bool IsConpatibleWith(Span<size_t> typeIDs) const noexcept;
+
  private:
   size_t size{0};
   size_t alignment{1};
@@ -45,22 +48,15 @@ class ArgsView {
   ArgsView(void* buffer, const ParamList& paramList)
       : buffer{buffer}, paramList{paramList} {}
 
+  void* GetBuffer() const noexcept { return buffer; }
+
   const ParamList& GetParamList() const noexcept { return paramList; }
 
-  ObjectPtr NonConstAt(size_t idx) const noexcept {
+  ObjectPtr At(size_t idx) const noexcept {
     assert(idx < paramList.GetParameters().size());
-    const auto& param = paramList.GetParameters()[idx];
-    assert(!param.isConst);
-    return {param.typeID, reinterpret_cast<std::uint8_t*>(buffer) +
-                              paramList.GetOffsets()[idx]};
-  }
-
-  ConstObjectPtr ConstAt(size_t idx) const noexcept {
-    assert(idx < paramList.GetParameters().size());
-    const auto& param = paramList.GetParameters()[idx];
-    assert(param.isConst);
-    return {param.typeID, reinterpret_cast<std::uint8_t*>(buffer) +
-                              paramList.GetOffsets()[idx]};
+    return {
+        paramList.GetParameters()[idx].typeID,
+        reinterpret_cast<std::uint8_t*>(buffer) + paramList.GetOffsets()[idx]};
   }
 
  private:
@@ -73,7 +69,7 @@ struct Method {
   std::function<std::any(ObjectPtr, ArgsView)> func;
   std::unordered_map<size_t, std::any> attrs;
 
-  std::any Invoke(ObjectPtr obj = {}, void* buffer = nullptr) {
+  std::any Invoke(ObjectPtr obj = {}, void* buffer = nullptr) const {
     return func(obj, {buffer, paramList});
   };
 };
@@ -83,8 +79,8 @@ struct ConstMethod {
   std::function<std::any(ConstObjectPtr, ArgsView)> func;
   std::unordered_map<size_t, std::any> attrs;
 
-  std::any Invoke(ConstObjectPtr obj = {}, void* buffer = nullptr) {
+  std::any Invoke(ConstObjectPtr obj = {}, void* buffer = nullptr) const {
     return func(obj, {buffer, paramList});
-  };
+  }
 };
 }  // namespace My::MyDRefl
