@@ -4,7 +4,6 @@
 
 #include <MyDRefl/MyDRefl.h>
 
-#include <cassert>
 #include <iostream>
 
 using namespace My::MyDRefl;
@@ -34,7 +33,10 @@ int main() {
     FieldInfo fieldinfo_c_data{ptr_c_data};
     FieldInfo fieldinfo_s_data{ptr_s_data};
     FieldInfo fieldinfo_sc_data{ptr_sc_data};
-    TypeInfo typeinfo{{{ID_data, fieldinfo_data},
+    TypeInfo typeinfo{sizeof(A),
+                      alignof(A),
+                      {// fieldinfos
+                       {ID_data, fieldinfo_data},
                        {ID_c_data, fieldinfo_c_data},
                        {ID_s_data, fieldinfo_s_data},
                        {ID_sc_data, fieldinfo_sc_data}}};

@@ -92,21 +92,16 @@ class TypeID {
 };
 }  // namespace My::MyDRefl
 
-namespace std {
-template <typename T>
-struct hash;
-
 template <>
-struct hash<My::MyDRefl::NameID> {
+struct std::hash<My::MyDRefl::NameID> {
   size_t operator()(const My::MyDRefl::NameID& ID) const noexcept {
     return std::hash<size_t>{}(ID.GetValue());
   }
 };
 
 template <>
-struct hash<My::MyDRefl::TypeID> {
+struct std::hash<My::MyDRefl::TypeID> {
   size_t operator()(const My::MyDRefl::TypeID& ID) const noexcept {
     return std::hash<size_t>{}(ID.GetValue());
   }
 };
-}  // namespace std

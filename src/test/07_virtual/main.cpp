@@ -37,10 +37,14 @@ int main() {
   auto ID_c = ReflMngr::Instance().nregistry.Register("c");
   auto ID_d = ReflMngr::Instance().nregistry.Register("d");
 
-  {                      // register
-    TypeInfo typeinfo_A{{// fieldinfos
+  {  // register
+    TypeInfo typeinfo_A{sizeof(A),
+                        alignof(A),
+                        {// fieldinfos
                          {ID_a, {{ID_float, offsetof(A, a)}}}}};
     TypeInfo typeinfo_B{
+        sizeof(B),
+        alignof(B),
         {// fieldinfos
          {ID_b, {{ID_float, field_offset_function<&B::b>()}}}},
         {},  // methodinfos
@@ -48,6 +52,8 @@ int main() {
          {ID_A, MakeBaseInfo<B, A>()}},
     };
     TypeInfo typeinfo_C{
+        sizeof(C),
+        alignof(C),
         {// fieldinfos
          {ID_c, {{ID_float, field_offset_function<&C::c>()}}}},
         {},  // methodinfos
@@ -55,6 +61,8 @@ int main() {
          {ID_A, MakeBaseInfo<C, A>()}},
     };
     TypeInfo typeinfo_D{
+        sizeof(D),
+        alignof(D),
         {// fieldinfos
          {ID_d, {{ID_float, field_offset_function<&D::d>()}}}},
         {},  // methodinfos

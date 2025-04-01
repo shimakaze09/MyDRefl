@@ -4,12 +4,13 @@
 
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <type_traits>
 
 namespace My::MyDRefl {
 using OffsetFunction = const void*(const void*) noexcept;
-using Destructor = void(void*);
+using Destructor = void(const void*);
 
 struct has_virtual_base_void {};
 
@@ -124,8 +125,8 @@ constexpr Destructor* destructor() noexcept {
   else {
     static_assert(std::is_destructible_v<T>);
     if constexpr (!std::is_trivially_destructible_v<T>) {
-      return [](void* ptr) {
-        reinterpret_cast<T*>(ptr)->~T();
+      return [](const void* ptr) {
+        reinterpret_cast<const T*>(ptr)->~T();
       };
     } else
       return nullptr;
@@ -148,5 +149,17 @@ constexpr void* backward_offset(void* ptr, std::size_t offset) noexcept {
 constexpr const void* backward_offset(const void* ptr,
                                       std::size_t offset) noexcept {
   return backward_offset(const_cast<void*>(ptr), offset);
+}
+
+template <typename T>
+constexpr T& buffer_get(void* buffer, std::size_t offset) noexcept {
+  auto ptr = forward_offset(buffer, offset);
+  assert(ptr);
+  return *reinterpret_cast<T*>(ptr);
+}
+
+template <typename T>
+constexpr const T& buffer_get(const void* buffer, std::size_t offset) noexcept {
+  return buffer_get(const_cast<void*>(buffer), offset);
 }
 }  // namespace My::MyDRefl

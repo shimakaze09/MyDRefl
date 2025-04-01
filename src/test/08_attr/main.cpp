@@ -9,7 +9,7 @@
 using namespace My::MyDRefl;
 
 namespace MyInspector {
-struct range {
+struct Range {
   float min_value;
   float max_value;
 };
@@ -30,8 +30,8 @@ struct Point {
 int main() {
   auto ID_Point = ReflMngr::Instance().tregistry.Register("Point");
   auto ID_float = ReflMngr::Instance().tregistry.Register("float");
-  auto ID_MyInspector_range =
-      ReflMngr::Instance().tregistry.Register("MyInspector::range");
+  auto ID_MyInspector_Range =
+      ReflMngr::Instance().tregistry.Register("MyInspector::Range");
   auto ID_MyInspector_A =
       ReflMngr::Instance().tregistry.Register("MyInspector::A");
 
@@ -42,26 +42,33 @@ int main() {
   auto ID_max_value = ReflMngr::Instance().nregistry.Register("max_value");
 
   {  // register range
-    TypeInfo typeinfo{{
-        // fields
-        {ID_min_value, {{ID_float, offsetof(MyInspector::range, min_value)}}},
-        {ID_max_value, {{ID_float, offsetof(MyInspector::range, max_value)}}},
-    }};
-    ReflMngr::Instance().typeinfos.emplace(ID_MyInspector_range,
+    TypeInfo typeinfo{
+        sizeof(MyInspector::Range),
+        alignof(MyInspector::Range),
+        {
+            // fields
+            {ID_min_value,
+             {{ID_float, offsetof(MyInspector::Range, min_value)}}},
+            {ID_max_value,
+             {{ID_float, offsetof(MyInspector::Range, max_value)}}},
+        }};
+    ReflMngr::Instance().typeinfos.emplace(ID_MyInspector_Range,
                                            std::move(typeinfo));
   }
 
   {  // register Point
     TypeInfo typeinfo{
+        sizeof(Point),
+        alignof(Point),
         {// fields
          {ID_x, FieldInfo{{ID_float, offsetof(Point, x)},
                           {// attrs
-                           {ID_MyInspector_range,
-                            MakeAttr<MyInspector::range>(1.f, 2.f)}}}},
+                           {ID_MyInspector_Range,
+                            MakeAttr<MyInspector::Range>(1.f, 2.f)}}}},
          {ID_y,
           {{ID_float, offsetof(Point, y)},
            {// attrs
-            {ID_MyInspector_A, MakeAttr<MyInspector::range>(1.f, 2.f)}}}}}};
+            {ID_MyInspector_A, MakeAttr<MyInspector::Range>(1.f, 2.f)}}}}}};
     ReflMngr::Instance().typeinfos.emplace(ID_Point, std::move(typeinfo));
   }
 

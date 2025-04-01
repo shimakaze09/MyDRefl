@@ -4,7 +4,6 @@
 
 #include <MyDRefl/MyDRefl.h>
 
-#include <cassert>
 #include <iostream>
 
 using namespace My::MyDRefl;
