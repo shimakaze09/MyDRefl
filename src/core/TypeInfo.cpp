@@ -9,42 +9,43 @@
 using namespace My::MyDRefl;
 
 ObjectPtr TypeInfo::RWField(size_t fieldID) const noexcept {
-  auto target = sfieldinfos.find(fieldID);
-  if (target == sfieldinfos.end())
+  auto target = fieldinfos.find(fieldID);
+  if (target == fieldinfos.end())
     return nullptr;
 
-  return target->second.objptr;
+  if (target->second.fieldptr.GetType() != FieldPtr::Type::STATIC_VARIABLE)
+    return nullptr;
+
+  return target->second.fieldptr.Map_StaticVariable();
 }
 
 ConstObjectPtr TypeInfo::RField(size_t fieldID) const noexcept {
-  auto rwptr = RWField(fieldID);
-  if (rwptr)
-    return rwptr;
-
-  auto target = scfieldinfos.find(fieldID);
-  if (target == scfieldinfos.end())
+  auto target = fieldinfos.find(fieldID);
+  if (target == fieldinfos.end())
     return nullptr;
 
-  return target->second.objptr;
+  if (!target->second.fieldptr.IsStatic())
+    return nullptr;
+
+  return target->second.fieldptr.Map();
 }
 
 ObjectPtr TypeInfo::RWField(void* obj, size_t fieldID) const noexcept {
   auto target = fieldinfos.find(fieldID);
   if (target == fieldinfos.end())
-    return RWField(fieldID);
+    return nullptr;
+
+  if (target->second.fieldptr.IsConst())
+    return nullptr;
 
   return target->second.fieldptr.Map(obj);
 }
 
 ConstObjectPtr TypeInfo::RField(const void* obj,
                                 size_t fieldID) const noexcept {
-  auto rwptr = RWField(const_cast<void*>(obj), fieldID);
-  if (rwptr)
-    return rwptr;
-
-  auto target = cfieldinfos.find(fieldID);
-  if (target == cfieldinfos.end())
-    return RField(fieldID);
+  auto target = fieldinfos.find(fieldID);
+  if (target == fieldinfos.end())
+    return nullptr;
 
   return target->second.fieldptr.Map(obj);
 }
@@ -83,7 +84,7 @@ bool TypeInfo::IsInvocable(size_t methodID,
 }
 
 InvokeResult TypeInfo::Invoke(size_t methodID, Span<size_t> argTypeIDs,
-                              void* buffer) const noexcept {
+                              void* buffer) const {
   auto target = smethodinfos.find(methodID);
   size_t num = smethodinfos.count(methodID);
   for (size_t i = 0; i < num; ++i, ++target) {
@@ -94,8 +95,7 @@ InvokeResult TypeInfo::Invoke(size_t methodID, Span<size_t> argTypeIDs,
 }
 
 InvokeResult TypeInfo::Invoke(const void* obj, size_t methodID,
-                              Span<size_t> argTypeIDs,
-                              void* buffer) const noexcept {
+                              Span<size_t> argTypeIDs, void* buffer) const {
   auto target = cmethodinfos.find(methodID);
   size_t num = cmethodinfos.count(methodID);
   for (size_t i = 0; i < num; ++i, ++target) {
@@ -106,8 +106,7 @@ InvokeResult TypeInfo::Invoke(const void* obj, size_t methodID,
 }
 
 InvokeResult TypeInfo::Invoke(void* obj, size_t methodID,
-                              Span<size_t> argTypeIDs,
-                              void* buffer) const noexcept {
+                              Span<size_t> argTypeIDs, void* buffer) const {
   auto target = methodinfos.find(methodID);
   size_t num = methodinfos.count(methodID);
   for (size_t i = 0; i < num; ++i, ++target) {

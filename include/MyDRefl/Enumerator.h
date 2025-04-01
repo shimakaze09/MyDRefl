@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 namespace My::MyDRefl {
+// we don't use variant because we need to separate underlying type and value
 struct Enumerator {
   enum class UnderlyingType {
     INT8,

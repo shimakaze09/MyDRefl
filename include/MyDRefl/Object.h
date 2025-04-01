@@ -21,17 +21,17 @@ class ConstObjectPtr {
   constexpr ConstObjectPtr(size_t ID, std::nullptr_t) noexcept
       : ID{ID}, ptr{nullptr} {}
 
-  size_t GetID() const noexcept { return ID; }
+  constexpr size_t GetID() const noexcept { return ID; }
 
-  const void* GetPtr() const noexcept { return ptr; }
+  constexpr const void* GetPtr() const noexcept { return ptr; }
 
   template <typename T>
-  const T* AsPtr() const noexcept {
+  constexpr const T* AsPtr() const noexcept {
     return reinterpret_cast<const T*>(ptr);
   }
 
   template <typename T>
-  const T& As() const noexcept {
+  constexpr const T& As() const noexcept {
     assert(ptr);
     return *AsPtr<T>();
   }
@@ -42,7 +42,10 @@ class ConstObjectPtr {
 
   constexpr operator const void*() const noexcept { return ptr; }
 
-  ConstObjectPtr& operator=(std::nullptr_t) noexcept { Reset(); }
+  ConstObjectPtr& operator=(std::nullptr_t) noexcept {
+    ID = static_cast<size_t>(-1);
+    ptr = nullptr;
+  }
 
  private:
   size_t ID;
@@ -61,22 +64,22 @@ class ObjectPtr {
   constexpr ObjectPtr(size_t ID, std::nullptr_t) noexcept
       : ID{ID}, ptr{nullptr} {}
 
-  size_t GetID() const noexcept { return ID; }
+  constexpr size_t GetID() const noexcept { return ID; }
 
-  void* GetPtr() const noexcept { return ptr; }
+  constexpr void* GetPtr() const noexcept { return ptr; }
 
   template <typename T>
-  T* GetPtr() const noexcept {
+  constexpr T* GetPtr() const noexcept {
     return ptr;
   }
 
   template <typename T>
-  T* AsPtr() const noexcept {
+  constexpr T* AsPtr() const noexcept {
     return reinterpret_cast<T*>(ptr);
   }
 
   template <typename T>
-  T& As() const noexcept {
+  constexpr T& As() const noexcept {
     assert(ptr);
     return *AsPtr<T>();
   }

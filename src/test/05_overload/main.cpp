@@ -73,10 +73,7 @@ int main() {
         {    // fields
          {ID_x, fieldinfo_x},
          {ID_y, fieldinfo_y}},
-        {},  // cfields
-        {},  // sfields
-        {},  // scfields
-        {    // methods
+        {// methods
          {ID_operator_add_assign, methodinfo_operator_add_assign_1},
          {ID_operator_add_assign, methodinfo_operator_add_assign_2}},
         {}  // cmethods
