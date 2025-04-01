@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "EnumInfo.h"
+#include "Enumerator.h"
 #include "FieldInfo.h"
 #include "FieldPtr.h"
 #include "Method.h"
