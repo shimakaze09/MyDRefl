@@ -11,6 +11,13 @@
 #include <functional>
 
 namespace My::MyDRefl {
+struct TypeFieldInfo {
+  TypeID typeID;
+  const TypeInfo& typeinfo;
+  NameID fieldID;
+  const FieldInfo& fieldinfo;
+};
+
 class ReflMngr {
  public:
   static ReflMngr& Instance() noexcept {
@@ -110,38 +117,18 @@ class ReflMngr {
       const std::function<void(TypeID, const TypeInfo&)>& func) const;
 
   // self fieldinfos and all bases' fieldinfos
-  // [args]
-  // 0: type ID
-  // 1: TypeInfo
-  // 2: field ID
-  // 3: FieldInfo
-  void ForEachFieldInfo(
-      TypeID typeID, const std::function<void(TypeID, const TypeInfo&, NameID,
-                                              const FieldInfo&)>& func) const;
+  void ForEachFieldInfo(TypeID typeID,
+                        const std::function<void(TypeFieldInfo)>& func) const;
 
   // self [r/w] fields and all bases' [r/w] fields
-  // [args]
-  // 0: type ID
-  // 1: TypeInfo
-  // 2: field ID
-  // 3: FieldInfo
-  // 4: field
   void ForEachRWField(
       ObjectPtr obj,
-      const std::function<void(TypeID, const TypeInfo&, NameID,
-                               const FieldInfo&, ObjectPtr)>& func) const;
+      const std::function<void(TypeFieldInfo, ObjectPtr)>& func) const;
 
   // self [r] fields and all bases' [r] fields
-  // [args]
-  // 0: type ID
-  // 1: TypeInfo
-  // 2: field ID
-  // 3: FieldInfo
-  // 4: field
   void ForEachRField(
       ConstObjectPtr obj,
-      const std::function<void(TypeID, const TypeInfo&, NameID,
-                               const FieldInfo&, ConstObjectPtr)>& func) const;
+      const std::function<void(TypeFieldInfo, ConstObjectPtr)>& func) const;
 
  private:
   ReflMngr() = default;

@@ -53,9 +53,9 @@ int main() {
   
   ReflMngr::Instance().ForEachRField(
     ptr,
-    [](TypeID typeID, const TypeInfo& typeinfo, NameID fieldID, const FieldInfo& fieldinfo, ConstObjectPtr field) {
+    [](TypeFieldInfo info, ConstObjectPtr field) {
       std::cout
-        << ReflMngr::Instance().registry.Nameof(fieldID)
+        << ReflMngr::Instance().registry.Nameof(info.fieldID)
         << ": " << field.As<float>()
         << std::endl;
     }
@@ -82,6 +82,5 @@ y: 2
 - [x] return
 - [x] foreach
 - [x] attr
-- [ ] ID
 - [ ] life cycle (ctor, dtor, copy, etc.)
 - [ ] global

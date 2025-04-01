@@ -82,9 +82,8 @@ int main() {
   ReflMngr::Instance().RWField(ptr, ID_a).As<float>() = 10.f;
 
   ReflMngr::Instance().ForEachRField(
-      ptr, [](TypeID typeID, const TypeInfo& typeinfo, NameID fieldID,
-              const FieldInfo& fieldinfo, ConstObjectPtr field) {
-        std::cout << ReflMngr::Instance().nregistry.Nameof(fieldID) << ": "
+      ptr, [](TypeFieldInfo info, ConstObjectPtr field) {
+        std::cout << ReflMngr::Instance().nregistry.Nameof(info.fieldID) << ": "
                   << field.As<float>() << std::endl;
       });
 
