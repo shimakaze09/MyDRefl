@@ -5,13 +5,13 @@
 #pragma once
 
 #include "FieldPtr.h"
+#include "Attr.h"
 
-#include <any>
 #include <unordered_map>
 
 namespace My::MyDRefl {
 struct FieldInfo {
   FieldPtr fieldptr;
-  std::unordered_map<NameID, std::any> attrs;
+  std::unordered_map<TypeID, Attr> attrs;
 };
 }  // namespace My::MyDRefl

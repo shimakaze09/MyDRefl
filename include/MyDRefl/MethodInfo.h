@@ -5,10 +5,11 @@
 #pragma once
 
 #include "Method.h"
+#include "Attr.h"
 
 namespace My::MyDRefl {
 struct MethodInfo {
   Method method;
-  std::unordered_map<NameID, std::any> attrs;
+  std::unordered_map<TypeID, Attr> attrs;
 };
 }  // namespace My::MyDRefl

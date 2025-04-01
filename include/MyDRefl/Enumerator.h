@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Attr.h"
+
 #include <any>
 #include <cstdint>
 #include <unordered_map>
@@ -97,10 +99,10 @@ struct Enumerator {
 
 struct EnumeratorInfo {
   template <typename E>
-  EnumeratorInfo(E e, std::unordered_map<size_t, std::any> attrs = {}) noexcept
+  EnumeratorInfo(E e, std::unordered_map<TypeID, Attr> attrs = {}) noexcept
       : value{Enumerator::ValueOf(e)}, attrs{std::move(attrs)} {}
 
   Enumerator::Value value;
-  std::unordered_map<size_t, std::any> attrs;
+  std::unordered_map<TypeID, Attr> attrs;
 };
 }  // namespace My::MyDRefl
