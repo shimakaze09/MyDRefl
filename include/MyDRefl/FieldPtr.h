@@ -8,7 +8,6 @@
 #include "Util.h"
 
 namespace My::MyDRefl {
-// non-static
 class FieldPtr {
  public:
   using OffsetFunctor = const void*(const void*);
@@ -99,7 +98,7 @@ class FieldPtr {
     return {valueID, offset_functor(obj)};
   }
 
-  // static
+  // static { variable | const }
   constexpr ConstObjectPtr Map() const noexcept {
     switch (type) {
       case Type::STATIC_VARIABLE:
@@ -133,7 +132,7 @@ class FieldPtr {
     }
   }
 
-  // variable
+  // {normal | static | virtual } variable
   constexpr ObjectPtr Map(void* obj) const noexcept {
     switch (type) {
       case Type::VARIABLE:
