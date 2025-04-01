@@ -2,7 +2,7 @@
 // Created by Admin on 1/04/2025.
 //
 
-#include <MyDRefl/Method.h>
+#include <MyDRefl/MethodPtr.h>
 
 using namespace My::MyDRefl;
 

@@ -52,13 +52,14 @@ int main() {
           reinterpret_cast<const Vec*>(obj)->Norm2();
       return destructor<float>();
     };
-    Method method_Norm2{Norm2, {}, {ID_float, sizeof(float), alignof(float)}};
+    MethodPtr method_Norm2{
+        Norm2, {}, {ID_float, sizeof(float), alignof(float)}};
 
     auto NormalizeSelf = [](void* obj, ArgsView, void*) {
       reinterpret_cast<Vec*>(obj)->NormalizeSelf();
       return destructor<void>();
     };
-    Method method_NormalizeSelf{NormalizeSelf};
+    MethodPtr method_NormalizeSelf{NormalizeSelf};
 
     auto operator_add_assign = [](void* obj, ArgsView args,
                                   void* result_buffer) {
@@ -67,7 +68,7 @@ int main() {
           &(*v += *args.At(0).As<const Vec*>());
       return destructor<Vec*>();
     };
-    Method method_operator_add_assign{
+    MethodPtr method_operator_add_assign{
         operator_add_assign,
         {{{ID_const_Vec_ptr, sizeof(const Vec*), alignof(const Vec*), ID_p}}},
         {ID_Vec_ptr, sizeof(Vec*), alignof(Vec*)}};

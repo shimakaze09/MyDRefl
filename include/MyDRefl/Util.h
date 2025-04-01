@@ -160,6 +160,16 @@ constexpr T& buffer_get(void* buffer, std::size_t offset) noexcept {
 
 template <typename T>
 constexpr const T& buffer_get(const void* buffer, std::size_t offset) noexcept {
-  return buffer_get(const_cast<void*>(buffer), offset);
+  return buffer_get<T>(const_cast<void*>(buffer), offset);
+}
+
+template <typename T>
+constexpr T& buffer_as(void* buffer) noexcept {
+  return buffer_get<T>(buffer, 0);
+}
+
+template <typename T>
+constexpr const T& buffer_as(const void* buffer) noexcept {
+  return buffer_get<T>(buffer, 0);
 }
 }  // namespace My::MyDRefl

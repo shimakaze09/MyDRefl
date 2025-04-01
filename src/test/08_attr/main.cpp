@@ -74,22 +74,23 @@ int main() {
 
   Point p;
   ObjectPtr ptr{ID_Point, &p};
-  ReflMngr::Instance().RWField(ptr, ID_x).As<float>() = 1.f;
-  ReflMngr::Instance().RWField(ptr, ID_y).As<float>() = 2.f;
+  ReflMngr::Instance().RWVar(ptr, ID_x).As<float>() = 1.f;
+  ReflMngr::Instance().RWVar(ptr, ID_y).As<float>() = 2.f;
 
-  ReflMngr::Instance().ForEachRField(ptr, [](TypeFieldInfo info,
-                                             ConstObjectPtr field) {
-    for (const auto& [attrID, attr] : info.fieldinfo.attrs) {
-      std::cout << "[" << ReflMngr::Instance().tregistry.Nameof(attrID) << "]"
-                << std::endl;
-      ReflMngr::Instance().ForEachRField(
-          attr.as_object(attrID), [](TypeFieldInfo info, ConstObjectPtr field) {
-            std::cout << ReflMngr::Instance().nregistry.Nameof(info.fieldID)
-                      << ": " << field.As<float>() << std::endl;
-          });
-      std::cout << "------" << std::endl;
-    }
-    std::cout << ReflMngr::Instance().nregistry.Nameof(info.fieldID) << ": "
-              << field.As<float>() << std::endl;
-  });
+  ReflMngr::Instance().ForEachRVar(
+      ptr, [](Type type, Field field, ConstObjectPtr var) {
+        for (const auto& [attrID, attr] : field.info.attrs) {
+          std::cout << "[" << ReflMngr::Instance().tregistry.Nameof(attrID)
+                    << "]" << std::endl;
+          ReflMngr::Instance().ForEachRVar(
+              attr.as_object(attrID),
+              [](Type type, Field field, ConstObjectPtr var) {
+                std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID)
+                          << ": " << var.As<float>() << std::endl;
+              });
+          std::cout << "------" << std::endl;
+        }
+        std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
+                  << var.As<float>() << std::endl;
+      });
 }

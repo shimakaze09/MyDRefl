@@ -11,13 +11,6 @@
 #include <functional>
 
 namespace My::MyDRefl {
-struct TypeFieldInfo {
-  TypeID typeID;
-  const TypeInfo& typeinfo;
-  NameID fieldID;
-  const FieldInfo& fieldinfo;
-};
-
 class ReflMngr {
  public:
   static ReflMngr& Instance() noexcept {
@@ -75,9 +68,9 @@ class ReflMngr {
   //////////
 
   // read/write field, non-const
-  ObjectPtr RWField(ObjectPtr obj, NameID fieldID) const noexcept;
+  ObjectPtr RWVar(ObjectPtr obj, NameID fieldID) const noexcept;
   // read field, non-const + const
-  ConstObjectPtr RField(ConstObjectPtr obj, NameID fieldID) const noexcept;
+  ConstObjectPtr RVar(ConstObjectPtr obj, NameID fieldID) const noexcept;
 
   //
   // Invoke
@@ -99,6 +92,16 @@ class ReflMngr {
   InvokeResult Invoke(ObjectPtr obj, NameID methodID,
                       Span<TypeID> argTypeIDs = {}, void* args_buffer = nullptr,
                       void* result_buffer = nullptr) const;
+
+  template <typename T>
+  T Invoke(TypeID typeID, NameID methodID, Span<TypeID> argTypeIDs = {},
+           void* args_buffer = nullptr) const;
+  template <typename T>
+  T Invoke(ConstObjectPtr obj, NameID methodID, Span<TypeID> argTypeIDs = {},
+           void* args_buffer = nullptr) const;
+  template <typename T>
+  T Invoke(ObjectPtr obj, NameID methodID, Span<TypeID> argTypeIDs = {},
+           void* args_buffer = nullptr) const;
 
   //
   // Meta
@@ -139,35 +142,34 @@ class ReflMngr {
   // Algorithm
   //////////////
 
-  // self typeinfo and all bases' typeinfo
-  // [args]
-  // 0: type ID
+  // self typeID and all bases' typeID
   void ForEachTypeID(TypeID typeID,
                      const std::function<void(TypeID)>& func) const;
 
-  // self typeinfo and all bases' typeinfo
-  // [args]
-  // 0: type ID
-  // 1: TypeInfo
-  void ForEachTypeInfo(
-      TypeID typeID,
-      const std::function<void(TypeID, const TypeInfo&)>& func) const;
+  // self type and all bases' type
+  void ForEachType(TypeID typeID, const std::function<void(Type)>& func) const;
 
-  // self fieldinfos and all bases' fieldinfos
-  void ForEachFieldInfo(TypeID typeID,
-                        const std::function<void(TypeFieldInfo)>& func) const;
+  // self fields and all bases' fields
+  void ForEachField(TypeID typeID,
+                    const std::function<void(Type, Field)>& func) const;
 
-  // self [r/w] fields and all bases' [r/w] fields
-  void ForEachRWField(
+  // self methods and all bases' methods
+  void ForEachMethod(TypeID typeID,
+                     const std::function<void(Type, Method)>& func) const;
+
+  // self [r/w] vars and all bases' [r/w] vars
+  void ForEachRWVar(
       ObjectPtr obj,
-      const std::function<void(TypeFieldInfo, ObjectPtr)>& func) const;
+      const std::function<void(Type, Field, ObjectPtr)>& func) const;
 
-  // self [r] fields and all bases' [r] fields
-  void ForEachRField(
+  // self [r] vars and all bases' [r] vars
+  void ForEachRVar(
       ConstObjectPtr obj,
-      const std::function<void(TypeFieldInfo, ConstObjectPtr)>& func) const;
+      const std::function<void(Type, Field, ConstObjectPtr)>& func) const;
 
  private:
   ReflMngr();
 };
 }  // namespace My::MyDRefl
+
+#include "details/ReflMngr.inl"

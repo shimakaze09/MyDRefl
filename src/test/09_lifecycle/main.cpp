@@ -24,25 +24,26 @@ int main() {
   auto ID_dtor = ReflMngr::Instance().nregistry.GetID(NameRegistry::Meta::dtor);
 
   {  // register Point
-    TypeInfo typeinfo{sizeof(Point),
-                      alignof(Point),
-                      {// fieldinfos
-                       {ID_x, {{ID_float, offsetof(Point, x)}}},
-                       {ID_y, {{ID_float, offsetof(Point, y)}}}},
-                      {// methods
-                       {ID_ctor, {Method::GenerateDefaultConstructor<Point>()}},
-                       {ID_dtor, {Method::GenerateDestructor<Point>()}}}};
+    TypeInfo typeinfo{
+        sizeof(Point),
+        alignof(Point),
+        {// fieldinfos
+         {ID_x, {{ID_float, offsetof(Point, x)}}},
+         {ID_y, {{ID_float, offsetof(Point, y)}}}},
+        {// methods
+         {ID_ctor, {MethodPtr::GenerateDefaultConstructor<Point>()}},
+         {ID_dtor, {MethodPtr::GenerateDestructor<Point>()}}}};
     ReflMngr::Instance().typeinfos.emplace(ID_Point, std::move(typeinfo));
   }
 
   ObjectPtr p = ReflMngr::Instance().New(ID_Point);
-  ReflMngr::Instance().RWField(p, ID_x).As<float>() = 1.f;
-  ReflMngr::Instance().RWField(p, ID_y).As<float>() = 2.f;
+  ReflMngr::Instance().RWVar(p, ID_x).As<float>() = 1.f;
+  ReflMngr::Instance().RWVar(p, ID_y).As<float>() = 2.f;
 
-  ReflMngr::Instance().ForEachRField(
-      p, [](TypeFieldInfo info, ConstObjectPtr field) {
-        std::cout << ReflMngr::Instance().nregistry.Nameof(info.fieldID) << ": "
-                  << field.As<float>() << std::endl;
+  ReflMngr::Instance().ForEachRVar(
+      p, [](Type type, Field field, ConstObjectPtr var) {
+        std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
+                  << var.As<float>() << std::endl;
       });
   ReflMngr::Instance().Delete(p);
 }

@@ -83,13 +83,13 @@ int main() {
   ObjectPtr ptr{ID_D, &d};
 
   ReflMngr::Instance()
-      .RWField(ReflMngr::Instance().StaticCast_DerivedToBase(ptr, ID_C), ID_a)
+      .RWVar(ReflMngr::Instance().StaticCast_DerivedToBase(ptr, ID_C), ID_a)
       .As<float>() = 10.f;
 
-  ReflMngr::Instance().ForEachRField(
-      ptr, [](TypeFieldInfo info, ConstObjectPtr field) {
-        std::cout << ReflMngr::Instance().nregistry.Nameof(info.fieldID) << ": "
-                  << field.As<float>() << std::endl;
+  ReflMngr::Instance().ForEachRVar(
+      ptr, [](Type type, Field field, ConstObjectPtr var) {
+        std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
+                  << var.As<float>() << std::endl;
       });
 
   return 0;
