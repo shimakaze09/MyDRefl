@@ -42,24 +42,24 @@ int main() {
         {{ID_a, {{ID_float, offsetof(A, a)}}}}  // fieldinfos
     };
     TypeInfo typeinfo_B{
-        {},                                      // attrs
-        {{ID_b, {{ID_float, offsetof(B, b)}}}},  // fieldinfos
-        {},                                      // methodinfos
-        {{ID_A, {base_offset<B, A>()}}}          //baseinfos
+        {},                                         // attrs
+        {{ID_b, {{ID_float, offsetof(B, b)}}}},     // fieldinfos
+        {},                                         // methodinfos
+        {{ID_A, {inherit_cast_functions<B, A>()}}}  //baseinfos
     };
     TypeInfo typeinfo_C{
-        {},                                      // attrs
-        {{ID_c, {{ID_float, offsetof(C, c)}}}},  // fieldinfos
-        {},                                      // methodinfos
-        {{ID_A, {base_offset<C, A>()}}}          //baseinfos
+        {},                                         // attrs
+        {{ID_c, {{ID_float, offsetof(C, c)}}}},     // fieldinfos
+        {},                                         // methodinfos
+        {{ID_A, {inherit_cast_functions<C, A>()}}}  //baseinfos
     };
     TypeInfo typeinfo_D{
         {},                                      // attrs
         {{ID_d, {{ID_float, offsetof(D, d)}}}},  // fieldinfos
         {},                                      // methodinfos
         {
-            {ID_B, {base_offset<D, B>()}},
-            {ID_C, {base_offset<D, C>()}},
+            {ID_B, {inherit_cast_functions<D, B>()}},
+            {ID_C, {inherit_cast_functions<D, C>()}},
         }  //baseinfos
     };
 
@@ -79,15 +79,19 @@ int main() {
   ObjectPtr ptr{ID_D, &d};
 
   ReflMngr::Instance()
-      .RWField(ReflMngr::Instance().Cast(ptr, ID_C), ID_a)
+      .RWField(ReflMngr::Instance().StaticCast_DerivedToBase(ptr, ID_C), ID_a)
       .As<float>() = 10.f;
 
   std::cout << ReflMngr::Instance()
-                   .RField(ReflMngr::Instance().Cast(ptr, ID_B), ID_a)
+                   .RField(
+                       ReflMngr::Instance().StaticCast_DerivedToBase(ptr, ID_B),
+                       ID_a)
                    .As<float>()
             << std::endl;
   std::cout << ReflMngr::Instance()
-                   .RField(ReflMngr::Instance().Cast(ptr, ID_C), ID_a)
+                   .RField(
+                       ReflMngr::Instance().StaticCast_DerivedToBase(ptr, ID_C),
+                       ID_a)
                    .As<float>()
             << std::endl;
   std::cout << ReflMngr::Instance().RField(ptr, ID_b).As<float>() << std::endl;

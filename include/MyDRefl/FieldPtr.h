@@ -10,7 +10,6 @@
 namespace My::MyDRefl {
 class FieldPtr {
  public:
-  using OffsetFunctor = const void*(const void*);
   enum class Type : std::uint8_t {
     VARIABLE = 0b000,
     CONST = 0b001,
@@ -44,12 +43,12 @@ class FieldPtr {
   constexpr FieldPtr(ConstObjectPtr obj) noexcept
       : FieldPtr{obj.GetID(), obj.GetPtr()} {}
 
-  constexpr FieldPtr(size_t valueID, OffsetFunctor* offset_functor,
+  constexpr FieldPtr(size_t valueID, OffsetFunction* offset_function,
                      bool isConst = false) noexcept
       : type{isConst ? Type::VIRTUAL_CONST : Type::VIRTUAL_VARIABLE},
         valueID{valueID},
-        offset_functor{offset_functor} {
-    assert(valueID != static_cast<size_t>(-1) && offset_functor);
+        offset_function{offset_function} {
+    assert(valueID != static_cast<size_t>(-1) && offset_function);
   }
 
   constexpr size_t GetValueID() const noexcept { return valueID; }
@@ -90,12 +89,12 @@ class FieldPtr {
 
   constexpr ObjectPtr Map_VirtualVariable(void* obj) const noexcept {
     assert(type == Type::VIRTUAL_VARIABLE);
-    return {valueID, const_cast<void*>(offset_functor(obj))};
+    return {valueID, const_cast<void*>(offset_function(obj))};
   }
 
   constexpr ConstObjectPtr Map_VirtualConst(const void* obj) const noexcept {
     assert(type == Type::VIRTUAL_CONST);
-    return {valueID, offset_functor(obj)};
+    return {valueID, offset_function(obj)};
   }
 
   // static { variable | const }
@@ -125,14 +124,14 @@ class FieldPtr {
       case Type::VIRTUAL_VARIABLE:
       case Type::VIRTUAL_CONST:
         assert(obj != nullptr);
-        return {valueID, offset_functor(obj)};
+        return {valueID, offset_function(obj)};
       default:
         assert(false);
         return nullptr;
     }
   }
 
-  // {normal | static | virtual } variable
+  // {normal | static | virutal } variable
   constexpr ObjectPtr Map(void* obj) const noexcept {
     switch (type) {
       case Type::VARIABLE:
@@ -142,7 +141,7 @@ class FieldPtr {
         return {valueID, static_obj};
       case Type::VIRTUAL_VARIABLE:
         assert(obj != nullptr);
-        return {valueID, const_cast<void*>(offset_functor(obj))};
+        return {valueID, const_cast<void*>(offset_function(obj))};
       default:
         assert(false);
         return nullptr;
@@ -157,7 +156,7 @@ class FieldPtr {
     size_t offset;
     void* static_obj;
     const void* static_const_obj;
-    OffsetFunctor* offset_functor;
+    OffsetFunction* offset_function;
   };
 };
 }  // namespace My::MyDRefl
