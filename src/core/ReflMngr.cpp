@@ -4,6 +4,8 @@
 
 #include <MyDRefl/ReflMngr.h>
 
+#include <set>
+
 using namespace My::MyDRefl;
 
 ObjectPtr ReflMngr::StaticCast_DerivedToBase(ObjectPtr obj,
@@ -289,4 +291,155 @@ InvokeResult ReflMngr::Invoke(ObjectPtr obj, size_t methodID,
   }
 
   return {};
+}
+
+static void ReflMngr_ForEachTypeID(size_t typeID,
+                                   const std::function<void(size_t)>& func,
+                                   std::set<size_t>& visitedVBs) {
+  func(typeID);
+
+  auto target = ReflMngr::Instance().typeinfos.find(typeID);
+
+  if (target == ReflMngr::Instance().typeinfos.end())
+    return;
+
+  const auto& typeinfo = target->second;
+
+  for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
+    if (baseinfo.IsVirtual()) {
+      if (visitedVBs.find(baseID) != visitedVBs.end())
+        continue;
+      visitedVBs.insert(baseID);
+    }
+
+    ReflMngr_ForEachTypeID(baseID, func, visitedVBs);
+  }
+}
+
+void ReflMngr::ForEachTypeID(size_t typeID,
+                             const std::function<void(size_t)>& func) const {
+  std::set<size_t> visitedVBs;
+  ReflMngr_ForEachTypeID(typeID, func, visitedVBs);
+}
+
+static void ReflMngr_ForEachTypeInfo(
+    size_t typeID, const std::function<void(size_t, const TypeInfo&)>& func,
+    std::set<size_t>& visitedVBs) {
+
+  auto target = ReflMngr::Instance().typeinfos.find(typeID);
+
+  if (target == ReflMngr::Instance().typeinfos.end())
+    return;
+
+  const auto& typeinfo = target->second;
+
+  func(typeID, typeinfo);
+
+  for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
+    if (baseinfo.IsVirtual()) {
+      if (visitedVBs.find(baseID) != visitedVBs.end())
+        continue;
+      visitedVBs.insert(baseID);
+    }
+
+    ReflMngr_ForEachTypeInfo(baseID, func, visitedVBs);
+  }
+}
+
+void ReflMngr::ForEachTypeInfo(
+    size_t typeID,
+    const std::function<void(size_t, const TypeInfo&)>& func) const {
+  std::set<size_t> visitedVBs;
+  ReflMngr_ForEachTypeInfo(typeID, func, visitedVBs);
+}
+
+void ReflMngr::ForEachFieldInfo(
+    size_t typeID, const std::function<void(size_t, const TypeInfo&, size_t,
+                                            const FieldInfo&)>& func) const {
+  ForEachTypeInfo(typeID, [&func](size_t typeID, const TypeInfo& typeinfo) {
+    for (const auto& [fieldID, fieldInfo] : typeinfo.fieldinfos)
+      func(typeID, typeinfo, fieldID, fieldInfo);
+  });
+}
+
+static void ReflMngr_ForEachRWField(
+    ObjectPtr obj,
+    const std::function<void(size_t, const TypeInfo&, size_t, const FieldInfo&,
+                             ObjectPtr)>& func,
+    std::set<size_t>& visitedVBs) {
+  if (!obj)
+    return;
+
+  auto target = ReflMngr::Instance().typeinfos.find(obj.GetID());
+
+  if (target == ReflMngr::Instance().typeinfos.end())
+    return;
+
+  const auto& typeinfo = target->second;
+
+  for (const auto& [fieldID, fieldInfo] : typeinfo.fieldinfos) {
+    if (!fieldInfo.fieldptr.IsConst())
+      func(obj.GetID(), typeinfo, fieldID, fieldInfo,
+           fieldInfo.fieldptr.Map(obj));
+  }
+
+  for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
+    if (baseinfo.IsVirtual()) {
+      if (visitedVBs.find(baseID) != visitedVBs.end())
+        continue;
+      visitedVBs.insert(baseID);
+    }
+
+    ReflMngr_ForEachRWField(
+        ObjectPtr{baseID, baseinfo.StaticCast_DerivedToBase(obj)}, func,
+        visitedVBs);
+  }
+}
+
+void ReflMngr::ForEachRWField(
+    ObjectPtr obj,
+    const std::function<void(size_t, const TypeInfo&, size_t, const FieldInfo&,
+                             ObjectPtr)>& func) const {
+  std::set<size_t> visitedVBs;
+  ReflMngr_ForEachRWField(obj, func, visitedVBs);
+}
+
+static void ReflMngr_ForEachRField(
+    ConstObjectPtr obj,
+    const std::function<void(size_t, const TypeInfo&, size_t, const FieldInfo&,
+                             ConstObjectPtr)>& func,
+    std::set<size_t>& visitedVBs) {
+  if (!obj)
+    return;
+
+  auto target = ReflMngr::Instance().typeinfos.find(obj.GetID());
+
+  if (target == ReflMngr::Instance().typeinfos.end())
+    return;
+
+  const auto& typeinfo = target->second;
+
+  for (const auto& [fieldID, fieldInfo] : typeinfo.fieldinfos)
+    func(obj.GetID(), typeinfo, fieldID, fieldInfo,
+         fieldInfo.fieldptr.Map(obj));
+
+  for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
+    if (baseinfo.IsVirtual()) {
+      if (visitedVBs.find(baseID) != visitedVBs.end())
+        continue;
+      visitedVBs.insert(baseID);
+    }
+
+    ReflMngr_ForEachRField(
+        ConstObjectPtr{baseID, baseinfo.StaticCast_DerivedToBase(obj)}, func,
+        visitedVBs);
+  }
+}
+
+void ReflMngr::ForEachRField(
+    ConstObjectPtr obj,
+    const std::function<void(size_t, const TypeInfo&, size_t, const FieldInfo&,
+                             ConstObjectPtr)>& func) const {
+  std::set<size_t> visitedVBs;
+  ReflMngr_ForEachRField(obj, func, visitedVBs);
 }

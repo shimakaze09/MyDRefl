@@ -8,6 +8,8 @@
 #include "NameRegistry.h"
 #include "TypeInfo.h"
 
+#include <functional>
+
 namespace My::MyDRefl {
 class ReflMngr {
  public:
@@ -87,6 +89,58 @@ class ReflMngr {
                       void* result_buffer) const;
   InvokeResult Invoke(ObjectPtr obj, size_t methodID, Span<size_t> argTypeIDs,
                       void* args_buffer, void* result_buffer) const;
+
+  //
+  // Algorithm
+  //////////////
+
+  // self typeinfo and all bases' typeinfo
+  // [args]
+  // 0: type ID
+  void ForEachTypeID(size_t typeID,
+                     const std::function<void(size_t)>& func) const;
+
+  // self typeinfo and all bases' typeinfo
+  // [args]
+  // 0: type ID
+  // 1: TypeInfo
+  void ForEachTypeInfo(
+      size_t typeID,
+      const std::function<void(size_t, const TypeInfo&)>& func) const;
+
+  // self fieldinfos and all bases' fieldinfos
+  // [args]
+  // 0: type ID
+  // 1: TypeInfo
+  // 2: field ID
+  // 3: FieldInfo
+  void ForEachFieldInfo(
+      size_t typeID, const std::function<void(size_t, const TypeInfo&, size_t,
+                                              const FieldInfo&)>& func) const;
+
+  // self [r/w] fields and all bases' [r/w] fields
+  // [args]
+  // 0: type ID
+  // 1: TypeInfo
+  // 2: field ID
+  // 3: FieldInfo
+  // 4: field
+  void ForEachRWField(
+      ObjectPtr obj,
+      const std::function<void(size_t, const TypeInfo&, size_t,
+                               const FieldInfo&, ObjectPtr)>& func) const;
+
+  // self [r] fields and all bases' [r] fields
+  // [args]
+  // 0: type ID
+  // 1: TypeInfo
+  // 2: field ID
+  // 3: FieldInfo
+  // 4: field
+  void ForEachRField(
+      ConstObjectPtr obj,
+      const std::function<void(size_t, const TypeInfo&, size_t,
+                               const FieldInfo&, ConstObjectPtr)>& func) const;
 
  private:
   ReflMngr() = default;
