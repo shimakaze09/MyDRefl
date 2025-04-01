@@ -14,3 +14,5 @@
 #include "Object.h"
 #include "ReflMngr.h"
 #include "TypeInfo.h"
+#include "BaseInfo.h"
+#include "Util.h"

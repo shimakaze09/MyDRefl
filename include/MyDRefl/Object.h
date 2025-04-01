@@ -18,6 +18,9 @@ class ConstObjectPtr {
   constexpr ConstObjectPtr(size_t ID, const T* ptr) noexcept
       : ID{ID}, ptr{ptr} {}
 
+  constexpr ConstObjectPtr(size_t ID, std::nullptr_t) noexcept
+      : ID{ID}, ptr{nullptr} {}
+
   size_t GetID() const noexcept { return ID; }
 
   const void* GetPtr() const noexcept { return ptr; }
@@ -29,13 +32,15 @@ class ConstObjectPtr {
 
   template <typename T>
   const T& As() const noexcept {
-    assert(*this);
+    assert(ptr);
     return *AsPtr<T>();
   }
 
   constexpr void Reset() noexcept { *this = ConstObjectPtr{}; }
 
   constexpr operator bool() const noexcept { return ptr != nullptr; }
+
+  constexpr operator const void*() const noexcept { return ptr; }
 
   ConstObjectPtr& operator=(std::nullptr_t) noexcept { Reset(); }
 
@@ -53,6 +58,9 @@ class ObjectPtr {
   template <typename T>
   constexpr ObjectPtr(size_t ID, T* ptr) noexcept : ID{ID}, ptr{ptr} {}
 
+  constexpr ObjectPtr(size_t ID, std::nullptr_t) noexcept
+      : ID{ID}, ptr{nullptr} {}
+
   size_t GetID() const noexcept { return ID; }
 
   void* GetPtr() const noexcept { return ptr; }
@@ -69,13 +77,15 @@ class ObjectPtr {
 
   template <typename T>
   T& As() const noexcept {
-    assert(*this);
+    assert(ptr);
     return *AsPtr<T>();
   }
 
   constexpr void Reset() noexcept { *this = ObjectPtr{}; }
 
   constexpr operator bool() const noexcept { return ptr != nullptr; }
+
+  constexpr operator void*() const noexcept { return ptr; }
 
   constexpr operator ConstObjectPtr() const noexcept { return {ID, ptr}; }
 

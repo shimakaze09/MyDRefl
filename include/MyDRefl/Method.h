@@ -66,21 +66,33 @@ class ArgsView {
 
 struct Method {
   ParamList paramList;
-  std::function<std::any(ObjectPtr, ArgsView)> func;
-  std::unordered_map<size_t, std::any> attrs;
+  std::function<std::any(void*, ArgsView)> func;
 
-  std::any Invoke(ObjectPtr obj = {}, void* buffer = nullptr) const {
+  std::any Invoke(void* obj, void* buffer) const {
+    assert(obj != nullptr);
     return func(obj, {buffer, paramList});
   };
 };
 
 struct ConstMethod {
   ParamList paramList;
-  std::function<std::any(ConstObjectPtr, ArgsView)> func;
-  std::unordered_map<size_t, std::any> attrs;
+  std::function<std::any(const void*, ArgsView)> func;
 
-  std::any Invoke(ConstObjectPtr obj = {}, void* buffer = nullptr) const {
+  std::any Invoke(const void* obj, void* buffer) const {
+    assert(obj != nullptr);
     return func(obj, {buffer, paramList});
-  }
+  };
+};
+
+struct StaticMethod {
+  ParamList paramList;
+  std::function<std::any(ArgsView)> func;
+
+  std::any Invoke(void* buffer) const { return func({buffer, paramList}); };
+};
+
+struct InvokeResult {
+  bool success{false};
+  std::any value;
 };
 }  // namespace My::MyDRefl

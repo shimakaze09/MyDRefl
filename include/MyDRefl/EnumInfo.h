@@ -26,6 +26,7 @@ struct EnumInfo {
 
   template <typename E>
   size_t GetID(E e) const {
+    assert(underlyingType == Enumerator::UnderlyingTypeOf<E>());
     return GetID(Enumerator::ValueOf(e));
   }
 };

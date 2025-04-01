@@ -64,7 +64,7 @@ struct Enumerator {
   }
 
   template <typename E>
-  static constexpr Value ValueOf(E e) {
+  static constexpr Value ValueOf(E e) noexcept {
     constexpr auto type = UnderlyingTypeOf<E>();
     Value rst;
 
@@ -96,7 +96,7 @@ struct Enumerator {
 
 struct EnumeratorInfo {
   template <typename E>
-  EnumeratorInfo(E e, std::unordered_map<size_t, std::any> attrs = {})
+  EnumeratorInfo(E e, std::unordered_map<size_t, std::any> attrs = {}) noexcept
       : value{Enumerator::ValueOf(e)}, attrs{std::move(attrs)} {}
 
   Enumerator::Value value;
