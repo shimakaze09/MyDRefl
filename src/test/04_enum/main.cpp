@@ -12,10 +12,10 @@ using namespace My::MyDRefl;
 enum class Color { RED, GREEN, BLUE };
 
 int main() {
-  size_t ID_Color = ReflMngr::Instance().registry.Register("Color");
-  size_t ID_RED = ReflMngr::Instance().registry.Register("RED");
-  size_t ID_GREEN = ReflMngr::Instance().registry.Register("GREEN");
-  size_t ID_BLUE = ReflMngr::Instance().registry.Register("BLUE");
+  auto ID_Color = ReflMngr::Instance().tregistry.Register("Color");
+  auto ID_RED = ReflMngr::Instance().nregistry.Register("RED");
+  auto ID_GREEN = ReflMngr::Instance().nregistry.Register("GREEN");
+  auto ID_BLUE = ReflMngr::Instance().nregistry.Register("BLUE");
 
   {  // register Color
     EnumeratorInfo einfo_RED{Color::RED};
@@ -37,13 +37,14 @@ int main() {
   std::cout << ReflMngr::Instance()
                    .enuminfos.at(ID_Color)
                    .enumeratorinfos
-                   .at(ReflMngr::Instance().registry.GetID("GREEN"))
+                   .at(ReflMngr::Instance().nregistry.GetID("GREEN"))
                    .value.data_int32
             << std::endl;
 
   // value -> name
-  std::cout << ReflMngr::Instance().registry.Nameof(
-                   ReflMngr::Instance().enuminfos.at(ID_Color).GetID(
-                       Color::GREEN))
-            << std::endl;
+  std::cout
+      << ReflMngr::Instance().nregistry.Nameof(
+             ReflMngr::Instance().enuminfos.at(ID_Color).GetEnumeratorNameID(
+                 Color::GREEN))
+      << std::endl;
 }

@@ -4,15 +4,15 @@
 
 #pragma once
 
+#include "BaseInfo.h"
 #include "EnumInfo.h"
 #include "Enumerator.h"
 #include "FieldInfo.h"
 #include "FieldPtr.h"
 #include "Method.h"
 #include "MethodInfo.h"
-#include "NameRegistry.h"
 #include "Object.h"
 #include "ReflMngr.h"
+#include "Registry.h"
 #include "TypeInfo.h"
-#include "BaseInfo.h"
 #include "Util.h"

@@ -9,7 +9,7 @@
 using namespace My::MyDRefl;
 
 ObjectPtr ReflMngr::StaticCast_DerivedToBase(ObjectPtr obj,
-                                             size_t typeID) const noexcept {
+                                             TypeID typeID) const noexcept {
   assert(typeID != static_cast<size_t>(-1));
 
   if (obj.GetID() == typeID)
@@ -35,7 +35,7 @@ ObjectPtr ReflMngr::StaticCast_DerivedToBase(ObjectPtr obj,
 }
 
 ObjectPtr ReflMngr::StaticCast_BaseToDerived(ObjectPtr obj,
-                                             size_t typeID) const noexcept {
+                                             TypeID typeID) const noexcept {
   assert(typeID != static_cast<size_t>(-1));
 
   if (obj.GetID() == typeID)
@@ -62,7 +62,7 @@ ObjectPtr ReflMngr::StaticCast_BaseToDerived(ObjectPtr obj,
 }
 
 ObjectPtr ReflMngr::DynamicCast_BaseToDerived(ObjectPtr obj,
-                                              size_t typeID) const noexcept {
+                                              TypeID typeID) const noexcept {
   assert(typeID != static_cast<size_t>(-1));
 
   if (obj.GetID() == typeID)
@@ -89,7 +89,7 @@ ObjectPtr ReflMngr::DynamicCast_BaseToDerived(ObjectPtr obj,
   return nullptr;
 }
 
-ObjectPtr ReflMngr::StaticCast(ObjectPtr obj, size_t typeID) const noexcept {
+ObjectPtr ReflMngr::StaticCast(ObjectPtr obj, TypeID typeID) const noexcept {
   auto ptr_d2b = StaticCast_DerivedToBase(obj, typeID);
   if (ptr_d2b.GetID() != static_cast<size_t>(-1))
     return ptr_d2b;
@@ -101,7 +101,7 @@ ObjectPtr ReflMngr::StaticCast(ObjectPtr obj, size_t typeID) const noexcept {
   return nullptr;
 }
 
-ObjectPtr ReflMngr::DynamicCast(ObjectPtr obj, size_t typeID) const noexcept {
+ObjectPtr ReflMngr::DynamicCast(ObjectPtr obj, TypeID typeID) const noexcept {
   auto ptr_b2d = DynamicCast_BaseToDerived(obj, typeID);
   if (ptr_b2d.GetID() != static_cast<size_t>(-1))
     return ptr_b2d;
@@ -113,7 +113,7 @@ ObjectPtr ReflMngr::DynamicCast(ObjectPtr obj, size_t typeID) const noexcept {
   return nullptr;
 }
 
-ObjectPtr ReflMngr::RWField(ObjectPtr obj, size_t fieldID) const noexcept {
+ObjectPtr ReflMngr::RWField(ObjectPtr obj, NameID fieldID) const noexcept {
   auto target = typeinfos.find(obj.GetID());
   if (target == typeinfos.end())
     return nullptr;
@@ -135,7 +135,7 @@ ObjectPtr ReflMngr::RWField(ObjectPtr obj, size_t fieldID) const noexcept {
 }
 
 ConstObjectPtr ReflMngr::RField(ConstObjectPtr obj,
-                                size_t fieldID) const noexcept {
+                                NameID fieldID) const noexcept {
   auto target = typeinfos.find(obj.GetID());
   if (target == typeinfos.end())
     return nullptr;
@@ -157,8 +157,8 @@ ConstObjectPtr ReflMngr::RField(ConstObjectPtr obj,
   return nullptr;
 }
 
-bool ReflMngr::IsStaticInvocable(size_t typeID, size_t methodID,
-                                 Span<size_t> argTypeIDs) const noexcept {
+bool ReflMngr::IsStaticInvocable(TypeID typeID, NameID methodID,
+                                 Span<TypeID> argTypeIDs) const noexcept {
   auto typetarget = typeinfos.find(typeID);
 
   if (typetarget == typeinfos.end())
@@ -176,8 +176,8 @@ bool ReflMngr::IsStaticInvocable(size_t typeID, size_t methodID,
   return false;
 }
 
-bool ReflMngr::IsConstInvocable(size_t typeID, size_t methodID,
-                                Span<size_t> argTypeIDs) const noexcept {
+bool ReflMngr::IsConstInvocable(TypeID typeID, NameID methodID,
+                                Span<TypeID> argTypeIDs) const noexcept {
   auto typetarget = typeinfos.find(typeID);
 
   if (typetarget == typeinfos.end())
@@ -196,8 +196,8 @@ bool ReflMngr::IsConstInvocable(size_t typeID, size_t methodID,
   return false;
 }
 
-bool ReflMngr::IsInvocable(size_t typeID, size_t methodID,
-                           Span<size_t> argTypeIDs) const noexcept {
+bool ReflMngr::IsInvocable(TypeID typeID, NameID methodID,
+                           Span<TypeID> argTypeIDs) const noexcept {
   auto typetarget = typeinfos.find(typeID);
 
   if (typetarget == typeinfos.end())
@@ -216,8 +216,8 @@ bool ReflMngr::IsInvocable(size_t typeID, size_t methodID,
   return false;
 }
 
-InvokeResult ReflMngr::Invoke(size_t typeID, size_t methodID,
-                              Span<size_t> argTypeIDs, void* args_buffer,
+InvokeResult ReflMngr::Invoke(TypeID typeID, NameID methodID,
+                              Span<TypeID> argTypeIDs, void* args_buffer,
                               void* result_buffer) const {
   auto typetarget = typeinfos.find(typeID);
 
@@ -240,8 +240,8 @@ InvokeResult ReflMngr::Invoke(size_t typeID, size_t methodID,
   return {};
 }
 
-InvokeResult ReflMngr::Invoke(ConstObjectPtr obj, size_t methodID,
-                              Span<size_t> argTypeIDs, void* args_buffer,
+InvokeResult ReflMngr::Invoke(ConstObjectPtr obj, NameID methodID,
+                              Span<TypeID> argTypeIDs, void* args_buffer,
                               void* result_buffer) const {
   auto typetarget = typeinfos.find(obj.GetID());
 
@@ -267,8 +267,8 @@ InvokeResult ReflMngr::Invoke(ConstObjectPtr obj, size_t methodID,
   return {};
 }
 
-InvokeResult ReflMngr::Invoke(ObjectPtr obj, size_t methodID,
-                              Span<size_t> argTypeIDs, void* args_buffer,
+InvokeResult ReflMngr::Invoke(ObjectPtr obj, NameID methodID,
+                              Span<TypeID> argTypeIDs, void* args_buffer,
                               void* result_buffer) const {
   auto typetarget = typeinfos.find(obj.GetID());
 
@@ -293,9 +293,9 @@ InvokeResult ReflMngr::Invoke(ObjectPtr obj, size_t methodID,
   return {};
 }
 
-static void ReflMngr_ForEachTypeID(size_t typeID,
-                                   const std::function<void(size_t)>& func,
-                                   std::set<size_t>& visitedVBs) {
+static void ReflMngr_ForEachTypeID(TypeID typeID,
+                                   const std::function<void(TypeID)>& func,
+                                   std::set<TypeID>& visitedVBs) {
   func(typeID);
 
   auto target = ReflMngr::Instance().typeinfos.find(typeID);
@@ -316,15 +316,15 @@ static void ReflMngr_ForEachTypeID(size_t typeID,
   }
 }
 
-void ReflMngr::ForEachTypeID(size_t typeID,
-                             const std::function<void(size_t)>& func) const {
-  std::set<size_t> visitedVBs;
+void ReflMngr::ForEachTypeID(TypeID typeID,
+                             const std::function<void(TypeID)>& func) const {
+  std::set<TypeID> visitedVBs;
   ReflMngr_ForEachTypeID(typeID, func, visitedVBs);
 }
 
 static void ReflMngr_ForEachTypeInfo(
-    size_t typeID, const std::function<void(size_t, const TypeInfo&)>& func,
-    std::set<size_t>& visitedVBs) {
+    TypeID typeID, const std::function<void(TypeID, const TypeInfo&)>& func,
+    std::set<TypeID>& visitedVBs) {
 
   auto target = ReflMngr::Instance().typeinfos.find(typeID);
 
@@ -347,16 +347,16 @@ static void ReflMngr_ForEachTypeInfo(
 }
 
 void ReflMngr::ForEachTypeInfo(
-    size_t typeID,
-    const std::function<void(size_t, const TypeInfo&)>& func) const {
-  std::set<size_t> visitedVBs;
+    TypeID typeID,
+    const std::function<void(TypeID, const TypeInfo&)>& func) const {
+  std::set<TypeID> visitedVBs;
   ReflMngr_ForEachTypeInfo(typeID, func, visitedVBs);
 }
 
 void ReflMngr::ForEachFieldInfo(
-    size_t typeID, const std::function<void(size_t, const TypeInfo&, size_t,
+    TypeID typeID, const std::function<void(TypeID, const TypeInfo&, NameID,
                                             const FieldInfo&)>& func) const {
-  ForEachTypeInfo(typeID, [&func](size_t typeID, const TypeInfo& typeinfo) {
+  ForEachTypeInfo(typeID, [&func](TypeID typeID, const TypeInfo& typeinfo) {
     for (const auto& [fieldID, fieldInfo] : typeinfo.fieldinfos)
       func(typeID, typeinfo, fieldID, fieldInfo);
   });
@@ -364,9 +364,9 @@ void ReflMngr::ForEachFieldInfo(
 
 static void ReflMngr_ForEachRWField(
     ObjectPtr obj,
-    const std::function<void(size_t, const TypeInfo&, size_t, const FieldInfo&,
+    const std::function<void(TypeID, const TypeInfo&, NameID, const FieldInfo&,
                              ObjectPtr)>& func,
-    std::set<size_t>& visitedVBs) {
+    std::set<TypeID>& visitedVBs) {
   if (!obj)
     return;
 
@@ -398,17 +398,17 @@ static void ReflMngr_ForEachRWField(
 
 void ReflMngr::ForEachRWField(
     ObjectPtr obj,
-    const std::function<void(size_t, const TypeInfo&, size_t, const FieldInfo&,
+    const std::function<void(TypeID, const TypeInfo&, NameID, const FieldInfo&,
                              ObjectPtr)>& func) const {
-  std::set<size_t> visitedVBs;
+  std::set<TypeID> visitedVBs;
   ReflMngr_ForEachRWField(obj, func, visitedVBs);
 }
 
 static void ReflMngr_ForEachRField(
     ConstObjectPtr obj,
-    const std::function<void(size_t, const TypeInfo&, size_t, const FieldInfo&,
+    const std::function<void(TypeID, const TypeInfo&, NameID, const FieldInfo&,
                              ConstObjectPtr)>& func,
-    std::set<size_t>& visitedVBs) {
+    std::set<TypeID>& visitedVBs) {
   if (!obj)
     return;
 
@@ -438,8 +438,8 @@ static void ReflMngr_ForEachRField(
 
 void ReflMngr::ForEachRField(
     ConstObjectPtr obj,
-    const std::function<void(size_t, const TypeInfo&, size_t, const FieldInfo&,
+    const std::function<void(TypeID, const TypeInfo&, NameID, const FieldInfo&,
                              ConstObjectPtr)>& func) const {
-  std::set<size_t> visitedVBs;
+  std::set<TypeID> visitedVBs;
   ReflMngr_ForEachRField(obj, func, visitedVBs);
 }

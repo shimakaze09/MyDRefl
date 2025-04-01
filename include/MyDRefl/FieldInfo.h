@@ -12,6 +12,6 @@
 namespace My::MyDRefl {
 struct FieldInfo {
   FieldPtr fieldptr;
-  std::unordered_map<size_t, std::any> attrs;
+  std::unordered_map<NameID, std::any> attrs;
 };
 }  // namespace My::MyDRefl

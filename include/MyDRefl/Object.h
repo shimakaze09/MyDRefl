@@ -4,24 +4,28 @@
 
 #pragma once
 
+#include "ID.h"
+
 #include <cassert>
 
 namespace My::MyDRefl {
 class ConstObjectPtr {
  public:
-  constexpr ConstObjectPtr() noexcept
-      : ID{static_cast<size_t>(-1)}, ptr{nullptr} {}
+  constexpr ConstObjectPtr() noexcept : ptr{nullptr} {}
 
   constexpr ConstObjectPtr(std::nullptr_t) noexcept : ConstObjectPtr{} {}
 
   template <typename T>
-  constexpr ConstObjectPtr(size_t ID, const T* ptr) noexcept
+  constexpr ConstObjectPtr(TypeID ID, const T* ptr) noexcept
       : ID{ID}, ptr{ptr} {}
 
-  constexpr ConstObjectPtr(size_t ID, std::nullptr_t) noexcept
+  constexpr ConstObjectPtr(TypeID ID, std::nullptr_t) noexcept
       : ID{ID}, ptr{nullptr} {}
 
-  constexpr size_t GetID() const noexcept { return ID; }
+  explicit constexpr ConstObjectPtr(TypeID ID) noexcept
+      : ConstObjectPtr{ID, nullptr} {}
+
+  constexpr TypeID GetID() const noexcept { return ID; }
 
   constexpr const void* GetPtr() const noexcept { return ptr; }
 
@@ -36,35 +40,36 @@ class ConstObjectPtr {
     return *AsPtr<T>();
   }
 
-  constexpr void Reset() noexcept { *this = ConstObjectPtr{}; }
+  constexpr void Reset() noexcept { ptr = nullptr; }
 
-  constexpr operator bool() const noexcept { return ptr != nullptr; }
+  constexpr void Clear() noexcept { *this = ConstObjectPtr{}; }
+
+  ConstObjectPtr& operator=(std::nullptr_t) noexcept { Reset(); }
 
   constexpr operator const void*() const noexcept { return ptr; }
 
-  ConstObjectPtr& operator=(std::nullptr_t) noexcept {
-    ID = static_cast<size_t>(-1);
-    ptr = nullptr;
-  }
+  constexpr operator bool() const noexcept { return ptr != nullptr; }
 
  private:
-  size_t ID;
+  TypeID ID;
   const void* ptr;
 };
 
 class ObjectPtr {
  public:
-  constexpr ObjectPtr() noexcept : ID{static_cast<size_t>(-1)}, ptr{nullptr} {}
+  constexpr ObjectPtr() noexcept : ptr{nullptr} {}
 
   constexpr ObjectPtr(std::nullptr_t) noexcept : ObjectPtr{} {}
 
   template <typename T>
-  constexpr ObjectPtr(size_t ID, T* ptr) noexcept : ID{ID}, ptr{ptr} {}
+  constexpr ObjectPtr(TypeID ID, T* ptr) noexcept : ID{ID}, ptr{ptr} {}
 
-  constexpr ObjectPtr(size_t ID, std::nullptr_t) noexcept
+  constexpr ObjectPtr(TypeID ID, std::nullptr_t) noexcept
       : ID{ID}, ptr{nullptr} {}
 
-  constexpr size_t GetID() const noexcept { return ID; }
+  explicit constexpr ObjectPtr(TypeID ID) noexcept : ObjectPtr{ID, nullptr} {}
+
+  constexpr TypeID GetID() const noexcept { return ID; }
 
   constexpr void* GetPtr() const noexcept { return ptr; }
 
@@ -84,18 +89,20 @@ class ObjectPtr {
     return *AsPtr<T>();
   }
 
-  constexpr void Reset() noexcept { *this = ObjectPtr{}; }
+  constexpr void Reset() noexcept { ptr = nullptr; }
 
-  constexpr operator bool() const noexcept { return ptr != nullptr; }
+  constexpr void Clear() noexcept { *this = ObjectPtr{}; }
+
+  ObjectPtr& operator=(std::nullptr_t) noexcept { Reset(); }
 
   constexpr operator void*() const noexcept { return ptr; }
 
+  constexpr operator bool() const noexcept { return ptr != nullptr; }
+
   constexpr operator ConstObjectPtr() const noexcept { return {ID, ptr}; }
 
-  ConstObjectPtr& operator=(std::nullptr_t) noexcept { Reset(); }
-
  private:
-  size_t ID;
+  TypeID ID;
   void* ptr;
 };
 }  // namespace My::MyDRefl
