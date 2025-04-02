@@ -19,16 +19,16 @@ ReflMngr::ReflMngr() {
          buffer_get<void*>(result_buffer, 0) = buffer;
          return nullptr;
        },
-       {{ // ParamList
-         {// size
-          tregistry.GetID<uint64_t>(), sizeof(uint64_t), alignof(uint64_t),
-          nregistry.GetID("size")}}},
        {
            // ResultDesc
            tregistry.GetID<void*>(),
            sizeof(void*),
            alignof(void*),
-       }}};
+       },
+       {{ // ParamList
+         {// size
+          tregistry.GetID<uint64_t>(), sizeof(uint64_t), alignof(uint64_t),
+          nregistry.GetID("size")}}}}};
   MethodInfo methodinfo_free{
       {[](ArgsView args, void*) -> Destructor* {
          assert(args.GetParamList().GetParameters().at(0).typeID ==
@@ -37,8 +37,9 @@ ReflMngr::ReflMngr() {
          free(ptr);
          return nullptr;
        },
-       {{ // ParamList
-         {// ptr
+       {},  // ResultDesc
+       {{   // ParamList
+         {  // ptr
           tregistry.GetID<void*>(), sizeof(void*), alignof(void*),
           nregistry.GetID("ptr")}}}}};
   MethodInfo methodinfo_aligned_malloc{
@@ -59,6 +60,12 @@ ReflMngr::ReflMngr() {
          buffer_get<void*>(result_buffer, 0) = buffer;
          return nullptr;
        },
+       {
+           // ResultDesc
+           tregistry.GetID<void*>(),
+           sizeof(void*),
+           alignof(void*),
+       },
        {{
            // ParamList
            {// size
@@ -67,13 +74,7 @@ ReflMngr::ReflMngr() {
            {// alignment
             tregistry.GetID<uint64_t>(), sizeof(uint64_t), alignof(uint64_t),
             nregistry.GetID("alignment")},
-       }},
-       {
-           // ResultDesc
-           tregistry.GetID<void*>(),
-           sizeof(void*),
-           alignof(void*),
-       }}};
+       }}}};
   MethodInfo methodinfo_aligned_free{
       {[](ArgsView args, void*) -> Destructor* {
          assert(args.GetParamList().GetParameters().at(0).typeID ==
@@ -88,8 +89,9 @@ ReflMngr::ReflMngr() {
 
          return nullptr;
        },
-       {{ // ParamList
-         {// ptr
+       {},  // ResultDesc
+       {{   // ParamList
+         {  // ptr
           tregistry.GetID<void*>(), sizeof(void*), alignof(void*),
           nregistry.GetID("ptr")}}}}};
 

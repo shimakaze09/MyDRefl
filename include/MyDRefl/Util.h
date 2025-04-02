@@ -6,6 +6,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <tuple>
 #include <type_traits>
 
 namespace My::MyDRefl {
@@ -171,5 +172,18 @@ constexpr T& buffer_as(void* buffer) noexcept {
 template <typename T>
 constexpr const T& buffer_as(const void* buffer) noexcept {
   return buffer_get<T>(buffer, 0);
+}
+
+template <typename T>
+constexpr auto decay_lref(T t) noexcept {
+  if constexpr (std::is_lvalue_reference_v<T>)
+    return &t;
+  else
+    return std::forward<T>(t);
+}
+
+template <typename... Ts>
+constexpr auto to_tuple_buffer(Ts... ts) noexcept {
+  return std::tuple{decay_lref<Ts>(std::forward<Ts>(ts))...};
 }
 }  // namespace My::MyDRefl
