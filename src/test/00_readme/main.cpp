@@ -45,8 +45,7 @@ int main() {
         {{
             // norm
             [](const void* obj, ArgsView, void* result_buffer) -> Destructor* {
-              buffer_as<float>(result_buffer) = buffer_as<Vec>(obj).norm();
-              return nullptr;
+              return wrap_function<&Vec::norm>()(obj, nullptr, result_buffer);
             },                                         // function
             {ID_float, sizeof(float), alignof(float)}  // ResultDesc
         }}}}};

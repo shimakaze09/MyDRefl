@@ -5,7 +5,8 @@
 #pragma once
 
 #include "ID.h"
-#include "MyTemplate/Name.h"
+
+#include <MyTemplate/Name.h>
 
 #include <deque>
 #include <string>

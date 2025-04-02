@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "MyTemplate/Func.h"
 #include "Object.h"
 #include "Util.h"
 
 #include <MyContainer/Span.h>
+#include <MyTemplate/Func.h>
 
 #include <any>
 #include <functional>
@@ -16,6 +16,12 @@
 #include <vector>
 
 namespace My::MyDRefl {
+struct ResultDesc {
+  TypeID typeID;
+  size_t size{0};
+  size_t alignment{1};
+};
+
 struct Parameter {
   TypeID typeID;
   size_t size;
@@ -23,15 +29,10 @@ struct Parameter {
   NameID nameID;
 };
 
-struct ResultDesc {
-  TypeID typeID;
-  size_t size{0};
-  size_t alignment{1};
-};
-
 class ParamList {
  public:
-  ParamList(std::vector<Parameter> params = {});
+  ParamList() noexcept = default;
+  ParamList(std::vector<Parameter> params);
 
   size_t GetBufferSize() const noexcept { return size; }
 
@@ -61,11 +62,7 @@ class ArgsView {
 
   const ParamList& GetParamList() const noexcept { return paramList; }
 
-  ObjectPtr At(size_t idx) const noexcept {
-    assert(idx < paramList.GetParameters().size());
-    return {paramList.GetParameters()[idx].typeID,
-            forward_offset(buffer, paramList.GetOffsets()[idx])};
-  }
+  ObjectPtr At(size_t idx) const noexcept;
 
  private:
   void* buffer;
@@ -81,22 +78,10 @@ class MethodPtr {
   };
 
   template <typename T>
-  static MethodPtr GenerateDefaultConstructor() {
-    return {static_cast<ObjectVariableFunction*>(
-        [](void* obj, ArgsView, void*) -> Destructor* {
-          new (obj) T;
-          return nullptr;
-        })};
-  }
+  static MethodPtr GenerateDefaultConstructor() noexcept;
 
   template <typename T>
-  static MethodPtr GenerateDestructor() {
-    return {static_cast<ObjectConstFunction*>(
-        [](const void* obj, ArgsView, void*) -> Destructor* {
-          reinterpret_cast<const T*>(obj)->~T();
-          return nullptr;
-        })};
-  }
+  static MethodPtr GenerateDestructor() noexcept;
 
   using ObjectVariableFunction = std::add_pointer_t<Destructor>(void*, ArgsView,
                                                                 void*);
@@ -210,26 +195,8 @@ struct InvokeResult {
   Destructor* destructor{nullptr};
 
   template <typename T>
-  T Move(void* result_buffer) {
-    if constexpr (!std::is_lvalue_reference_v<T> &&
-                  std::is_default_constructible_v<std::remove_reference_t<T>>) {
-      if (!success)
-        return std::forward<T>(T{});
-    } else
-      assert(success);
-
-    // assert(resultID = TypeRegistry::DirectGetID<T>());
-
-    if constexpr (std::is_lvalue_reference_v<T>) {
-      using PtrT = std::add_pointer_t<std::remove_reference_t<T>>;
-      assert(destructor == nullptr);
-      return *buffer_as<PtrT>(result_buffer);
-    } else {
-      T rst = std::move(buffer_as<T>(result_buffer));
-      if (destructor)
-        destructor(result_buffer);
-      return rst;
-    }
-  }
+  T Move(void* result_buffer);
 };
 }  // namespace My::MyDRefl
+
+#include "details/MethodPtr.inl"

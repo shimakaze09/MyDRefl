@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <MyTemplate/Func.h>
+
 #include <cassert>
 #include <cstdint>
 #include <tuple>
@@ -175,7 +177,17 @@ constexpr const T& buffer_as(const void* buffer) noexcept {
 }
 
 template <typename T>
-constexpr auto decay_lref(T t) noexcept {
+constexpr T add_lref(std::remove_reference_t<T>* t) noexcept {
+  return *t;
+}
+
+template <typename T>
+constexpr T add_lref(T t) noexcept {
+  return std::forward<T>(t);
+}
+
+template <typename T>
+constexpr auto remove_lref(T t) noexcept {
   if constexpr (std::is_lvalue_reference_v<T>)
     return &t;
   else
@@ -183,7 +195,23 @@ constexpr auto decay_lref(T t) noexcept {
 }
 
 template <typename... Ts>
-constexpr auto to_tuple_buffer(Ts... ts) noexcept {
-  return std::tuple{decay_lref<Ts>(std::forward<Ts>(ts))...};
+constexpr auto remove_lref_as_tuple_buffer(Ts... ts) noexcept {
+  return std::tuple{remove_lref<Ts>(std::forward<Ts>(ts))...};
 }
+
+// ({const?} void* obj, void* args_buffer, void* result_buffer) -> Destructor*
+template <auto func_ptr>
+constexpr auto wrap_member_function() noexcept;
+
+// (void* args_buffer, void* result_buffer) -> Destructor*
+template <auto func_ptr>
+constexpr auto wrap_non_member_function() noexcept;
+
+// static dispatch to
+// - wrap_member_function
+// - wrap_non_member_function
+template <auto func_ptr>
+constexpr auto wrap_function() noexcept;
 }  // namespace My::MyDRefl
+
+#include "details/Util.inl"
