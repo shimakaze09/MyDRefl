@@ -13,4 +13,5 @@ ADD_TARGET(
         ${c_options}
         LIB
         My::MyContainer_core
+        My::MyTemplate_core
 )

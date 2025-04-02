@@ -13,8 +13,7 @@ ReflMngr::ReflMngr() {
   MethodInfo methodinfo_malloc{
       {[](ArgsView args, void* result_buffer) -> Destructor* {
          assert(args.GetParamList().GetParameters().at(0).typeID ==
-                ReflMngr::Instance().tregistry.GetID(
-                    TypeRegistry::Meta::t_uint64_t));
+                ReflMngr::Instance().tregistry.GetID<uint64_t>());
          auto size = args.At(0).As<uint64_t>();
          void* buffer = malloc(size);
          buffer_get<void*>(result_buffer, 0) = buffer;
@@ -22,35 +21,32 @@ ReflMngr::ReflMngr() {
        },
        {{ // ParamList
          {// size
-          tregistry.GetID(TypeRegistry::Meta::t_uint64_t), sizeof(uint64_t),
-          alignof(uint64_t), nregistry.GetID(NameRegistry::Meta::size)}}},
+          tregistry.GetID<uint64_t>(), sizeof(uint64_t), alignof(uint64_t),
+          nregistry.GetID("size")}}},
        {
            // ResultDesc
-           tregistry.GetID(TypeRegistry::Meta::t_void_ptr),
+           tregistry.GetID<void*>(),
            sizeof(void*),
            alignof(void*),
        }}};
   MethodInfo methodinfo_free{
       {[](ArgsView args, void*) -> Destructor* {
          assert(args.GetParamList().GetParameters().at(0).typeID ==
-                ReflMngr::Instance().tregistry.GetID(
-                    TypeRegistry::Meta::t_void_ptr));
+                ReflMngr::Instance().tregistry.GetID<void*>());
          auto ptr = args.At(0).As<void*>();
          free(ptr);
          return nullptr;
        },
        {{ // ParamList
          {// ptr
-          tregistry.GetID(TypeRegistry::Meta::t_void_ptr), sizeof(void*),
-          alignof(void*), nregistry.GetID(NameRegistry::Meta::ptr)}}}}};
+          tregistry.GetID<void*>(), sizeof(void*), alignof(void*),
+          nregistry.GetID("ptr")}}}}};
   MethodInfo methodinfo_aligned_malloc{
       {[](ArgsView args, void* result_buffer) -> Destructor* {
          assert(args.GetParamList().GetParameters().at(0).typeID ==
-                ReflMngr::Instance().tregistry.GetID(
-                    TypeRegistry::Meta::t_uint64_t));
+                ReflMngr::Instance().tregistry.GetID<uint64_t>());
          assert(args.GetParamList().GetParameters().at(1).typeID ==
-                ReflMngr::Instance().tregistry.GetID(
-                    TypeRegistry::Meta::t_uint64_t));
+                ReflMngr::Instance().tregistry.GetID<uint64_t>());
          auto size = args.At(0).As<uint64_t>();
          auto alignment = args.At(1).As<uint64_t>();
          void* buffer =
@@ -66,23 +62,22 @@ ReflMngr::ReflMngr() {
        {{
            // ParamList
            {// size
-            tregistry.GetID(TypeRegistry::Meta::t_uint64_t), sizeof(uint64_t),
-            alignof(uint64_t), nregistry.GetID(NameRegistry::Meta::size)},
+            tregistry.GetID<uint64_t>(), sizeof(uint64_t), alignof(uint64_t),
+            nregistry.GetID("size")},
            {// alignment
-            tregistry.GetID(TypeRegistry::Meta::t_uint64_t), sizeof(uint64_t),
-            alignof(uint64_t), nregistry.GetID(NameRegistry::Meta::alignment)},
+            tregistry.GetID<uint64_t>(), sizeof(uint64_t), alignof(uint64_t),
+            nregistry.GetID("alignment")},
        }},
        {
            // ResultDesc
-           tregistry.GetID(TypeRegistry::Meta::t_void_ptr),
+           tregistry.GetID<void*>(),
            sizeof(void*),
            alignof(void*),
        }}};
   MethodInfo methodinfo_aligned_free{
       {[](ArgsView args, void*) -> Destructor* {
          assert(args.GetParamList().GetParameters().at(0).typeID ==
-                ReflMngr::Instance().tregistry.GetID(
-                    TypeRegistry::Meta::t_void_ptr));
+                ReflMngr::Instance().tregistry.GetID<void*>());
          auto ptr = args.At(0).As<void*>();
 
 #if defined(WIN32) || defined(_WINDOWS)
@@ -95,8 +90,8 @@ ReflMngr::ReflMngr() {
        },
        {{ // ParamList
          {// ptr
-          tregistry.GetID(TypeRegistry::Meta::t_void_ptr), sizeof(void*),
-          alignof(void*), nregistry.GetID(NameRegistry::Meta::ptr)}}}}};
+          tregistry.GetID<void*>(), sizeof(void*), alignof(void*),
+          nregistry.GetID("ptr")}}}}};
 
   TypeInfo global{
       0,
@@ -120,7 +115,7 @@ ReflMngr::ReflMngr() {
 }
 
 void* ReflMngr::Malloc(uint64_t size) const {
-  std::array argsTypeIDs = {tregistry.GetID(TypeRegistry::Meta::t_uint64_t)};
+  std::array argsTypeIDs = {tregistry.GetID<uint64_t>()};
 
   std::uint8_t args_buffer[sizeof(uint64_t)];
   buffer_get<uint64_t>(args_buffer, 0) = size;
@@ -137,7 +132,7 @@ void* ReflMngr::Malloc(uint64_t size) const {
 }
 
 bool ReflMngr::Free(void* ptr) const {
-  std::array argsTypeIDs = {tregistry.GetID(TypeRegistry::Meta::t_void_ptr)};
+  std::array argsTypeIDs = {tregistry.GetID<void*>()};
 
   std::uint8_t args_buffer[sizeof(void*)];
   buffer_get<void*>(args_buffer, 0) = ptr;
@@ -149,8 +144,8 @@ bool ReflMngr::Free(void* ptr) const {
 }
 
 void* ReflMngr::AlignedMalloc(uint64_t size, uint64_t alignment) const {
-  std::array argsTypeIDs = {tregistry.GetID(TypeRegistry::Meta::t_uint64_t),
-                            tregistry.GetID(TypeRegistry::Meta::t_uint64_t)};
+  std::array argsTypeIDs = {tregistry.GetID<uint64_t>(),
+                            tregistry.GetID<uint64_t>()};
 
   std::uint8_t args_buffer[2 * sizeof(uint64_t)];
   buffer_get<uint64_t>(args_buffer, 0) = size;
@@ -168,7 +163,7 @@ void* ReflMngr::AlignedMalloc(uint64_t size, uint64_t alignment) const {
 }
 
 bool ReflMngr::AlignedFree(void* ptr) const {
-  std::array argsTypeIDs = {tregistry.GetID(TypeRegistry::Meta::t_void_ptr)};
+  std::array argsTypeIDs = {tregistry.GetID<void*>()};
 
   std::uint8_t args_buffer[sizeof(void*)];
   buffer_get<void*>(args_buffer, 0) = ptr;

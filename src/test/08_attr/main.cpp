@@ -28,18 +28,18 @@ struct Point {
 };
 
 int main() {
-  auto ID_Point = ReflMngr::Instance().tregistry.Register("Point");
-  auto ID_float = ReflMngr::Instance().tregistry.Register("float");
+  auto ID_Point = ReflMngr::Instance().tregistry.GetID("Point");
+  auto ID_float = ReflMngr::Instance().tregistry.GetID("float");
   auto ID_MyInspector_Range =
-      ReflMngr::Instance().tregistry.Register("MyInspector::Range");
+      ReflMngr::Instance().tregistry.GetID("MyInspector::Range");
   auto ID_MyInspector_A =
-      ReflMngr::Instance().tregistry.Register("MyInspector::A");
+      ReflMngr::Instance().tregistry.GetID("MyInspector::A");
 
-  auto ID_x = ReflMngr::Instance().nregistry.Register("x");
-  auto ID_y = ReflMngr::Instance().nregistry.Register("y");
-  auto ID_value = ReflMngr::Instance().nregistry.Register("value");
-  auto ID_min_value = ReflMngr::Instance().nregistry.Register("min_value");
-  auto ID_max_value = ReflMngr::Instance().nregistry.Register("max_value");
+  auto ID_x = ReflMngr::Instance().nregistry.GetID("x");
+  auto ID_y = ReflMngr::Instance().nregistry.GetID("y");
+  auto ID_value = ReflMngr::Instance().nregistry.GetID("value");
+  auto ID_min_value = ReflMngr::Instance().nregistry.GetID("min_value");
+  auto ID_max_value = ReflMngr::Instance().nregistry.GetID("max_value");
 
   {  // register range
     TypeInfo typeinfo{
