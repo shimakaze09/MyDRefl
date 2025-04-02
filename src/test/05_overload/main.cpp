@@ -47,7 +47,7 @@ int main() {
 
     auto operator_add_assign_1 = [](void* obj, ArgsView args,
                                     void* result_buffer) {
-      return wrap_function<Ubpa::MemFuncOf<Vec&(const Vec&) noexcept>::run(
+      return wrap_function<My::MemFuncOf<Vec&(const Vec&) noexcept>::run(
           &Vec::operator+=)>()(obj, args.GetBuffer(), result_buffer);
     };
     MethodPtr method_operator_add_assign_1{
@@ -59,7 +59,7 @@ int main() {
                                     void* result_buffer) {
       assert(args.GetParamList().GetParameters().at(0).typeID ==
              ReflMngr::Instance().tregistry.DirectGetID<float>());
-      return wrap_function<Ubpa::MemFuncOf<Vec&(float) noexcept>::run(
+      return wrap_function<My::MemFuncOf<Vec&(float) noexcept>::run(
           &Vec::operator+=)>()(obj, args.GetBuffer(), result_buffer);
     };
     MethodPtr method_operator_add_assign_2{

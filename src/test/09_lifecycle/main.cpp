@@ -30,7 +30,7 @@ int main() {
        {ID_ctor, {MethodPtr::GenerateDefaultConstructor<Point>()}},
        {ID_dtor, {MethodPtr::GenerateDestructor<Point>()}}}};
 
-  ObjectPtr p = ReflMngr::Instance().New(ID_Point);
+  SharedObject p = ReflMngr::Instance().MakeShared(ID_Point);
   ReflMngr::Instance().RWVar(p, ID_x).As<float>() = 1.f;
   ReflMngr::Instance().RWVar(p, ID_y).As<float>() = 2.f;
 
@@ -39,5 +39,4 @@ int main() {
         std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
                   << var.As<float>() << std::endl;
       });
-  ReflMngr::Instance().Delete(p);
 }

@@ -6,6 +6,7 @@
 
 #include "EnumInfo.h"
 #include "Registry.h"
+#include "SharedObject.h"
 #include "TypeInfo.h"
 
 #include <functional>
@@ -103,6 +104,9 @@ class ReflMngr {
   InvokeResult Invoke(ObjectPtr obj, NameID methodID,
                       Span<TypeID> argTypeIDs = {}, void* args_buffer = nullptr,
                       void* result_buffer = nullptr) const;
+
+  SharedObject MakeShared(TypeID typeID, Span<TypeID> argTypeIDs = {},
+                          void* args_buffer = nullptr) const;
 
   // -- template --
 
