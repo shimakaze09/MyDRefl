@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include "Attr.h"
 #include "MethodPtr.h"
+#include "SharedBlock.h"
 
 namespace My::MyDRefl {
 struct MethodInfo {
   MethodPtr methodptr;
-  std::unordered_map<TypeID, Attr> attrs;
+  std::unordered_map<TypeID, SharedBlock> attrs;
 };
 
 struct Method {

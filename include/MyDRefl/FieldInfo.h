@@ -4,15 +4,15 @@
 
 #pragma once
 
-#include "Attr.h"
 #include "FieldPtr.h"
+#include "SharedBlock.h"
 
 #include <unordered_map>
 
 namespace My::MyDRefl {
 struct FieldInfo {
   FieldPtr fieldptr;
-  std::unordered_map<TypeID, Attr> attrs;
+  std::unordered_map<TypeID, SharedBlock> attrs;
 };
 
 struct Field {

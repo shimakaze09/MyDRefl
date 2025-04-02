@@ -11,7 +11,7 @@
 #include "FieldPtr.h"
 #include "MethodInfo.h"
 #include "MethodPtr.h"
-#include "Object.h"
+#include "ObjectPtr.h"
 #include "ReflMngr.h"
 #include "Registry.h"
 #include "TypeInfo.h"

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Object.h"
+#include "ObjectPtr.h"
 #include "Util.h"
 
 #include <MyContainer/Span.h>
