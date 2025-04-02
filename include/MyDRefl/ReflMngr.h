@@ -44,6 +44,9 @@ class ReflMngr {
   template <typename T>
   FieldPtr GenerateFieldPtr(T&& data);
 
+  template <typename T, typename... Args>
+  FieldPtr GenerateDynamicFieldPtr(Args&&... args);
+
   template <typename Return>
   ResultDesc GenerateResultDesc();
 

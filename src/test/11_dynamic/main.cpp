@@ -14,9 +14,8 @@ int main() {
   SharedBlock block = MakeSharedBlock<std::string>("My");
   global.fieldinfos.emplace(
       ReflMngr::Instance().nregistry.GetID("author"),
-      FieldInfo{FieldPtr{
-          SharedObject{ReflMngr::Instance().tregistry.GetID<std::string>(),
-                       std::move(block)}}});
+      FieldInfo{ReflMngr::Instance().GenerateDynamicFieldPtr<const std::string>(
+          "My")});
   std::cout << ReflMngr::Instance()
                    .RVar(ReflMngr::Instance().nregistry.DirectGetID("author"))
                    .As<std::string>()
