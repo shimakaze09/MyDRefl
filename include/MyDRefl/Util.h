@@ -8,12 +8,13 @@
 
 #include <cassert>
 #include <cstdint>
+#include <functional>
 #include <tuple>
 #include <type_traits>
 
 namespace My::MyDRefl {
 using OffsetFunction = const void*(const void*) noexcept;
-using Destructor = void(const void*);
+using Destructor = std::function<void(const void*)>;
 
 struct has_virtual_base_void {};
 
@@ -122,9 +123,9 @@ constexpr InheritCastFunctions inherit_cast_functions() noexcept {
 }
 
 template <typename T>
-constexpr Destructor* destructor() noexcept {
+constexpr Destructor destructor() noexcept {
   if constexpr (std::is_fundamental_v<T> || std::is_compound_v<T>)
-    return nullptr;
+    return {};
   else {
     static_assert(std::is_destructible_v<T>);
     if constexpr (!std::is_trivially_destructible_v<T>) {
@@ -132,7 +133,7 @@ constexpr Destructor* destructor() noexcept {
         reinterpret_cast<const T*>(ptr)->~T();
       };
     } else
-      return nullptr;
+      return {};
   }
 }
 
