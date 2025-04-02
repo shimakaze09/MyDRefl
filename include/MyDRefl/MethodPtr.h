@@ -7,7 +7,7 @@
 #include "ObjectPtr.h"
 #include "Util.h"
 
-#include "Registry.h"
+#include "IDRegistry.h"
 
 #include <MyContainer/Span.h>
 #include <MyTemplate/Func.h>
@@ -23,7 +23,7 @@ struct ResultDesc {
   size_t alignment;
 
   constexpr bool IsVoid() const noexcept {
-    return typeID == TypeRegistry::DirectGetID<void>();
+    return typeID == TypeID::Of<void>();
   }
 };
 
@@ -75,12 +75,6 @@ class ArgsView {
 
 class MethodPtr {
  public:
-  template <typename T>
-  static MethodPtr GenerateDefaultConstructor() noexcept;
-
-  template <typename T>
-  static MethodPtr GenerateDestructor() noexcept;
-
   using MemberVariableFunction = Destructor(void*, ArgsView, void*);
   using MemberConstFunction = Destructor(const void*, ArgsView, void*);
   using StaticFunction = Destructor(ArgsView, void*);
@@ -120,14 +114,6 @@ class MethodPtr {
   MethodPtr(StaticFunction* func, ResultDesc resultDesc = {},
             ParamList paramList = {}) noexcept
       : MethodPtr{std::function<StaticFunction>{func}, std::move(resultDesc),
-                  std::move(paramList)} {
-    assert(func);
-  }
-
-  template <typename Lambda>
-  MethodPtr(Lambda func, ResultDesc resultDesc = {},
-            ParamList paramList = {}) noexcept
-      : MethodPtr{DecayLambda(func), std::move(resultDesc),
                   std::move(paramList)} {
     assert(func);
   }

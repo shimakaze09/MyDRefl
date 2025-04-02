@@ -48,7 +48,7 @@ int main() {
   auto ID_Norm2 = ReflMngr::Instance().nregistry.GetID("Norm2");
   auto ID_NormalizeSelf = ReflMngr::Instance().nregistry.GetID("NormalizeSelf");
   auto ID_operator_assign_add = ReflMngr::Instance().nregistry.GetID(
-      NameRegistry::Meta::operator_assign_add);
+      NameIDRegistry::Meta::operator_assign_add);
 
   {  // register Vec
     FieldPtr ptr_x{ID_float, offsetof(Vec, x)};

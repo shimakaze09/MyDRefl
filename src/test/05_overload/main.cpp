@@ -49,19 +49,19 @@ int main() {
           &Vec::operator+=)>()(obj, args.GetBuffer(), result_buffer);
     };
     MethodPtr method_operator_add_assign_1{
-        operator_add_assign_1,
+        My::DecayLambda(operator_add_assign_1),
         {ID_Vec_lref, sizeof(Vec*), alignof(Vec*)},
         {{{ID_const_Vec_lref, sizeof(const Vec*), alignof(const Vec*)}}}};
 
     auto operator_add_assign_2 = [](void* obj, ArgsView args,
                                     void* result_buffer) {
       assert(args.GetParamList().GetParameters().at(0).typeID ==
-             ReflMngr::Instance().tregistry.DirectGetID<float>());
+             TypeID::Of<float>());
       return wrap_function<My::MemFuncOf<Vec&(float) noexcept>::run(
           &Vec::operator+=)>()(obj, args.GetBuffer(), result_buffer);
     };
     MethodPtr method_operator_add_assign_2{
-        operator_add_assign_2,
+        My::DecayLambda(operator_add_assign_2),
         {ID_Vec_lref, sizeof(Vec*), alignof(Vec*)},
         {{{ID_float, sizeof(float), alignof(float)}}}};
 

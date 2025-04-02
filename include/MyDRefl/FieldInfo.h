@@ -5,6 +5,7 @@
 #pragma once
 
 #include "FieldPtr.h"
+#include "NameID.h"
 #include "SharedBlock.h"
 
 #include <unordered_map>

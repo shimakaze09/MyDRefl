@@ -149,31 +149,29 @@ ReflMngr::ReflMngr() {
       {},  // fieldinfos
       {
           // methodinfos
-          {NameRegistry::DirectGetID(NameRegistry::Meta::malloc),
-           std::move(methodinfo_malloc)},
-          {NameRegistry::DirectGetID(NameRegistry::Meta::free),
-           std::move(methodinfo_free)},
-          {NameRegistry::DirectGetID(NameRegistry::Meta::aligned_malloc),
+          {NameID(NameIDRegistry::Meta::malloc), std::move(methodinfo_malloc)},
+          {NameID(NameIDRegistry::Meta::free), std::move(methodinfo_free)},
+          {NameID(NameIDRegistry::Meta::aligned_malloc),
            std::move(methodinfo_aligned_malloc)},
-          {NameRegistry::DirectGetID(NameRegistry::Meta::aligned_free),
+          {NameID(NameIDRegistry::Meta::aligned_free),
            std::move(methodinfo_aligned_free)},
       },
   };
 
-  typeinfos.emplace(tregistry.GetID(TypeRegistry::Meta::global),
+  typeinfos.emplace(tregistry.GetID(TypeIDRegistry::Meta::global),
                     std::move(global));
 }
 
 void* ReflMngr::Malloc(uint64_t size) const {
-  std::array argsTypeIDs = {TypeRegistry::DirectGetID<uint64_t>()};
+  std::array argsTypeIDs = {TypeID::Of<uint64_t>()};
 
   std::uint8_t args_buffer[sizeof(uint64_t)];
   buffer_get<uint64_t>(args_buffer, 0) = size;
 
   std::uint8_t result_buffer[sizeof(void*)];
 
-  auto result = Invoke(NameRegistry::DirectGetID(NameRegistry::Meta::malloc),
-                       argsTypeIDs, args_buffer, result_buffer);
+  auto result = Invoke(NameID(NameIDRegistry::Meta::malloc), argsTypeIDs,
+                       args_buffer, result_buffer);
 
   if (result.success)
     return buffer_get<void*>(result_buffer, 0);
@@ -182,20 +180,19 @@ void* ReflMngr::Malloc(uint64_t size) const {
 }
 
 bool ReflMngr::Free(void* ptr) const {
-  std::array argsTypeIDs = {TypeRegistry::DirectGetID<void*>()};
+  std::array argsTypeIDs = {TypeID::Of<void*>()};
 
   std::uint8_t args_buffer[sizeof(void*)];
   buffer_get<void*>(args_buffer, 0) = ptr;
 
-  auto result = Invoke(NameRegistry::DirectGetID(NameRegistry::Meta::free),
-                       argsTypeIDs, args_buffer);
+  auto result =
+      Invoke(NameID(NameIDRegistry::Meta::free), argsTypeIDs, args_buffer);
 
   return result.success;
 }
 
 void* ReflMngr::AlignedMalloc(uint64_t size, uint64_t alignment) const {
-  std::array argsTypeIDs = {TypeRegistry::DirectGetID<uint64_t>(),
-                            TypeRegistry::DirectGetID<uint64_t>()};
+  std::array argsTypeIDs = {TypeID::Of<uint64_t>(), TypeID::Of<uint64_t>()};
 
   std::uint8_t args_buffer[2 * sizeof(uint64_t)];
   buffer_get<uint64_t>(args_buffer, 0) = size;
@@ -203,9 +200,8 @@ void* ReflMngr::AlignedMalloc(uint64_t size, uint64_t alignment) const {
 
   std::uint8_t result_buffer[sizeof(void*)];
 
-  auto result =
-      Invoke(NameRegistry::DirectGetID(NameRegistry::Meta::aligned_malloc),
-             argsTypeIDs, args_buffer, result_buffer);
+  auto result = Invoke(NameID(NameIDRegistry::Meta::aligned_malloc),
+                       argsTypeIDs, args_buffer, result_buffer);
 
   if (result.success)
     return buffer_get<void*>(result_buffer, 0);
@@ -214,14 +210,13 @@ void* ReflMngr::AlignedMalloc(uint64_t size, uint64_t alignment) const {
 }
 
 bool ReflMngr::AlignedFree(void* ptr) const {
-  std::array argsTypeIDs = {TypeRegistry::DirectGetID<void*>()};
+  std::array argsTypeIDs = {TypeID::Of<void*>()};
 
   std::uint8_t args_buffer[sizeof(void*)];
   buffer_get<void*>(args_buffer, 0) = ptr;
 
-  auto result =
-      Invoke(NameRegistry::DirectGetID(NameRegistry::Meta::aligned_free),
-             argsTypeIDs, args_buffer);
+  auto result = Invoke(NameID(NameIDRegistry::Meta::aligned_free), argsTypeIDs,
+                       args_buffer);
 
   return result.success;
 }
@@ -605,8 +600,7 @@ bool ReflMngr::IsConstructible(TypeID typeID,
   if (target == typeinfos.end())
     return false;
   const auto& typeinfo = target->second;
-  return typeinfo.IsInvocable(
-      NameRegistry::DirectGetID(NameRegistry::Meta::ctor), argTypeIDs);
+  return typeinfo.IsInvocable(NameID(NameIDRegistry::Meta::ctor), argTypeIDs);
 }
 
 bool ReflMngr::IsDestructible(TypeID typeID) const noexcept {
@@ -614,8 +608,7 @@ bool ReflMngr::IsDestructible(TypeID typeID) const noexcept {
   if (target == typeinfos.end())
     return false;
   const auto& typeinfo = target->second;
-  return typeinfo.IsConstInvocable(
-      NameRegistry::DirectGetID(NameRegistry::Meta::dtor), {});
+  return typeinfo.IsConstInvocable(NameID(NameIDRegistry::Meta::dtor), {});
 }
 
 bool ReflMngr::Construct(ObjectPtr obj, Span<TypeID> argTypeIDs,
@@ -625,9 +618,8 @@ bool ReflMngr::Construct(ObjectPtr obj, Span<TypeID> argTypeIDs,
   if (target == typeinfos.end())
     return false;
   const auto& typeinfo = target->second;
-  auto rst =
-      typeinfo.Invoke(obj, NameRegistry::DirectGetID(NameRegistry::Meta::ctor),
-                      argTypeIDs, args_buffer, nullptr);
+  auto rst = typeinfo.Invoke(obj, NameID(NameIDRegistry::Meta::ctor),
+                             argTypeIDs, args_buffer, nullptr);
   return rst.success;
 }
 
@@ -637,9 +629,8 @@ bool ReflMngr::Destruct(ConstObjectPtr obj) const {
   if (target == typeinfos.end())
     return false;
   const auto& typeinfo = target->second;
-  auto rst =
-      typeinfo.Invoke(obj, NameRegistry::DirectGetID(NameRegistry::Meta::dtor),
-                      {}, nullptr, nullptr);
+  auto rst = typeinfo.Invoke(obj, NameID(NameIDRegistry::Meta::dtor), {},
+                             nullptr, nullptr);
   return rst.success;
 }
 

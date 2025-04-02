@@ -5,6 +5,7 @@
 #pragma once
 
 #include "MethodPtr.h"
+#include "NameID.h"
 #include "SharedBlock.h"
 
 namespace My::MyDRefl {

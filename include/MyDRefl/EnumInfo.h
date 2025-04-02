@@ -5,6 +5,8 @@
 #pragma once
 
 #include "Enumerator.h"
+#include "NameID.h"
+#include "TypeID.h"
 
 namespace My::MyDRefl {
 struct EnumInfo {

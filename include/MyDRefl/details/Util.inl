@@ -42,8 +42,8 @@ struct wrap_function_call_impl<TypeList<OrigArgs...>, TypeList<BufferArgs...>> {
   static constexpr decltype(auto) run(ObjPtr ptr, Func&& func,
                                       void* args_buffer) {
     return std::apply(
-        [ptr,
-         f = std::forward<Func>(func)](auto&&... bufferArgs) -> decltype(auto) {
+        [ptr, f = std::forward<Func>(func)](
+            auto&&... bufferArgs) mutable -> decltype(auto) {
           if constexpr (std::is_member_function_pointer_v<std::decay_t<Func>>)
             return (buffer_as<Obj>(ptr).*f)(type_buffer_recover<OrigArgs>(
                 std::forward<decltype(bufferArgs)>(bufferArgs))...);
@@ -60,7 +60,8 @@ struct wrap_function_call_impl<TypeList<OrigArgs...>, TypeList<BufferArgs...>> {
   template <typename Func>
   static constexpr decltype(auto) run(Func&& func, void* args_buffer) {
     return std::apply(
-        [f = std::forward<Func>(func)](auto&&... bufferArgs) -> decltype(auto) {
+        [f = std::forward<Func>(func)](
+            auto&&... bufferArgs) mutable -> decltype(auto) {
           return std::forward<Func>(f)(type_buffer_recover<OrigArgs>(
               std::forward<decltype(bufferArgs)>(bufferArgs))...);
         },
@@ -86,7 +87,8 @@ struct WrapFuncTraits<Func Obj::*> : FuncTraits<Func Obj::*> {
 template <typename F>
 struct WrapFuncTraits {
  private:
-  using ObjectArgList = FuncTraits_ArgList<F>;
+  using Traits = FuncTraits<F>;
+  using ObjectArgList = typename Traits::ArgList;
   static_assert(!IsEmpty_v<ObjectArgList>);
   using CVObjectRef = Front_t<ObjectArgList>;
   static_assert(std::is_reference_v<CVObjectRef>);
@@ -95,6 +97,7 @@ struct WrapFuncTraits {
  public:
   using ArgList = PopFront_t<ObjectArgList>;
   using Object = std::remove_cv_t<CVObject>;
+  using Return = typename Traits::Return;
   static constexpr bool is_const = std::is_const_v<CVObject>;
 };
 }  // namespace My::MyDRefl::details
@@ -136,9 +139,10 @@ constexpr auto My::MyDRefl::wrap_member_function(Func&& func) noexcept {
   using Obj = typename Traits::Object;
   using ArgList = typename Traits::ArgList;
   using ObjPtr = std::conditional_t<Traits::is_const, const void*, void*>;
-  /*constexpr*/ auto wrapped_function = [f = std::forward<Func>(func)](
-                                            ObjPtr obj, void* args_buffer,
-                                            void* result_buffer) -> Destructor {
+  /*constexpr*/ auto wrapped_function =
+      [f = std::forward<Func>(func)](
+          ObjPtr obj, void* args_buffer,
+          void* result_buffer) mutable -> Destructor {
     if constexpr (!std::is_void_v<Return>) {
       Return rst = details::wrap_function_call<ArgList>::template run<Obj>(
           obj, std::forward<Func>(f), args_buffer);
@@ -188,9 +192,9 @@ constexpr auto My::MyDRefl::wrap_static_function(Func&& func) noexcept {
   using Traits = FuncTraits<std::decay_t<Func>>;
   using Return = typename Traits::Return;
   using ArgList = typename Traits::ArgList;
-  /*constexpr*/ auto wrapped_function = [f = std::forward<Func>(func)](
-                                            void* args_buffer,
-                                            void* result_buffer) -> Destructor {
+  /*constexpr*/ auto wrapped_function =
+      [f = std::forward<Func>(func)](
+          void* args_buffer, void* result_buffer) mutable -> Destructor {
     if constexpr (!std::is_void_v<Return>) {
       Return rst = details::wrap_function_call<ArgList>::template run(
           std::forward<Func>(f), args_buffer);

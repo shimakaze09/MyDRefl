@@ -2,13 +2,13 @@
 // Created by Admin on 31/03/2025.
 //
 
-#include <MyDRefl/Registry.h>
+#include <MyDRefl/NameIDRegistry.h>
 
 #include <cassert>
 
 using namespace My::MyDRefl;
 
-NameRegistry::NameRegistry() {
+NameIDRegistry::NameIDRegistry() {
   //
   // Global
   ///////////
@@ -89,8 +89,4 @@ NameRegistry::NameRegistry() {
   registry.Register(string_hash(Meta::operator_comma), Meta::operator_comma);
   registry.Register(string_hash(Meta::operator_subscript),
                     Meta::operator_subscript);
-}
-
-TypeRegistry::TypeRegistry() {
-  registry.Register(string_hash(Meta::global), Meta::global);
 }

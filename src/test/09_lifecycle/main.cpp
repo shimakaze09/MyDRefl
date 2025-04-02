@@ -9,6 +9,10 @@
 using namespace My::MyDRefl;
 
 struct Point {
+  Point() { std::cout << "Point ctor" << std::endl; }
+
+  ~Point() { std::cout << "Point dtor" << std::endl; }
+
   float x, y;
 };
 
@@ -17,8 +21,10 @@ int main() {
   auto ID_float = ReflMngr::Instance().tregistry.GetID<float>();
   auto ID_x = ReflMngr::Instance().nregistry.GetID("x");
   auto ID_y = ReflMngr::Instance().nregistry.GetID("y");
-  auto ID_ctor = ReflMngr::Instance().nregistry.GetID(NameRegistry::Meta::ctor);
-  auto ID_dtor = ReflMngr::Instance().nregistry.GetID(NameRegistry::Meta::dtor);
+  auto ID_ctor =
+      ReflMngr::Instance().nregistry.GetID(NameIDRegistry::Meta::ctor);
+  auto ID_dtor =
+      ReflMngr::Instance().nregistry.GetID(NameIDRegistry::Meta::dtor);
 
   ReflMngr::Instance().typeinfos[ID_Point] = {
       sizeof(Point),
@@ -27,8 +33,8 @@ int main() {
        {ID_x, {{ID_float, offsetof(Point, x)}}},
        {ID_y, {{ID_float, offsetof(Point, y)}}}},
       {// methods
-       {ID_ctor, {MethodPtr::GenerateDefaultConstructor<Point>()}},
-       {ID_dtor, {MethodPtr::GenerateDestructor<Point>()}}}};
+       ReflMngr::Instance().GenerateConstructor<Point>(),
+       ReflMngr::Instance().GenerateDestructor<Point>()}};
 
   SharedObject p = ReflMngr::Instance().MakeShared(ID_Point);
   ReflMngr::Instance().RWVar(p, ID_x).As<float>() = 1.f;
