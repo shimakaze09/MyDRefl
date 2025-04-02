@@ -10,6 +10,7 @@
 #include <memory>
 
 namespace My::MyDRefl {
+// SharedBlock + ID
 class SharedObject {
  public:
   //

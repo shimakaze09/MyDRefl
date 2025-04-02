@@ -99,7 +99,8 @@ struct Enumerator {
 
 struct EnumeratorInfo {
   template <typename E>
-  EnumeratorInfo(E e, std::unordered_map<TypeID, SharedBlock> attrs = {}) noexcept
+  EnumeratorInfo(E e,
+                 std::unordered_map<TypeID, SharedBlock> attrs = {}) noexcept
       : value{Enumerator::ValueOf(e)}, attrs{std::move(attrs)} {}
 
   Enumerator::Value value;

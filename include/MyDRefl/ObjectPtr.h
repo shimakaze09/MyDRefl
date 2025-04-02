@@ -15,8 +15,7 @@ class ConstObjectPtr {
 
   constexpr ConstObjectPtr(std::nullptr_t) noexcept : ConstObjectPtr{} {}
 
-  template <typename T>
-  constexpr ConstObjectPtr(TypeID ID, const T* ptr) noexcept
+  constexpr ConstObjectPtr(TypeID ID, const void* ptr) noexcept
       : ID{ID}, ptr{ptr} {}
 
   constexpr ConstObjectPtr(TypeID ID, std::nullptr_t) noexcept
@@ -67,8 +66,7 @@ class ObjectPtr {
 
   constexpr ObjectPtr(std::nullptr_t) noexcept : ObjectPtr{} {}
 
-  template <typename T>
-  constexpr ObjectPtr(TypeID ID, T* ptr) noexcept : ID{ID}, ptr{ptr} {}
+  constexpr ObjectPtr(TypeID ID, void* ptr) noexcept : ID{ID}, ptr{ptr} {}
 
   constexpr ObjectPtr(TypeID ID, std::nullptr_t) noexcept
       : ID{ID}, ptr{nullptr} {}
