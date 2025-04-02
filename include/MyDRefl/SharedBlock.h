@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "ObjectPtr.h"
-
+#include <cassert>
 #include <functional>
 #include <memory>
 
@@ -176,10 +175,6 @@ class SharedBlock {
   const T* AsPtr() const noexcept {
     return const_cast<SharedBlock*>(this)->AsPtr<T>();
   }
-
-  ObjectPtr AsObjectPtr(TypeID id) noexcept { return {id, Get()}; }
-
-  ConstObjectPtr AsObjectPtr(TypeID id) const noexcept { return {id, Get()}; }
 
   template <typename T>
   T& As() noexcept {

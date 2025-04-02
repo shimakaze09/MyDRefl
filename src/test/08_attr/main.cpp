@@ -78,20 +78,19 @@ int main() {
   ReflMngr::Instance().RWVar(ptr, ID_x).As<float>() = 1.f;
   ReflMngr::Instance().RWVar(ptr, ID_y).As<float>() = 2.f;
 
-  ReflMngr::Instance().ForEachRVar(
-      ptr, [](Type type, Field field, ConstObjectPtr var) {
-        for (const auto& [attrID, attr] : field.info.attrs) {
-          std::cout << "[" << ReflMngr::Instance().tregistry.Nameof(attrID)
-                    << "]" << std::endl;
-          ReflMngr::Instance().ForEachRVar(
-              attr.AsObjectPtr(attrID),
-              [](Type type, Field field, ConstObjectPtr var) {
-                std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID)
-                          << ": " << var.As<float>() << std::endl;
-              });
-          std::cout << "------" << std::endl;
-        }
-        std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
-                  << var.As<float>() << std::endl;
-      });
+  ReflMngr::Instance().ForEachRVar(ptr, [](Type type, Field field,
+                                           ConstObjectPtr var) {
+    for (const auto& [attrID, attr] : field.info.attrs) {
+      std::cout << "[" << ReflMngr::Instance().tregistry.Nameof(attrID) << "]"
+                << std::endl;
+      ReflMngr::Instance().ForEachRVar(
+          {attrID, attr.Get()}, [](Type type, Field field, ConstObjectPtr var) {
+            std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
+                      << var.As<float>() << std::endl;
+          });
+      std::cout << "------" << std::endl;
+    }
+    std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
+              << var.As<float>() << std::endl;
+  });
 }

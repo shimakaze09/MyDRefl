@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ID.h"
+#include "Registry.h"
 
 #include <cassert>
 
@@ -30,7 +30,13 @@ class ConstObjectPtr {
   constexpr const void* GetPtr() const noexcept { return ptr; }
 
   template <typename T>
+  constexpr bool Is() const noexcept {
+    return ID == TypeRegistry::DirectGetID<T>();
+  }
+
+  template <typename T>
   constexpr const T* AsPtr() const noexcept {
+    assert(Is<T>());
     return reinterpret_cast<const T*>(ptr);
   }
 
@@ -74,8 +80,8 @@ class ObjectPtr {
   constexpr void* GetPtr() const noexcept { return ptr; }
 
   template <typename T>
-  constexpr T* GetPtr() const noexcept {
-    return ptr;
+  constexpr bool Is() const noexcept {
+    return ID == TypeRegistry::DirectGetID<T>();
   }
 
   template <typename T>

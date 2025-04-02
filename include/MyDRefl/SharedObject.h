@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "ObjectPtr.h"
 #include "SharedBlock.h"
 
 #include <memory>
@@ -70,20 +71,6 @@ class SharedObject {
   }
 
   //
-  // Cast
-  /////////
-
-  ObjectPtr CastToObjectPtr() & noexcept { return block.AsObjectPtr(ID); }
-
-  ConstObjectPtr CastToObjectPtr() const& noexcept {
-    return block.AsObjectPtr(ID);
-  }
-
-  operator ObjectPtr() & noexcept { return block.AsObjectPtr(ID); }
-
-  operator ConstObjectPtr() const& noexcept { return block.AsObjectPtr(ID); }
-
-  //
   // Modifiers
   //////////////
 
@@ -99,6 +86,12 @@ class SharedObject {
   //////////////
 
   TypeID GetID() const noexcept { return ID; }
+
+  SharedBlock GetBlock() & noexcept { return block; }
+
+  const SharedBlock& GetBlock() const& noexcept { return block; }
+
+  SharedBlock GetBlock() && noexcept { return std::move(block); }
 
   void* GetPtr() noexcept { return block.Get(); }
 
@@ -126,13 +119,19 @@ class SharedObject {
     return *AsPtr<T>();
   }
 
-  ObjectPtr AsObjectPtr() & noexcept { return block.AsObjectPtr(ID); }
+  ObjectPtr AsObjectPtr() & noexcept { return {ID, block.Get()}; }
 
-  ConstObjectPtr AsObjectPtr() const& noexcept { return block.AsObjectPtr(ID); }
+  ConstObjectPtr AsObjectPtr() const& noexcept { return {ID, block.Get()}; }
+
+  operator ObjectPtr() & noexcept { return AsObjectPtr(); }
+
+  operator ConstObjectPtr() const& noexcept { return AsObjectPtr(); }
 
   long UseCount() const noexcept { return block.UseCount(); }
 
-  explicit operator bool() const noexcept { return static_cast<bool>(block); }
+  explicit operator bool() const noexcept {
+    return ID && static_cast<bool>(block);
+  }
 
  private:
   TypeID ID;
