@@ -6,7 +6,6 @@
 
 #include <MyTemplate/Func.h>
 
-#include <cassert>
 #include <cstdint>
 #include <functional>
 #include <tuple>
@@ -166,7 +165,6 @@ constexpr const void* backward_offset(const void* ptr,
 template <typename T>
 constexpr T& buffer_get(void* buffer, std::size_t offset) noexcept {
   auto ptr = forward_offset(buffer, offset);
-  assert(ptr);
   return *reinterpret_cast<T*>(ptr);
 }
 

@@ -212,7 +212,7 @@ SharedBlock AllocateSharedBlock(const Alloc& alloc, Args&&... args) {
 
 template <>
 struct std::hash<My::MyDRefl::SharedBlock> {
-  std::size_t operator()(const My::MyDRefl::SharedBlock& obj) noexcept {
+  std::size_t operator()(const My::MyDRefl::SharedBlock& obj) const noexcept {
     return std::hash<const void*>()(obj.Get());
   }
 };

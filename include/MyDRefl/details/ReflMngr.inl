@@ -106,7 +106,7 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
     return std::function{wrapped_func};
   }
 };
-};  // namespace My::MyDRefl::details
+}  // namespace My::MyDRefl::details
 
 namespace My::MyDRefl {
 //
@@ -151,8 +151,9 @@ FieldPtr ReflMngr::GenerateFieldPtr(T&& data) {
     } else {
       return {ID, field_forward_offset_value(data), ConstFlag{}};
     }
-  } else if (std::is_pointer_v<RawT> && !is_function_pointer_v<RawT> &&
-             std::is_void_v<std::remove_pointer_t<RawT>>) {
+  } else if constexpr (std::is_pointer_v<RawT> &&
+                       !is_function_pointer_v<RawT> &&
+                       std::is_void_v<std::remove_pointer_t<RawT>>) {
     using Value = std::remove_pointer_t<RawT>;
     return {tregistry.Register<Value>(), data,
             std::bool_constant<std::is_const_v<Value>>{}};
@@ -251,16 +252,14 @@ MethodPtr ReflMngr::GenerateStaticMethodPtr(Func&& func) {
 }
 
 template <typename T, typename... Args>
-std::pair<StrID, MethodInfo> ReflMngr::GenerateConstructor(
-    std::unordered_map<TypeID, SharedBlock> attrs) {
+std::pair<StrID, MethodInfo> ReflMngr::GenerateConstructor(AttrSet attrs) {
   return GenerateConstructor(
       [](T& obj, Args... args) { new (&obj) T{std::forward<Args>(args)...}; },
       std::move(attrs));
 }
 
 template <typename T, typename... Args>
-std::pair<StrID, MethodInfo> ReflMngr::GenerateDestructor(
-    std::unordered_map<TypeID, SharedBlock> attrs) {
+std::pair<StrID, MethodInfo> ReflMngr::GenerateDestructor(AttrSet attrs) {
   return GenerateDestructor([](const T& obj) { obj.~T(); }, std::move(attrs));
 }
 
@@ -321,7 +320,8 @@ InvokeResult ReflMngr::InvokeArgs(TypeID typeID, StrID methodID,
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return Invoke(typeID, methodID, argTypeIDs, &args_buffer, result_buffer);
+    return Invoke(typeID, methodID, Span<TypeID>{argTypeIDs},
+                  static_cast<void*>(&args_buffer), result_buffer);
   } else
     return Invoke(typeID, methodID, {}, nullptr, result_buffer);
 }
@@ -333,7 +333,8 @@ InvokeResult ReflMngr::InvokeArgs(ConstObjectPtr obj, StrID methodID,
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return Invoke(obj, methodID, argTypeIDs, &args_buffer, result_buffer);
+    return Invoke(obj, methodID, Span<TypeID>{argTypeIDs},
+                  static_cast<void*>(&args_buffer), result_buffer);
   } else
     return Invoke(obj, methodID, {}, nullptr, result_buffer);
 }
@@ -345,7 +346,8 @@ InvokeResult ReflMngr::InvokeArgs(ObjectPtr obj, StrID methodID,
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return Invoke(obj, methodID, argTypeIDs, &args_buffer, result_buffer);
+    return Invoke(obj, methodID, Span<TypeID>{argTypeIDs},
+                  static_cast<void*>(&args_buffer), result_buffer);
   } else
     return Invoke(obj, methodID, {}, nullptr, result_buffer);
 }
@@ -356,7 +358,8 @@ T ReflMngr::Invoke(TypeID typeID, StrID methodID, Args... args) const {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return InvokeRet<T>(typeID, methodID, argTypeIDs, &args_buffer);
+    return InvokeRet<T>(typeID, methodID, Span<TypeID>{argTypeIDs},
+                        static_cast<void*>(&args_buffer));
   } else
     return InvokeRet<T>(typeID, methodID);
 }
@@ -367,7 +370,8 @@ T ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID, Args... args) const {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return InvokeRet<T>(obj, methodID, argTypeIDs, &args_buffer);
+    return InvokeRet<T>(obj, methodID, Span<TypeID>{argTypeIDs},
+                        static_cast<void*>(&args_buffer));
   } else
     return InvokeRet<T>(obj, methodID);
 }
@@ -378,7 +382,8 @@ T ReflMngr::Invoke(ObjectPtr obj, StrID methodID, Args... args) const {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return InvokeRet<T>(obj, methodID, argTypeIDs, &args_buffer);
+    return InvokeRet<T>(obj, methodID, Span<TypeID>{argTypeIDs},
+                        static_cast<void*>(&args_buffer));
   } else
     return InvokeRet<T>(obj, methodID);
 }
@@ -411,7 +416,8 @@ InvokeResult ReflMngr::InvokeArgs(StrID methodID, void* result_buffer,
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return Invoke(methodID, argTypeIDs, &args_buffer, result_buffer);
+    return Invoke(methodID, Span<TypeID>{argTypeIDs},
+                  static_cast<void*>(&args_buffer), result_buffer);
   } else
     return Invoke(methodID, {}, nullptr, result_buffer);
 }
@@ -462,7 +468,8 @@ bool ReflMngr::Construct(ObjectPtr obj, Args... args) const {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return Construct(obj, argTypeIDs, &args_buffer);
+    return Construct(obj, Span<TypeID>{argTypeIDs},
+                     static_cast<void*>(&args_buffer));
   } else
     return Construct(obj);
 }
@@ -473,7 +480,8 @@ ObjectPtr ReflMngr::New(TypeID typeID, Args... args) const {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return New(typeID, argTypeIDs, &args_buffer);
+    return New(typeID, Span<TypeID>{argTypeIDs},
+               static_cast<void*>(&args_buffer));
   } else
     return New(typeID);
 }
@@ -489,7 +497,8 @@ SharedObject ReflMngr::MakeShared(TypeID typeID, Args... args) const {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return MakeShared(typeID, argTypeIDs, &args_buffer);
+    return MakeShared(typeID, Span<TypeID>{argTypeIDs},
+                      static_cast<void*>(&args_buffer));
   } else
     return MakeShared(typeID);
 }

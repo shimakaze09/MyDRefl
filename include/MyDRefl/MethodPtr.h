@@ -9,7 +9,6 @@
 
 #include <MyContainer/Span.h>
 
-#include <functional>
 #include <variant>
 #include <vector>
 

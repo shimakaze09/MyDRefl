@@ -4,11 +4,8 @@
 
 #pragma once
 
-#include "SharedBlock.h"
+#include "AttrSet.h"
 
-#include <MyTemplate/TypeID.h>
-
-#include <any>
 #include <cstdint>
 #include <unordered_map>
 
@@ -101,11 +98,10 @@ struct Enumerator {
 
 struct EnumeratorInfo {
   template <typename E>
-  EnumeratorInfo(E e,
-                 std::unordered_map<TypeID, SharedBlock> attrs = {}) noexcept
+  EnumeratorInfo(E e, AttrSet attrs = {}) noexcept
       : value{Enumerator::ValueOf(e)}, attrs{std::move(attrs)} {}
 
   Enumerator::Value value;
-  std::unordered_map<TypeID, SharedBlock> attrs;
+  AttrSet attrs;
 };
 }  // namespace My::MyDRefl

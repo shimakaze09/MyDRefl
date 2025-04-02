@@ -27,6 +27,16 @@ class ReflMngr {
   std::unordered_map<TypeID, TypeInfo> typeinfos;
   std::unordered_map<TypeID, EnumInfo> enuminfos;
 
+  // clear order
+  // - enumerator attrs
+  // - enum attrs
+  // - field attrs
+  // - type attrs
+  // - type dynamic field
+  // - senuminfos
+  // - typeinfos
+  void Clear();
+
   //
   // Factory
   ////////////
@@ -46,33 +56,30 @@ class ReflMngr {
   template <typename T, typename... Args>
   FieldPtr GenerateDynamicFieldPtr(Args&&... args);
 
-  std::pair<StrID, FieldInfo> GenerateField(
-      std::string_view name, FieldPtr fieldptr,
-      std::unordered_map<TypeID, SharedBlock> attrs = {}) {
+  std::pair<StrID, FieldInfo> GenerateField(std::string_view name,
+                                            FieldPtr fieldptr,
+                                            AttrSet attrs = {}) {
     return {nregistry.Register(name), {std::move(fieldptr), std::move(attrs)}};
   }
 
   template <auto field_ptr>
-  std::pair<StrID, FieldInfo> GenerateField(
-      std::string_view name,
-      std::unordered_map<TypeID, SharedBlock> attrs = {}) {
+  std::pair<StrID, FieldInfo> GenerateField(std::string_view name,
+                                            AttrSet attrs = {}) {
     return GenerateField(name, GenerateFieldPtr<field_ptr>(), std::move(attrs));
   }
 
   template <
       typename T,
       std::enable_if_t<!std::is_same_v<std::decay_t<T>, FieldPtr>, int> = 0>
-  std::pair<StrID, FieldInfo> GenerateField(
-      std::string_view name, T&& data,
-      std::unordered_map<TypeID, SharedBlock> attrs = {}) {
+  std::pair<StrID, FieldInfo> GenerateField(std::string_view name, T&& data,
+                                            AttrSet attrs = {}) {
     return GenerateField(name, GenerateFieldPtr(std::forward<T>(data)),
                          std::move(attrs));
   }
 
   template <typename T, typename... Args>
   std::pair<StrID, FieldInfo> GenerateDynamicFieldWithAttrs(
-      std::string_view name, std::unordered_map<TypeID, SharedBlock> attrs,
-      Args&&... args) {
+      std::string_view name, AttrSet attrs, Args&&... args) {
     return GenerateField(
         name, GenerateDynamicFieldPtr<T>(std::forward<Args>(args)...),
         std::move(attrs));
@@ -100,58 +107,69 @@ class ReflMngr {
   template <typename Func>
   MethodPtr GenerateStaticMethodPtr(Func&& func);
 
-  std::pair<StrID, MethodInfo> GenerateMethod(
-      std::string_view name, MethodPtr methodptr,
-      std::unordered_map<TypeID, SharedBlock> attrs = {}) {
+  std::pair<StrID, MethodInfo> GenerateMethod(std::string_view name,
+                                              MethodPtr methodptr,
+                                              AttrSet attrs = {}) {
     return {nregistry.Register(name), {std::move(methodptr), std::move(attrs)}};
   }
 
   template <auto funcptr>
-  std::pair<StrID, MethodInfo> GenerateMethod(
-      std::string_view name,
-      std::unordered_map<TypeID, SharedBlock> attrs = {}) {
+  std::pair<StrID, MethodInfo> GenerateMethod(std::string_view name,
+                                              AttrSet attrs = {}) {
     return GenerateMethod(name, GenerateMethodPtr<funcptr>(), std::move(attrs));
   }
 
   template <typename Func>
-  std::pair<StrID, MethodInfo> GenerateMemberMethod(
-      std::string_view name, Func&& func,
-      std::unordered_map<TypeID, SharedBlock> attrs = {}) {
+  std::pair<StrID, MethodInfo> GenerateMemberMethod(std::string_view name,
+                                                    Func&& func,
+                                                    AttrSet attrs = {}) {
     return GenerateMethod(name, GenerateMemberMethod(std::forward<Func>(func)),
                           std::move(attrs));
   }
 
   template <typename Func>
-  std::pair<StrID, MethodInfo> GenerateStaticMethod(
-      std::string_view name, Func&& func,
-      std::unordered_map<TypeID, SharedBlock> attrs = {}) {
+  std::pair<StrID, MethodInfo> GenerateStaticMethod(std::string_view name,
+                                                    Func&& func,
+                                                    AttrSet attrs = {}) {
     return GenerateMethod(name, GenerateStaticMethod(std::forward<Func>(func)),
                           std::move(attrs));
   }
 
   template <typename Func>
-  std::pair<StrID, MethodInfo> GenerateConstructor(
-      Func&& func, std::unordered_map<TypeID, SharedBlock> attrs = {}) {
+  std::pair<StrID, MethodInfo> GenerateConstructor(Func&& func,
+                                                   AttrSet attrs = {}) {
     return {
         StrID{StrIDRegistry::Meta::ctor},
         {GenerateMemberMethodPtr(std::forward<Func>(func)), std::move(attrs)}};
   }
 
   template <typename Func>
-  std::pair<StrID, MethodInfo> GenerateDestructor(
-      Func&& func, std::unordered_map<TypeID, SharedBlock> attrs = {}) {
+  std::pair<StrID, MethodInfo> GenerateDestructor(Func&& func,
+                                                  AttrSet attrs = {}) {
     return {
         StrID{StrIDRegistry::Meta::dtor},
         {GenerateMemberMethodPtr(std::forward<Func>(func)), std::move(attrs)}};
   }
 
   template <typename T, typename... Args>
-  std::pair<StrID, MethodInfo> GenerateConstructor(
-      std::unordered_map<TypeID, SharedBlock> attrs = {});
+  std::pair<StrID, MethodInfo> GenerateConstructor(AttrSet attrs = {});
 
   template <typename T, typename... Args>
-  std::pair<StrID, MethodInfo> GenerateDestructor(
-      std::unordered_map<TypeID, SharedBlock> attrs = {});
+  std::pair<StrID, MethodInfo> GenerateDestructor(AttrSet attrs = {});
+
+  //
+  // Modifier
+  /////////////
+
+  TypeID RegisterType(std::string_view name, size_t size, size_t alignment);
+  StrID AddField(TypeID typeID, std::string_view name, FieldInfo fieldinfo);
+
+  // -- template --
+
+  template <typename T>
+  TypeID RegisterType() {
+    return RegisterType(type_name<T>(), sizeof(T), alignof(T));
+  }
 
   //
   // Cast
@@ -389,6 +407,7 @@ class ReflMngr {
 
  private:
   ReflMngr();
+  ~ReflMngr();
 };
 }  // namespace My::MyDRefl
 

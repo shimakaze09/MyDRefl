@@ -6,6 +6,7 @@
 
 #include <iostream>
 
+using namespace My;
 using namespace My::MyDRefl;
 
 namespace MyInspector {
@@ -35,56 +36,66 @@ int main() {
   auto ID_MyInspector_A =
       ReflMngr::Instance().tregistry.Register<MyInspector::A>();
 
-  auto ID_x = ReflMngr::Instance().nregistry.Register("x");
-  auto ID_y = ReflMngr::Instance().nregistry.Register("y");
   auto ID_value = ReflMngr::Instance().nregistry.Register("value");
   auto ID_min_value = ReflMngr::Instance().nregistry.Register("min_value");
   auto ID_max_value = ReflMngr::Instance().nregistry.Register("max_value");
 
-  {  // register range
+  {  // register MyInspector::Range
     TypeInfo typeinfo{
         sizeof(MyInspector::Range),
         alignof(MyInspector::Range),
         {
             // fields
-            {ID_min_value,
-             {{ID_float, offsetof(MyInspector::Range, min_value)}}},
-            {ID_max_value,
-             {{ID_float, offsetof(MyInspector::Range, max_value)}}},
-        }};
+            ReflMngr::Instance().GenerateField<&MyInspector::Range::min_value>(
+                "min_value"),
+            ReflMngr::Instance().GenerateField<&MyInspector::Range::max_value>(
+                "max_value"),
+        },
+        {// methods
+         ReflMngr::Instance().GenerateConstructor<MyInspector::Range>(),
+         ReflMngr::Instance()
+             .GenerateConstructor<MyInspector::Range, float, float>(),
+         ReflMngr::Instance().GenerateDestructor<MyInspector::Range>()}};
     ReflMngr::Instance().typeinfos.emplace(ID_MyInspector_Range,
                                            std::move(typeinfo));
   }
 
+  {  // register MyInspector::A
+    TypeInfo typeinfo{
+        sizeof(MyInspector::A),
+        alignof(MyInspector::A),
+        {},  // fields
+        {    // methods
+         ReflMngr::Instance().GenerateConstructor<MyInspector::A>(),
+         ReflMngr::Instance().GenerateDestructor<MyInspector::A>()}};
+    ReflMngr::Instance().typeinfos.emplace(ID_MyInspector_A,
+                                           std::move(typeinfo));
+  }
   {  // register Point
     TypeInfo typeinfo{
         sizeof(Point),
         alignof(Point),
         {// fields
-         {ID_x, FieldInfo{{ID_float, offsetof(Point, x)},
-                          {// attrs
-                           {ID_MyInspector_Range,
-                            MakeSharedBlock<MyInspector::Range>(1.f, 2.f)}}}},
-         {ID_y,
-          {{ID_float, offsetof(Point, y)},
-           {// attrs
-            {ID_MyInspector_A,
-             MakeSharedBlock<MyInspector::Range>(1.f, 2.f)}}}}}};
+         ReflMngr::Instance().GenerateField<&Point::x>(
+             "x",
+             {ReflMngr::Instance().MakeShared<MyInspector::Range>(1.f, 2.f)}),
+         ReflMngr::Instance().GenerateField<&Point::y>(
+             "y", {ReflMngr::Instance().MakeShared<MyInspector::A>()})}};
     ReflMngr::Instance().typeinfos.emplace(ID_Point, std::move(typeinfo));
   }
 
   Point p;
   ObjectPtr ptr{ID_Point, &p};
-  ReflMngr::Instance().RWVar(ptr, ID_x).As<float>() = 1.f;
-  ReflMngr::Instance().RWVar(ptr, ID_y).As<float>() = 2.f;
+  ReflMngr::Instance().RWVar(ptr, StrID{"x"}).As<float>() = 1.f;
+  ReflMngr::Instance().RWVar(ptr, StrID{"y"}).As<float>() = 2.f;
 
   ReflMngr::Instance().ForEachRVar(ptr, [](Type type, Field field,
                                            ConstObjectPtr var) {
-    for (const auto& [attrID, attr] : field.info.attrs) {
-      std::cout << "[" << ReflMngr::Instance().tregistry.Nameof(attrID) << "]"
-                << std::endl;
+    for (const auto& attr : field.info.attrs) {
+      std::cout << "[" << ReflMngr::Instance().tregistry.Nameof(attr.GetID())
+                << "]" << std::endl;
       ReflMngr::Instance().ForEachRVar(
-          {attrID, attr.Get()}, [](Type type, Field field, ConstObjectPtr var) {
+          attr, [](Type type, Field field, ConstObjectPtr var) {
             std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
                       << var.As<float>() << std::endl;
           });
