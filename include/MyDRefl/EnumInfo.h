@@ -5,20 +5,20 @@
 #pragma once
 
 #include "Enumerator.h"
-#include "NameID.h"
-#include "TypeID.h"
+
+#include <MyTemplate/TypeID.h>
 
 namespace My::MyDRefl {
 struct EnumInfo {
   Enumerator::UnderlyingType underlyingType;
-  std::unordered_map<NameID, EnumeratorInfo> enumeratorinfos;
+  std::unordered_map<StrID, EnumeratorInfo> enumeratorinfos;
   std::unordered_map<TypeID, SharedBlock> attrs;
 
-  Enumerator GetEnumerator(size_t enumeratorID) const {
+  Enumerator GetEnumerator(StrID enumeratorID) const {
     return {underlyingType, enumeratorinfos.at(enumeratorID).value};
   }
 
-  NameID GetEnumeratorNameID(Enumerator::Value value) const {
+  StrID GetEnumeratorStrID(Enumerator::Value value) const {
     for (const auto& [ID, info] : enumeratorinfos) {
       if (value.data_uint64 == info.value.data_uint64)
         return ID;
@@ -27,9 +27,9 @@ struct EnumInfo {
   }
 
   template <typename E>
-  NameID GetEnumeratorNameID(E e) const {
+  StrID GetEnumeratorStrID(E e) const {
     assert(underlyingType == Enumerator::UnderlyingTypeOf<E>());
-    return GetEnumeratorNameID(Enumerator::ValueOf(e));
+    return GetEnumeratorStrID(Enumerator::ValueOf(e));
   }
 };
 }  // namespace My::MyDRefl

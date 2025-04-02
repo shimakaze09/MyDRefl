@@ -5,7 +5,6 @@
 #pragma once
 
 #include "FieldPtr.h"
-#include "NameID.h"
 #include "SharedBlock.h"
 
 #include <unordered_map>
@@ -17,7 +16,7 @@ struct FieldInfo {
 };
 
 struct Field {
-  NameID ID;
+  StrID ID;
   const FieldInfo& info;
 };
 }  // namespace My::MyDRefl

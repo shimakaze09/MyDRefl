@@ -8,7 +8,7 @@
 
 using namespace My::MyDRefl;
 
-ObjectPtr TypeInfo::RWVar(NameID fieldID) noexcept {
+ObjectPtr TypeInfo::RWVar(StrID fieldID) noexcept {
   auto target = fieldinfos.find(fieldID);
   if (target == fieldinfos.end())
     return nullptr;
@@ -19,7 +19,7 @@ ObjectPtr TypeInfo::RWVar(NameID fieldID) noexcept {
   return target->second.fieldptr.Map();
 }
 
-ConstObjectPtr TypeInfo::RVar(NameID fieldID) const noexcept {
+ConstObjectPtr TypeInfo::RVar(StrID fieldID) const noexcept {
   auto target = fieldinfos.find(fieldID);
   if (target == fieldinfos.end())
     return nullptr;
@@ -30,7 +30,7 @@ ConstObjectPtr TypeInfo::RVar(NameID fieldID) const noexcept {
   return target->second.fieldptr.Map();
 }
 
-ObjectPtr TypeInfo::RWVar(void* obj, NameID fieldID) noexcept {
+ObjectPtr TypeInfo::RWVar(void* obj, StrID fieldID) noexcept {
   auto target = fieldinfos.find(fieldID);
   if (target == fieldinfos.end())
     return nullptr;
@@ -41,7 +41,7 @@ ObjectPtr TypeInfo::RWVar(void* obj, NameID fieldID) noexcept {
   return target->second.fieldptr.Map(obj);
 }
 
-ConstObjectPtr TypeInfo::RVar(const void* obj, NameID fieldID) const noexcept {
+ConstObjectPtr TypeInfo::RVar(const void* obj, StrID fieldID) const noexcept {
   auto target = fieldinfos.find(fieldID);
   if (target == fieldinfos.end())
     return nullptr;
@@ -49,7 +49,7 @@ ConstObjectPtr TypeInfo::RVar(const void* obj, NameID fieldID) const noexcept {
   return target->second.fieldptr.Map(obj);
 }
 
-bool TypeInfo::IsStaticInvocable(NameID methodID,
+bool TypeInfo::IsStaticInvocable(StrID methodID,
                                  Span<TypeID> argTypeIDs) const noexcept {
   auto target = methodinfos.find(methodID);
   size_t num = methodinfos.count(methodID);
@@ -61,7 +61,7 @@ bool TypeInfo::IsStaticInvocable(NameID methodID,
   return false;
 }
 
-bool TypeInfo::IsConstInvocable(NameID methodID,
+bool TypeInfo::IsConstInvocable(StrID methodID,
                                 Span<TypeID> argTypeIDs) const noexcept {
   auto target = methodinfos.find(methodID);
   size_t num = methodinfos.count(methodID);
@@ -73,7 +73,7 @@ bool TypeInfo::IsConstInvocable(NameID methodID,
   return false;
 }
 
-bool TypeInfo::IsInvocable(NameID methodID,
+bool TypeInfo::IsInvocable(StrID methodID,
                            Span<TypeID> argTypeIDs) const noexcept {
   auto target = methodinfos.find(methodID);
   size_t num = methodinfos.count(methodID);
@@ -84,7 +84,7 @@ bool TypeInfo::IsInvocable(NameID methodID,
   return false;
 }
 
-InvokeResult TypeInfo::Invoke(NameID methodID, Span<TypeID> argTypeIDs,
+InvokeResult TypeInfo::Invoke(StrID methodID, Span<TypeID> argTypeIDs,
                               void* args_buffer, void* result_buffer) const {
   auto target = methodinfos.find(methodID);
   size_t num = methodinfos.count(methodID);
@@ -99,7 +99,7 @@ InvokeResult TypeInfo::Invoke(NameID methodID, Span<TypeID> argTypeIDs,
   return {};
 }
 
-InvokeResult TypeInfo::Invoke(const void* obj, NameID methodID,
+InvokeResult TypeInfo::Invoke(const void* obj, StrID methodID,
                               Span<TypeID> argTypeIDs, void* args_buffer,
                               void* result_buffer) const {
   auto target = methodinfos.find(methodID);
@@ -114,7 +114,7 @@ InvokeResult TypeInfo::Invoke(const void* obj, NameID methodID,
   return {};
 }
 
-InvokeResult TypeInfo::Invoke(void* obj, NameID methodID,
+InvokeResult TypeInfo::Invoke(void* obj, StrID methodID,
                               Span<TypeID> argTypeIDs, void* args_buffer,
                               void* result_buffer) const {
   auto target = methodinfos.find(methodID);

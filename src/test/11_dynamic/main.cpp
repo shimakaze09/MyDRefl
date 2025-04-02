@@ -6,6 +6,7 @@
 
 #include <iostream>
 
+using namespace My;
 using namespace My::MyDRefl;
 
 int main() {
@@ -15,6 +16,6 @@ int main() {
   global.fieldinfos.emplace(
       ReflMngr::Instance().GenerateDynamicField<const std::string>("author",
                                                                    "My"));
-  std::cout << ReflMngr::Instance().RVar(NameID{"author"}).As<std::string>()
+  std::cout << ReflMngr::Instance().RVar(StrID{"author"}).As<std::string>()
             << std::endl;
 }

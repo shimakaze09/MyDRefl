@@ -5,7 +5,6 @@
 #pragma once
 
 #include "MethodPtr.h"
-#include "NameID.h"
 #include "SharedBlock.h"
 
 namespace My::MyDRefl {
@@ -15,7 +14,7 @@ struct MethodInfo {
 };
 
 struct Method {
-  NameID ID;
+  StrID ID;
   MethodInfo info;
 };
 }  // namespace My::MyDRefl

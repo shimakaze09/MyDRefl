@@ -6,6 +6,8 @@
 
 #include "SharedBlock.h"
 
+#include <MyTemplate/TypeID.h>
+
 #include <any>
 #include <cstdint>
 #include <unordered_map>

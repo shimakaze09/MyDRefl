@@ -7,10 +7,7 @@
 #include "ObjectPtr.h"
 #include "Util.h"
 
-#include "IDRegistry.h"
-
 #include <MyContainer/Span.h>
-#include <MyTemplate/Func.h>
 
 #include <functional>
 #include <variant>
@@ -22,9 +19,7 @@ struct ResultDesc {
   size_t size;
   size_t alignment;
 
-  constexpr bool IsVoid() const noexcept {
-    return typeID == TypeID::Of<void>();
-  }
+  constexpr bool IsVoid() const noexcept { return typeID == TypeID::of<void>; }
 };
 
 struct Parameter {

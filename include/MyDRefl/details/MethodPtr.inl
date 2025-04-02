@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "../TypeIDRegistry.h"
-
 namespace My::MyDRefl {
 inline ObjectPtr ArgsView::At(size_t idx) const noexcept {
   assert(idx < paramList.GetParameters().size());
@@ -24,7 +22,7 @@ T InvokeResult::Move(void* result_buffer) {
   } else
     assert(success);
 
-  assert(resultID = TypeID::Of<T>());
+  assert(resultID = TypeID::of<T>);
 
   if constexpr (std::is_lvalue_reference_v<T>) {
     using PtrT = std::add_pointer_t<std::remove_reference_t<T>>;

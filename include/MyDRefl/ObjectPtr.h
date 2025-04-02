@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "TypeIDRegistry.h"
+#include <MyTemplate/TypeID.h>
 
 #include <cassert>
 
@@ -30,7 +30,7 @@ class ConstObjectPtr {
 
   template <typename T>
   constexpr bool Is() const noexcept {
-    return ID == TypeID::Of<T>();
+    return ID == TypeID::of<T>;
   }
 
   template <typename T>
@@ -79,7 +79,7 @@ class ObjectPtr {
 
   template <typename T>
   constexpr bool Is() const noexcept {
-    return ID == TypeID::Of<T>();
+    return ID == TypeID::of<T>;
   }
 
   template <typename T>
