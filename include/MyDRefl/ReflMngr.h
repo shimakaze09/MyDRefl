@@ -30,12 +30,26 @@ class ReflMngr {
   std::unordered_map<TypeID, EnumInfo> enuminfos;
 
   //
-  // Generate
-  /////////////
+  // Generate (template)
+  ////////////////////////
+
+  template <typename Return>
+  ResultDesc GenerateResultDesc() noexcept;
 
   template <typename... Params>
-  ParamList GenerateParamList(Span<NameID, sizeof...(Params)> paramNameIDs = {})
-      const noexcept(sizeof...(Params) == 0);
+  ParamList GenerateParamList() noexcept(sizeof...(Params) == 0);
+
+  template <auto funcptr>
+  MethodPtr GenerateMethodPtr() noexcept(
+      IsEmpty_v<FuncTraits_ArgList<decltype(funcptr)>>);
+
+  template <typename Func>
+  MethodPtr GenerateMemberMethodPtr(Func&& func) noexcept(
+      IsEmpty_v<typename details::WrapFuncTraits<std::decay_t<Func>>::ArgList>);
+
+  template <typename Func>
+  MethodPtr GenerateStaticMethodPtr(Func&& func) noexcept(
+      IsEmpty_v<FuncTraits_ArgList<Func>>);
 
   //
   // Cast
@@ -105,9 +119,6 @@ class ReflMngr {
                       Span<TypeID> argTypeIDs = {}, void* args_buffer = nullptr,
                       void* result_buffer = nullptr) const;
 
-  SharedObject MakeShared(TypeID typeID, Span<TypeID> argTypeIDs = {},
-                          void* args_buffer = nullptr) const;
-
   // -- template --
 
   template <typename... Args>
@@ -127,6 +138,16 @@ class ReflMngr {
   T InvokeRet(ObjectPtr obj, NameID methodID, Span<TypeID> argTypeIDs = {},
               void* args_buffer = nullptr) const;
 
+  template <typename... Args>
+  InvokeResult InvokeArgs(TypeID typeID, NameID methodID, void* result_buffer,
+                          Args... args) const;
+  template <typename... Args>
+  InvokeResult InvokeArgs(ConstObjectPtr obj, NameID methodID,
+                          void* result_buffer, Args... args) const;
+  template <typename... Args>
+  InvokeResult InvokeArgs(ObjectPtr obj, NameID methodID, void* result_buffer,
+                          Args... args) const;
+
   template <typename T, typename... Args>
   T Invoke(TypeID typeID, NameID methodID, Args... args) const;
   template <typename T, typename... Args>
@@ -143,6 +164,9 @@ class ReflMngr {
   template <typename Obj, typename T>
   T InvokeRet(NameID methodID, Span<TypeID> argTypeIDs = {},
               void* args_buffer = nullptr) const;
+  template <typename Obj, typename... Args>
+  InvokeResult InvokeArgs(NameID methodID, void* result_buffer,
+                          Args... args) const;
   template <typename Obj, typename T, typename... Args>
   T Invoke(NameID methodID, Args... args) const;
 
@@ -152,15 +176,15 @@ class ReflMngr {
 
   bool IsInvocable(NameID methodID,
                    Span<TypeID> argTypeIDs = {}) const noexcept {
-    return IsInvocable(tregistry.GetID(TypeRegistry::Meta::global), methodID,
-                       argTypeIDs);
+    return IsInvocable(TypeRegistry::DirectGetID(TypeRegistry::Meta::global),
+                       methodID, argTypeIDs);
   }
 
   InvokeResult Invoke(NameID methodID, Span<TypeID> argTypeIDs = {},
                       void* args_buffer = nullptr,
                       void* result_buffer = nullptr) const {
-    return Invoke(tregistry.GetID(TypeRegistry::Meta::global), methodID,
-                  argTypeIDs, args_buffer, result_buffer);
+    return Invoke(TypeRegistry::DirectGetID(TypeRegistry::Meta::global),
+                  methodID, argTypeIDs, args_buffer, result_buffer);
   }
 
   bool IsConstructible(TypeID typeID,
@@ -181,6 +205,9 @@ class ReflMngr {
                 void* args_buffer = nullptr) const;
   bool Delete(ConstObjectPtr obj) const;
 
+  SharedObject MakeShared(TypeID typeID, Span<TypeID> argTypeIDs = {},
+                          void* args_buffer = nullptr) const;
+
   // -- template --
 
   template <typename... Args>
@@ -189,6 +216,10 @@ class ReflMngr {
   template <typename T>
   T InvokeRet(NameID methodID, Span<TypeID> argTypeIDs = {},
               void* args_buffer = nullptr) const;
+
+  template <typename... Args>
+  InvokeResult InvokeArgs(NameID methodID, void* result_buffer,
+                          Args... args) const;
 
   template <typename T, typename... Args>
   T Invoke(NameID methodID, Args... args) const;
@@ -201,6 +232,15 @@ class ReflMngr {
 
   template <typename... Args>
   ObjectPtr New(TypeID typeID, Args... args) const;
+
+  template <typename T, typename... Args>
+  ObjectPtr New(Args... args) const;
+
+  template <typename... Args>
+  SharedObject MakeShared(TypeID typeID, Args... args) const;
+
+  template <typename T, typename... Args>
+  SharedObject MakeShared(Args... args) const;
 
   //
   // Algorithm

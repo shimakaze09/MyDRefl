@@ -34,8 +34,6 @@ int main() {
   auto ID_Vec_lref = ReflMngr::Instance().tregistry.GetID<Vec&>();
   auto ID_float = ReflMngr::Instance().tregistry.GetID<float>();
 
-  auto ID_p = ReflMngr::Instance().nregistry.GetID("p");
-  auto ID_d = ReflMngr::Instance().nregistry.GetID("d");
   auto ID_x = ReflMngr::Instance().nregistry.GetID("x");
   auto ID_y = ReflMngr::Instance().nregistry.GetID("y");
   auto ID_operator_add_assign =
@@ -53,7 +51,7 @@ int main() {
     MethodPtr method_operator_add_assign_1{
         operator_add_assign_1,
         {ID_Vec_lref, sizeof(Vec*), alignof(Vec*)},
-        {{{ID_const_Vec_lref, sizeof(const Vec*), alignof(const Vec*), ID_p}}}};
+        {{{ID_const_Vec_lref, sizeof(const Vec*), alignof(const Vec*)}}}};
 
     auto operator_add_assign_2 = [](void* obj, ArgsView args,
                                     void* result_buffer) {
@@ -65,7 +63,7 @@ int main() {
     MethodPtr method_operator_add_assign_2{
         operator_add_assign_2,
         {ID_Vec_lref, sizeof(Vec*), alignof(Vec*)},
-        {{{ID_float, sizeof(float), alignof(float), ID_d}}}};
+        {{{ID_float, sizeof(float), alignof(float)}}}};
 
     FieldInfo fieldinfo_x{ptr_x};
     FieldInfo fieldinfo_y{ptr_y};
