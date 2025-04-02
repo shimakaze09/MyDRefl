@@ -81,6 +81,4 @@ int main() {
         std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
                   << var.As<float>() << std::endl;
       });
-
-  ReflMngr::Instance().Delete(v);
 }
