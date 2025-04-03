@@ -485,7 +485,7 @@ ObjectPtr ReflMngr::New(TypeID typeID, Args... args) const {
 template <typename T, typename... Args>
 ObjectPtr ReflMngr::New(Args... args) {
   static_assert(!std::is_const_v<T> && !std::is_volatile_v<T> &&
-                !std::is_reference_v<T> && !std::is_enum_v<T>);
+                !std::is_reference_v<T>);
   if (!IsRegisteredType(TypeID::of<T>))
     RegisterTypePro<T, Args...>();
   AddMethod(TypeID::of<T>, StrIDRegistry::Meta::ctor,
@@ -508,7 +508,7 @@ SharedObject ReflMngr::MakeShared(TypeID typeID, Args... args) const {
 template <typename T, typename... Args>
 SharedObject ReflMngr::MakeShared(Args... args) {
   static_assert(!std::is_const_v<T> && !std::is_volatile_v<T> &&
-                !std::is_reference_v<T> && !std::is_enum_v<T>);
+                !std::is_reference_v<T>);
   if (!IsRegisteredType(TypeID::of<T>))
     RegisterTypePro<T, Args...>();
   AddMethod(TypeID::of<T>, StrIDRegistry::Meta::ctor,

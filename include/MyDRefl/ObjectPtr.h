@@ -84,6 +84,7 @@ class ObjectPtr {
 
   template <typename T>
   constexpr T* AsPtr() const noexcept {
+    assert(Is<T>());
     return reinterpret_cast<T*>(ptr);
   }
 
