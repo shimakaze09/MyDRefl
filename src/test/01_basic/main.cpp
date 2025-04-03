@@ -6,6 +6,7 @@
 
 #include <iostream>
 
+using namespace My;
 using namespace My::MyDRefl;
 
 struct Point {
@@ -13,23 +14,14 @@ struct Point {
 };
 
 int main() {
-  auto ID_Point = ReflMngr::Instance().tregistry.Register<Point>();
-  auto ID_float = ReflMngr::Instance().tregistry.Register<float>();
-
-  auto ID_x = ReflMngr::Instance().nregistry.Register("x");
-  auto ID_y = ReflMngr::Instance().nregistry.Register("y");
-
-  ReflMngr::Instance().typeinfos[ID_Point] = {
-      sizeof(Point),
-      alignof(Point),
-      {// fieldinfos
-       {ID_x, {{ID_float, offsetof(Point, x)}}},
-       {ID_y, {{ID_float, offsetof(Point, y)}}}}};
+  ReflMngr::Instance().RegisterTypeAuto<Point>();
+  ReflMngr::Instance().AddField<&Point::x>("x");
+  ReflMngr::Instance().AddField<&Point::x>("y");
 
   Point p;
-  ObjectPtr ptr{ID_Point, &p};
-  ReflMngr::Instance().RWVar(ptr, ID_x).As<float>() = 1.f;
-  ReflMngr::Instance().RWVar(ptr, ID_y).As<float>() = 2.f;
+  ObjectPtr ptr{TypeID::of<Point>, &p};
+  ReflMngr::Instance().RWVar(ptr, StrID{"x"}).As<float>() = 1.f;
+  ReflMngr::Instance().RWVar(ptr, StrID{"y"}).As<float>() = 2.f;
 
   ReflMngr::Instance().ForEachRVar(
       ptr, [](TypeRef type, FieldRef field, ConstObjectPtr var) {

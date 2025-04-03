@@ -35,7 +35,7 @@ class FieldPtr {
 
   template <typename T>
   static constexpr bool IsBufferable() noexcept {
-    return std::is_trivial_v<T> && sizeof(T) <= BufferSize;
+    return std::is_trivially_copyable_v<T> && sizeof(T) <= BufferSize;
   }
 
   template <typename T>

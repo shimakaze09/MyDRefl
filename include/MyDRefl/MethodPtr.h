@@ -14,9 +14,9 @@
 
 namespace My::MyDRefl {
 struct ResultDesc {
-  TypeID typeID;
-  size_t size;
-  size_t alignment;
+  TypeID typeID{TypeID::of<void>};
+  size_t size{0};
+  size_t alignment{0};
 
   constexpr bool IsVoid() const noexcept { return typeID == TypeID::of<void>; }
 };

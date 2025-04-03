@@ -29,17 +29,6 @@ struct Point {
 };
 
 int main() {
-  auto ID_Point = ReflMngr::Instance().tregistry.Register<Point>();
-  auto ID_float = ReflMngr::Instance().tregistry.Register<float>();
-  auto ID_MyInspector_Range =
-      ReflMngr::Instance().tregistry.Register<MyInspector::Range>();
-  auto ID_MyInspector_A =
-      ReflMngr::Instance().tregistry.Register<MyInspector::A>();
-
-  auto ID_value = ReflMngr::Instance().nregistry.Register("value");
-  auto ID_min_value = ReflMngr::Instance().nregistry.Register("min_value");
-  auto ID_max_value = ReflMngr::Instance().nregistry.Register("max_value");
-
   {  // register
     ReflMngr::Instance().RegisterTypeAuto<MyInspector::Range>();
     ReflMngr::Instance().AddField<&MyInspector::Range::min_value>("min_value");
