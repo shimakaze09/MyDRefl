@@ -4,9 +4,8 @@
 
 #pragma once
 
+#include "AttrSet.h"
 #include "BaseInfo.h"
-#include "EnumInfo.h"
-#include "Enumerator.h"
 #include "FieldInfo.h"
 #include "FieldPtr.h"
 #include "IDRegistry.h"
@@ -14,5 +13,7 @@
 #include "MethodPtr.h"
 #include "ObjectPtr.h"
 #include "ReflMngr.h"
+#include "SharedBuffer.h"
+#include "SharedObject.h"
 #include "TypeInfo.h"
 #include "Util.h"

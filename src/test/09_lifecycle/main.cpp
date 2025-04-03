@@ -44,5 +44,6 @@ int main() {
       p, [](Type type, Field field, ConstObjectPtr var) {
         std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
                   << var.As<float>() << std::endl;
+        return true;
       });
 }

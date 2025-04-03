@@ -13,6 +13,8 @@ StrIDRegistry::StrIDRegistry() {
 
   Register(Meta::malloc);
   Register(Meta::free);
+  Register(Meta::aligned_malloc);
+  Register(Meta::aligned_free);
 
   //
   // Member

@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "EnumInfo.h"
 #include "IDRegistry.h"
 #include "SharedObject.h"
 #include "TypeInfo.h"
@@ -27,15 +26,11 @@ class ReflMngr {
   TypeIDRegistry tregistry;
 
   std::unordered_map<TypeID, TypeInfo> typeinfos;
-  std::unordered_map<TypeID, EnumInfo> enuminfos;
 
   // clear order
-  // - enumerator attrs
-  // - enum attrs
   // - field attrs
   // - type attrs
   // - type dynamic field
-  // - senuminfos
   // - typeinfos
   void Clear();
 
@@ -47,15 +42,11 @@ class ReflMngr {
     return typeinfos.find(typeID) != typeinfos.end();
   }
 
-  bool IsRegisteredEnum(TypeID enumID) const noexcept {
-    return enuminfos.find(enumID) != enuminfos.end();
-  }
-
   //
   // Factory
   ////////////
 
-  template <auto field_ptr>
+  template <auto field_data>
   FieldPtr GenerateFieldPtr();
 
   // data can be:
@@ -63,6 +54,7 @@ class ReflMngr {
   // 2. pointer to **non-void** and **non-function** type
   // 3. functor : Value*(Object*)
   // > - result must be an pointer of **non-void** type
+  // 4. enum value
   template <typename T>
   FieldPtr GenerateFieldPtr(T&& data);
 
@@ -186,8 +178,8 @@ class ReflMngr {
   template <typename T, typename... Args>
   TypeID RegisterTypePro(AttrSet attrs_ctor = {}, AttrSet attrs_dtor = {});
 
-  // get TypeID from field_ptr
-  template <auto field_ptr>
+  // get TypeID from field_data
+  template <auto field_data>
   StrID AddField(std::string_view name, AttrSet attrs = {});
 
   template <
@@ -268,9 +260,9 @@ class ReflMngr {
   // Field
   //////////
 
-  // {static|dynamic} variable
+  // variable object
   ObjectPtr RWVar(TypeID typeID, StrID fieldID) noexcept;
-  // {static|dynamic} {variable|const}
+  // object
   ConstObjectPtr RVar(TypeID typeID, StrID fieldID) const noexcept;
   // variable
   ObjectPtr RWVar(ObjectPtr obj, StrID fieldID) noexcept;
@@ -372,13 +364,13 @@ class ReflMngr {
   template <typename... Args>
   ObjectPtr New(TypeID typeID, Args... args) const;
 
+  template <typename... Args>
+  SharedObject MakeShared(TypeID typeID, Args... args) const;
+
   // if T is not register, call RegisterTypePro
   // else add ctor
   template <typename T, typename... Args>
   ObjectPtr New(Args... args);
-
-  template <typename... Args>
-  SharedObject MakeShared(TypeID typeID, Args... args) const;
 
   // if T is not register, call RegisterTypePro
   // else add ctor
@@ -391,28 +383,38 @@ class ReflMngr {
 
   // self typeID and all bases' typeID
   void ForEachTypeID(TypeID typeID,
-                     const std::function<void(TypeID)>& func) const;
+                     const std::function<bool(TypeID)>& func) const;
 
   // self type and all bases' type
-  void ForEachType(TypeID typeID, const std::function<void(Type)>& func) const;
+  void ForEachType(TypeID typeID, const std::function<bool(Type)>& func) const;
 
   // self fields and all bases' fields
   void ForEachField(TypeID typeID,
-                    const std::function<void(Type, Field)>& func) const;
+                    const std::function<bool(Type, Field)>& func) const;
 
   // self methods and all bases' methods
   void ForEachMethod(TypeID typeID,
-                     const std::function<void(Type, Method)>& func) const;
+                     const std::function<bool(Type, Method)>& func) const;
 
   // self [r/w] vars and all bases' [r/w] vars
   void ForEachRWVar(
       ObjectPtr obj,
-      const std::function<void(Type, Field, ObjectPtr)>& func) const;
+      const std::function<bool(Type, Field, ObjectPtr)>& func) const;
 
   // self [r] vars and all bases' [r] vars
   void ForEachRVar(
       ConstObjectPtr obj,
-      const std::function<void(Type, Field, ConstObjectPtr)>& func) const;
+      const std::function<bool(Type, Field, ConstObjectPtr)>& func) const;
+
+  // self [r/w] object vars and all bases' [r/w] object vars
+  void ForEachRWVar(
+      TypeID typeID,
+      const std::function<bool(Type, Field, ObjectPtr)>& func) const;
+
+  // self [r] object vars and all bases' [r] object vars
+  void ForEachRVar(
+      TypeID typeID,
+      const std::function<bool(Type, Field, ConstObjectPtr)>& func) const;
 
  private:
   ReflMngr();

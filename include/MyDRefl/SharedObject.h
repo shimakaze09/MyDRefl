@@ -5,10 +5,10 @@
 #pragma once
 
 #include "ObjectPtr.h"
-#include "SharedBlock.h"
+#include "SharedBuffer.h"
 
 namespace My::MyDRefl {
-// SharedBlock + ID
+// SharedBuffer + ID
 class SharedObject {
  public:
   //
@@ -21,9 +21,10 @@ class SharedObject {
 
   explicit constexpr SharedObject(TypeID ID) noexcept : ID{ID} {}
 
-  SharedObject(TypeID ID, SharedBlock& block) noexcept : ID{ID}, block{block} {}
+  SharedObject(TypeID ID, SharedBuffer& block) noexcept
+      : ID{ID}, block{block} {}
 
-  SharedObject(TypeID ID, SharedBlock&& block) noexcept
+  SharedObject(TypeID ID, SharedBuffer&& block) noexcept
       : ID{ID}, block{std::move(block)} {}
 
   SharedObject(const SharedObject& obj)
@@ -92,11 +93,11 @@ class SharedObject {
 
   TypeID GetID() const noexcept { return ID; }
 
-  SharedBlock GetBlock() & noexcept { return block; }
+  SharedBuffer GetBuffer() & noexcept { return block; }
 
-  const SharedBlock& GetBlock() const& noexcept { return block; }
+  const SharedBuffer& GetBuffer() const& noexcept { return block; }
 
-  SharedBlock GetBlock() && noexcept { return std::move(block); }
+  SharedBuffer GetBuffer() && noexcept { return std::move(block); }
 
   void* GetPtr() noexcept { return block.Get(); }
 
@@ -168,7 +169,7 @@ class SharedObject {
 
  private:
   TypeID ID;
-  SharedBlock block;
+  SharedBuffer block;
 };
 }  // namespace My::MyDRefl
 

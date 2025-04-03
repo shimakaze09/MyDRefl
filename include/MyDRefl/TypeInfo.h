@@ -25,9 +25,9 @@ struct TypeInfo {
   // Field
   //////////
 
-  // without bases, {static|dynamic} variable
+  // without bases, variable object
   ObjectPtr RWVar(StrID fieldID) noexcept;
-  // without bases, {static|dynamic} {variable|const}
+  // without bases, object
   ConstObjectPtr RVar(StrID fieldID) const noexcept;
   // without bases, variable
   ObjectPtr RWVar(void* obj, StrID fieldID) noexcept;

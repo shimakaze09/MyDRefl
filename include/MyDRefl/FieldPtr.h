@@ -7,11 +7,49 @@
 #include "SharedObject.h"
 #include "Util.h"
 
+#include <array>
 #include <variant>
 
 namespace My::MyDRefl {
 class FieldPtr {
  public:
+  //
+  // Buffer
+  ///////////
+
+  static constexpr size_t BufferSize =
+      std::max(sizeof(Offsetor), sizeof(SharedBuffer));  // maybe 64
+  using Buffer = std::array<std::uint8_t, sizeof(BufferSize)>;
+  using Data = std::variant<
+      size_t,              // forward_offset_value 0 BASIC_VARIABLE
+      size_t,              // forward_offset_value 1 BASIC_CONST
+      Offsetor,            // offsetor             2 VIRTUAL_VARIABLE
+      Offsetor,            // offsetor             3 VIRTUAL_CONST
+      void*,               // static_obj           4 STATIC_VARIABLE
+      const void*,         // static_const_obj     5 STATIC_CONST
+      SharedBuffer,        // dynamic_obj          6 DYNAMIC_SHARED_VARIABLE
+      const SharedBuffer,  // dynamic_obj          7 DYNAMIC_SHARED_CONST
+      Buffer,              // dynamic_obj          8 DYNAMIC_BUFFER_VARIABLE
+      const Buffer         // dynamic_obj          9 DYNAMIC_BUFFER_CONST
+      >;
+
+  template <typename T>
+  static constexpr bool IsBufferable() noexcept {
+    return std::is_trivial_v<T> && sizeof(T) <= BufferSize;
+  }
+
+  template <typename T>
+  static constexpr Buffer ConvertToBuffer(const T& data) noexcept {
+    static_assert(IsBufferable<T>());
+    Buffer buffer{};
+    memcpy(buffer.data(), &data, sizeof(T));
+    return buffer;
+  }
+
+  //
+  // Constructor
+  ////////////////
+
   constexpr FieldPtr() noexcept = default;
 
   FieldPtr(TypeID valueID, size_t forward_offset_value, bool isConst) noexcept
@@ -83,19 +121,36 @@ class FieldPtr {
       : FieldPtr{static_obj.GetID(), static_obj.GetPtr()} {}
 
   explicit FieldPtr(SharedObject& obj) noexcept
-      : valueID{obj.GetID()}, data{std::in_place_index_t<6>{}, obj.GetBlock()} {
+      : valueID{obj.GetID()},
+        data{std::in_place_index_t<6>{}, obj.GetBuffer()} {
     assert(obj);
   }
 
   explicit FieldPtr(SharedObject&& obj) noexcept
       : valueID{obj.GetID()},
-        data{std::in_place_index_t<6>{}, std::move(obj).GetBlock()} {
+        data{std::in_place_index_t<6>{}, std::move(obj).GetBuffer()} {
     assert(std::get<6>(data));
   }
 
   explicit FieldPtr(const SharedObject& obj) noexcept
-      : valueID{obj.GetID()}, data{std::in_place_index_t<7>{}, obj.GetBlock()} {
+      : valueID{obj.GetID()},
+        data{std::in_place_index_t<7>{}, obj.GetBuffer()} {
     assert(obj);
+  }
+
+  FieldPtr(TypeID valueID, Buffer& buffer) noexcept
+      : valueID{valueID}, data{std::in_place_index_t<8>{}, buffer} {
+    assert(valueID);
+  }
+
+  FieldPtr(TypeID valueID, Buffer&& buffer) noexcept
+      : valueID{valueID}, data{std::in_place_index_t<8>{}, buffer} {
+    assert(valueID);
+  }
+
+  FieldPtr(TypeID valueID, const Buffer& buffer) noexcept
+      : valueID{valueID}, data{std::in_place_index_t<9>{}, buffer} {
+    assert(valueID);
   }
 
   constexpr TypeID GetValueID() const noexcept { return valueID; }
@@ -114,11 +169,21 @@ class FieldPtr {
 
   constexpr bool IsStaticConst() const noexcept { return data.index() == 5; }
 
-  constexpr bool IsDynamicVaraible() const noexcept {
+  constexpr bool IsDynamicSharedVaraible() const noexcept {
     return data.index() == 6;
   }
 
-  constexpr bool IsDynamicConst() const noexcept { return data.index() == 7; }
+  constexpr bool IsDynamicSharedConst() const noexcept {
+    return data.index() == 7;
+  }
+
+  constexpr bool IsDynamicBufferVaraible() const noexcept {
+    return data.index() == 8;
+  }
+
+  constexpr bool IsDynamicBufferConst() const noexcept {
+    return data.index() == 9;
+  }
 
   constexpr bool IsBasic() const noexcept {
     return data.index() == 0 || data.index() == 1;
@@ -132,8 +197,12 @@ class FieldPtr {
     return data.index() == 4 || data.index() == 5;
   }
 
-  constexpr bool IsDyanmic() const noexcept {
+  constexpr bool IsDyanmicShared() const noexcept {
     return data.index() == 6 || data.index() == 7;
+  }
+
+  constexpr bool IsDyanmicBuffer() const noexcept {
+    return data.index() == 8 || data.index() == 9;
   }
 
   constexpr bool IsConst() const noexcept { return data.index() & 1; }
@@ -174,17 +243,27 @@ class FieldPtr {
     return {valueID, std::get<5>(data)};
   }
 
-  constexpr ObjectPtr Map_DynamicVariable() noexcept {
-    assert(IsStaticVaraible());
+  constexpr ObjectPtr Map_DynamicSharedVariable() noexcept {
+    assert(IsDynamicSharedVaraible());
     return {valueID, std::get<6>(data).Get()};
   }
 
-  constexpr ConstObjectPtr Map_DynamicConst() const noexcept {
-    assert(IsStaticConst());
+  constexpr ConstObjectPtr Map_DynamicSharedConst() const noexcept {
+    assert(IsDynamicSharedConst());
     return {valueID, std::get<7>(data).Get()};
   }
 
-  // { static | dynamic } { variable | const }
+  constexpr ObjectPtr Map_DynamicBufferVariable() noexcept {
+    assert(IsDynamicBufferVaraible());
+    return {valueID, std::get<8>(data).data()};
+  }
+
+  constexpr ConstObjectPtr Map_DynamicBufferConst() const noexcept {
+    assert(IsDynamicBufferConst());
+    return {valueID, std::get<9>(data).data()};
+  }
+
+  // variable object
   ObjectPtr Map() noexcept {
     return std::visit(
         [this](auto& value) -> ObjectPtr {
@@ -200,9 +279,14 @@ class FieldPtr {
           } else if constexpr (std::is_same_v<T, const void*>) {
             assert(false);
             return nullptr;
-          } else if constexpr (std::is_same_v<T, SharedBlock>) {
+          } else if constexpr (std::is_same_v<T, SharedBuffer>) {
             return {valueID, value.Get()};
-          } else if constexpr (std::is_same_v<T, const SharedBlock>) {
+          } else if constexpr (std::is_same_v<T, const SharedBuffer>) {
+            assert(false);
+            return nullptr;
+          } else if constexpr (std::is_same_v<T, Buffer>) {
+            return {valueID, value.data()};
+          } else if constexpr (std::is_same_v<T, const Buffer>) {
             assert(false);
             return nullptr;
           } else
@@ -211,7 +295,7 @@ class FieldPtr {
         data);
   }
 
-  // { static | dynamic } { variable | const }
+  // { variable | const } object
   ConstObjectPtr Map() const noexcept {
     return std::visit(
         [this](const auto& value) -> ConstObjectPtr {
@@ -226,10 +310,14 @@ class FieldPtr {
             return {valueID, value};
           } else if constexpr (std::is_same_v<T, const void*>) {
             return {valueID, value};
-          } else if constexpr (std::is_same_v<T, SharedBlock>) {
+          } else if constexpr (std::is_same_v<T, SharedBuffer>) {
             return {valueID, value.Get()};
-          } else if constexpr (std::is_same_v<T, const SharedBlock>) {
+          } else if constexpr (std::is_same_v<T, const SharedBuffer>) {
             return {valueID, value.Get()};
+          } else if constexpr (std::is_same_v<T, Buffer>) {
+            return {valueID, value.data()};
+          } else if constexpr (std::is_same_v<T, const Buffer>) {
+            return {valueID, value.data()};
           } else
             static_assert(false);
         },
@@ -251,17 +339,21 @@ class FieldPtr {
             return {valueID, value};
           } else if constexpr (std::is_same_v<T, const void*>) {
             return {valueID, value};
-          } else if constexpr (std::is_same_v<T, SharedBlock>) {
+          } else if constexpr (std::is_same_v<T, SharedBuffer>) {
             return {valueID, value.Get()};
-          } else if constexpr (std::is_same_v<T, const SharedBlock>) {
+          } else if constexpr (std::is_same_v<T, const SharedBuffer>) {
             return {valueID, value.Get()};
+          } else if constexpr (std::is_same_v<T, Buffer>) {
+            return {valueID, value.data()};
+          } else if constexpr (std::is_same_v<T, const Buffer>) {
+            return {valueID, value.data()};
           } else
             static_assert(false);
         },
         data);
   }
 
-  // {normal | static | virutal } variable
+  // variable
   constexpr ObjectPtr Map(void* obj) noexcept {
     switch (data.index()) {
       case 0:
@@ -274,6 +366,8 @@ class FieldPtr {
         return {valueID, std::get<4>(data)};
       case 6:
         return {valueID, std::get<6>(data).Get()};
+      case 8:
+        return {valueID, std::get<8>(data).data()};
       default:
         assert("require variable" && false);
         return nullptr;
@@ -282,16 +376,6 @@ class FieldPtr {
 
  private:
   TypeID valueID;
-
-  std::variant<size_t,            // forward_offset_value 0 BASIC_VARIABLE
-               size_t,            // forward_offset_value 1 BASIC_CONST
-               Offsetor,          // offsetor             2 VIRTUAL_VARIABLE
-               Offsetor,          // offsetor             3 VIRTUAL_CONST
-               void*,             // static_obj           4 STATIC_VARIABLE
-               const void*,       // static_const_obj     5 STATIC_CONST
-               SharedBlock,       // dynamic_obj          6 STATIC_VARIABLE
-               const SharedBlock  // dynamic_obj          7 STATIC_CONST
-               >
-      data;
+  Data data;
 };
 }  // namespace My::MyDRefl

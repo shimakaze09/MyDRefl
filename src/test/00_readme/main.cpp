@@ -41,11 +41,13 @@ int main() {
   ReflMngr::Instance().ForEachField(TypeID::of<Vec>, [](Type type,
                                                         Field field) {
     std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << std::endl;
+    return true;
   });
 
   ReflMngr::Instance().ForEachMethod(TypeID::of<Vec>, [](Type type,
                                                          Method method) {
     std::cout << ReflMngr::Instance().nregistry.Nameof(method.ID) << std::endl;
+    return true;
   });
 
   ReflMngr::Instance().ForEachRVar(
@@ -53,5 +55,6 @@ int main() {
       [](Type type, Field field, ConstObjectPtr var) {
         std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
                   << var.As<float>() << std::endl;
+        return true;
       });
 }
