@@ -43,6 +43,11 @@ class ParamList {
   }
 
   bool IsConpatibleWith(Span<TypeID> typeIDs) const noexcept;
+  bool operator==(const ParamList& rhs) const noexcept;
+
+  bool operator!=(const ParamList& rhs) const noexcept {
+    return !operator==(rhs);
+  }
 
  private:
   size_t size{0};
@@ -121,6 +126,10 @@ class MethodPtr {
   const ParamList& GetParamList() const noexcept { return paramList; }
 
   const ResultDesc& GetResultDesc() const noexcept { return resultDesc; }
+
+  bool IsDistinguishableWith(const MethodPtr& rhs) const noexcept {
+    return func.index() != rhs.func.index() || paramList != rhs.paramList;
+  }
 
   Destructor Invoke(void* obj, void* args_buffer, void* result_buffer) const {
     return std::visit(

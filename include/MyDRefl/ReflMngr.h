@@ -10,6 +10,8 @@
 #include "TypeInfo.h"
 
 namespace My::MyDRefl {
+constexpr TypeID GlobalID = TypeID{TypeIDRegistry::Meta::global};
+
 class ReflMngr {
  public:
   static ReflMngr& Instance() noexcept {
@@ -38,6 +40,18 @@ class ReflMngr {
   void Clear();
 
   //
+  // Lookup
+  ///////////
+
+  bool IsRegisteredType(TypeID typeID) const noexcept {
+    return typeinfos.find(typeID) != typeinfos.end();
+  }
+
+  bool IsRegisteredEnum(TypeID enumID) const noexcept {
+    return enuminfos.find(enumID) != enuminfos.end();
+  }
+
+  //
   // Factory
   ////////////
 
@@ -48,7 +62,6 @@ class ReflMngr {
   // 1. member object pointer
   // 2. pointer to **non-void** and **non-function** type
   // 3. functor : Value*(Object*)
-  // > - <Object> can be any **non-const** type because it's useless
   // > - result must be an pointer of **non-void** type
   template <typename T>
   FieldPtr GenerateFieldPtr(T&& data);
@@ -101,6 +114,12 @@ class ReflMngr {
   template <auto funcptr>
   MethodPtr GenerateMethodPtr();
 
+  template <typename T, typename... Args>
+  MethodPtr GenerateConstructorPtr();
+
+  template <typename T>
+  MethodPtr GenerateDestructorPtr();
+
   template <typename Func>
   MethodPtr GenerateMemberMethodPtr(Func&& func);
 
@@ -135,40 +154,78 @@ class ReflMngr {
                           std::move(attrs));
   }
 
-  template <typename Func>
-  std::pair<StrID, MethodInfo> GenerateConstructor(Func&& func,
-                                                   AttrSet attrs = {}) {
-    return {
-        StrID{StrIDRegistry::Meta::ctor},
-        {GenerateMemberMethodPtr(std::forward<Func>(func)), std::move(attrs)}};
+  template <typename T, typename... Args>
+  std::pair<StrID, MethodInfo> GenerateConstructor(AttrSet attrs = {}) {
+    return {StrID{StrIDRegistry::Meta::ctor},
+            {GenerateConstructorPtr<T, Args...>(), std::move(attrs)}};
   }
 
-  template <typename Func>
-  std::pair<StrID, MethodInfo> GenerateDestructor(Func&& func,
-                                                  AttrSet attrs = {}) {
-    return {
-        StrID{StrIDRegistry::Meta::dtor},
-        {GenerateMemberMethodPtr(std::forward<Func>(func)), std::move(attrs)}};
+  template <typename T>
+  std::pair<StrID, MethodInfo> GenerateDestructor(AttrSet attrs = {}) {
+    return {StrID{StrIDRegistry::Meta::dtor},
+            {GenerateDestructorPtr<T>(), std::move(attrs)}};
   }
-
-  template <typename T, typename... Args>
-  std::pair<StrID, MethodInfo> GenerateConstructor(AttrSet attrs = {});
-
-  template <typename T, typename... Args>
-  std::pair<StrID, MethodInfo> GenerateDestructor(AttrSet attrs = {});
 
   //
   // Modifier
   /////////////
 
   TypeID RegisterType(std::string_view name, size_t size, size_t alignment);
+  TypeID RegisterTypePro(std::string_view name, size_t size, size_t alignment,
+                         MethodInfo ctor, MethodInfo dtor);
   StrID AddField(TypeID typeID, std::string_view name, FieldInfo fieldinfo);
+  StrID AddMethod(TypeID typeID, std::string_view name, MethodInfo methodinfo);
 
   // -- template --
 
   template <typename T>
   TypeID RegisterType() {
-    return RegisterType(type_name<T>(), sizeof(T), alignof(T));
+    return RegisterType(type_name<T>().name, sizeof(T), alignof(T));
+  }
+
+  template <typename T, typename... Args>
+  TypeID RegisterTypePro(AttrSet attrs_ctor = {}, AttrSet attrs_dtor = {});
+
+  // get TypeID from field_ptr
+  template <auto field_ptr>
+  StrID AddField(std::string_view name, AttrSet attrs = {});
+
+  template <
+      typename T,
+      std::enable_if_t<!std::is_same_v<std::decay_t<T>, FieldInfo>, int> = 0>
+  StrID AddField(TypeID typeID, std::string_view name, T&& data,
+                 AttrSet attrs = {}) {
+    return AddField(typeID, name, GenerateFieldPtr(std::forward<T>(data)),
+                    std::move(attrs));
+  }
+
+  template <typename T, typename... Args>
+  StrID AddDynamicFieldWithAttr(TypeID typeID, std::string_view name,
+                                AttrSet attrs, Args&&... args) {
+    return AddField(typeID, name,
+                    {GenerateDynamicFieldPtr<T>(std::forward<Args>(args)...),
+                     std::move(attrs)});
+  }
+
+  template <typename T, typename... Args>
+  StrID AddDynamicField(TypeID typeID, std::string_view name, Args&&... args) {
+    return AddDynamicFieldWithAttr<T>(typeID, name, {},
+                                      std::forward<Args>(args)...);
+  }
+
+  // get TypeID from funcptr
+  template <auto funcptr>
+  StrID AddMethod(std::string_view name, AttrSet attrs = {});
+
+  template <typename Func>
+  StrID AddMemberMethod(std::string_view name, Func&& func, AttrSet attrs = {});
+
+  template <typename Func>
+  StrID AddStaticMethod(TypeID typeID, std::string_view name, Func&& func,
+                        AttrSet attrs = {}) {
+    return AddMethod(
+        typeID, name,
+        {GenerateStaticMethodPtr(std::forward<Func>(func)), std::move(attrs)});
   }
 
   //
@@ -279,47 +336,9 @@ class ReflMngr {
   template <typename T, typename... Args>
   T Invoke(ObjectPtr obj, StrID methodID, Args... args) const;
 
-  template <typename Obj, typename... Args>
-  bool IsStaticInvocable(StrID methodID) const noexcept;
-  template <typename Obj, typename... Args>
-  bool IsConstInvocable(StrID methodID) const noexcept;
-  template <typename Obj, typename... Args>
-  bool IsInvocable(StrID methodID) const noexcept;
-  template <typename Obj, typename T>
-  T InvokeRet(StrID methodID, Span<TypeID> argTypeIDs = {},
-              void* args_buffer = nullptr) const;
-  template <typename Obj, typename... Args>
-  InvokeResult InvokeArgs(StrID methodID, void* result_buffer,
-                          Args... args) const;
-  template <typename Obj, typename T, typename... Args>
-  T Invoke(StrID methodID, Args... args) const;
-
   //
   // Meta
   /////////
-
-  // global {static|dynamic} variable
-  ObjectPtr RWVar(StrID fieldID) noexcept {
-    return RWVar(TypeID{TypeIDRegistry::Meta::global}, fieldID);
-  }
-
-  // global {static|dynamic} {variable|const}
-  ConstObjectPtr RVar(StrID fieldID) const noexcept {
-    return RVar(TypeID{TypeIDRegistry::Meta::global}, fieldID);
-  }
-
-  bool IsInvocable(StrID methodID,
-                   Span<TypeID> argTypeIDs = {}) const noexcept {
-    return IsInvocable(TypeID{TypeIDRegistry::Meta::global}, methodID,
-                       argTypeIDs);
-  }
-
-  InvokeResult Invoke(StrID methodID, Span<TypeID> argTypeIDs = {},
-                      void* args_buffer = nullptr,
-                      void* result_buffer = nullptr) const {
-    return Invoke(TypeID{TypeIDRegistry::Meta::global}, methodID, argTypeIDs,
-                  args_buffer, result_buffer);
-  }
 
   bool IsConstructible(TypeID typeID,
                        Span<TypeID> argTypeIDs = {}) const noexcept;
@@ -345,20 +364,6 @@ class ReflMngr {
   // -- template --
 
   template <typename... Args>
-  bool IsInvocable(StrID methodID) const noexcept;
-
-  template <typename T>
-  T InvokeRet(StrID methodID, Span<TypeID> argTypeIDs = {},
-              void* args_buffer = nullptr) const;
-
-  template <typename... Args>
-  InvokeResult InvokeArgs(StrID methodID, void* result_buffer,
-                          Args... args) const;
-
-  template <typename T, typename... Args>
-  T Invoke(StrID methodID, Args... args) const;
-
-  template <typename... Args>
   bool IsConstructible(TypeID typeID) const noexcept;
 
   template <typename... Args>
@@ -367,14 +372,18 @@ class ReflMngr {
   template <typename... Args>
   ObjectPtr New(TypeID typeID, Args... args) const;
 
+  // if T is not register, call RegisterTypePro
+  // else add ctor
   template <typename T, typename... Args>
-  ObjectPtr New(Args... args) const;
+  ObjectPtr New(Args... args);
 
   template <typename... Args>
   SharedObject MakeShared(TypeID typeID, Args... args) const;
 
+  // if T is not register, call RegisterTypePro
+  // else add ctor
   template <typename T, typename... Args>
-  SharedObject MakeShared(Args... args) const;
+  SharedObject MakeShared(Args... args);
 
   //
   // Algorithm
