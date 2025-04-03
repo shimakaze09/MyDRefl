@@ -14,6 +14,8 @@
 namespace My::MyDRefl {
 using Offsetor = std::function<const void*(const void*)>;
 using Destructor = std::function<void(const void*)>;
+using FreeFunc = std::function<void(void*)>;
+using DeleteFunc = std::function<void(void*)>;  // Destructor + FreeFunc
 
 struct has_virtual_base_void {};
 

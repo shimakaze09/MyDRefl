@@ -5,7 +5,7 @@
 #pragma once
 
 #include "IDRegistry.h"
-#include "SharedObject.h"
+#include "Object.h"
 #include "TypeInfo.h"
 
 namespace My::MyDRefl {
@@ -368,10 +368,10 @@ class ReflMngr {
                  void* args_buffer = nullptr) const;
   bool Destruct(ConstObjectPtr obj) const;
 
-  void* Malloc(uint64_t size) const;
+  void* Malloc(size_t size) const;
   bool Free(void* ptr) const;
 
-  void* AlignedMalloc(uint64_t size, uint64_t alignment) const;
+  void* AlignedMalloc(size_t size, size_t alignment) const;
   bool AlignedFree(void* ptr) const;
 
   ObjectPtr New(TypeID typeID, Span<TypeID> argTypeIDs = {},
@@ -448,6 +448,14 @@ class ReflMngr {
  private:
   ReflMngr();
   ~ReflMngr();
+
+  //
+  // memory
+  ///////////
+
+  std::pmr::monotonic_buffer_resource mono_rsrc;
+  std::pmr::unsynchronized_pool_resource unsync_rsrc;
+  std::pmr::synchronized_pool_resource sync_rsrc;
 };
 }  // namespace My::MyDRefl
 

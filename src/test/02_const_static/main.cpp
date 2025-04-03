@@ -24,7 +24,7 @@ int main() {
   ReflMngr::Instance().AddField<&A::sc_data>("sc_data");
 
   A a;
-  ObjectPtr ptr{TypeID::of<A>, &a};
+  Object ptr{TypeID::of<A>, &a};
 
   ReflMngr::Instance().ForEachField(TypeID::of<A>, [](TypeRef, FieldRef field) {
     auto field_name = ReflMngr::Instance().nregistry.Nameof(field.ID);

@@ -418,7 +418,7 @@ T ReflMngr::InvokeRet(ConstObjectPtr obj, StrID methodID,
 }
 
 template <typename T>
-T ReflMngr::InvokeRet(ObjectPtr obj, StrID methodID, Span<TypeID> argTypeIDs,
+T ReflMngr::InvokeRet(Object obj, StrID methodID, Span<TypeID> argTypeIDs,
                       void* args_buffer) const {
   std::uint8_t result_buffer[sizeof(T)];
   auto result = Invoke(obj, methodID, argTypeIDs, args_buffer, result_buffer);
@@ -453,7 +453,7 @@ InvokeResult ReflMngr::InvokeArgs(ConstObjectPtr obj, StrID methodID,
 }
 
 template <typename... Args>
-InvokeResult ReflMngr::InvokeArgs(ObjectPtr obj, StrID methodID,
+InvokeResult ReflMngr::InvokeArgs(Object obj, StrID methodID,
                                   void* result_buffer, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypeIDs = {TypeID::of<Args>...};
@@ -490,7 +490,7 @@ T ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID, Args... args) const {
 }
 
 template <typename T, typename... Args>
-T ReflMngr::Invoke(ObjectPtr obj, StrID methodID, Args... args) const {
+T ReflMngr::Invoke(Object obj, StrID methodID, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
@@ -512,7 +512,7 @@ bool ReflMngr::IsConstructible(TypeID typeID) const noexcept {
 }
 
 template <typename... Args>
-bool ReflMngr::Construct(ObjectPtr obj, Args... args) const {
+bool ReflMngr::Construct(Object obj, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
@@ -524,7 +524,7 @@ bool ReflMngr::Construct(ObjectPtr obj, Args... args) const {
 }
 
 template <typename... Args>
-ObjectPtr ReflMngr::New(TypeID typeID, Args... args) const {
+Object ReflMngr::New(TypeID typeID, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
@@ -536,7 +536,7 @@ ObjectPtr ReflMngr::New(TypeID typeID, Args... args) const {
 }
 
 template <typename T, typename... Args>
-ObjectPtr ReflMngr::New(Args... args) {
+Object ReflMngr::New(Args... args) {
   static_assert(!std::is_const_v<T> && !std::is_volatile_v<T> &&
                 !std::is_reference_v<T>);
   if (!IsRegistered(TypeID::of<T>))

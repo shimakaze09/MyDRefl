@@ -112,3 +112,58 @@ T ObjectPtr::Invoke(StrID methodID, Args... args) const {
     return InvokeRet<T>(methodID);
 }
 }  // namespace My::MyDRefl
+
+template <>
+struct std::hash<My::MyDRefl::SharedObject> {
+  std::size_t operator()(const My::MyDRefl::SharedObject& obj) const noexcept {
+    return obj.GetID().GetValue() ^ std::hash<const void*>()(obj.GetPtr());
+  }
+};
+
+inline bool operator==(const My::MyDRefl::SharedObject& left,
+                       const My::MyDRefl::SharedObject& right) noexcept {
+  return left.GetID() == right.GetID() && left.GetPtr() == right.GetPtr();
+}
+
+inline bool operator!=(const My::MyDRefl::SharedObject& left,
+                       const My::MyDRefl::SharedObject& right) noexcept {
+  return left.GetID() != right.GetID() || left.GetPtr() != right.GetPtr();
+}
+
+inline bool operator<(const My::MyDRefl::SharedObject& left,
+                      const My::MyDRefl::SharedObject& right) noexcept {
+  return left.GetID() < right.GetID() ||
+         (left.GetID() == right.GetID() && left.GetPtr() < right.GetPtr());
+}
+
+inline bool operator>=(const My::MyDRefl::SharedObject& left,
+                       const My::MyDRefl::SharedObject& right) noexcept {
+  return left.GetID() > right.GetID() ||
+         (left.GetID() == right.GetID() && left.GetPtr() >= right.GetPtr());
+}
+
+inline bool operator>(const My::MyDRefl::SharedObject& left,
+                      const My::MyDRefl::SharedObject& right) noexcept {
+  return left.GetID() > right.GetID() ||
+         (left.GetID() == right.GetID() && left.GetPtr() > right.GetPtr());
+}
+
+inline bool operator<=(const My::MyDRefl::SharedObject& left,
+                       const My::MyDRefl::SharedObject& right) noexcept {
+  return left.GetID() < right.GetID() ||
+         (left.GetID() == right.GetID() && left.GetPtr() <= right.GetPtr());
+}
+
+template <class Elem, typename Traits>
+std::basic_ostream<Elem, Traits>& operator<<(
+    std::basic_ostream<Elem, Traits>& out,
+    const My::MyDRefl::SharedObject& obj) {
+  return out << obj.GetID().GetValue() << obj.GetPtr();
+}
+
+namespace std {
+inline void swap(My::MyDRefl::SharedObject& left,
+                 My::MyDRefl::SharedObject& right) noexcept {
+  left.Swap(right);
+}
+}  // namespace std

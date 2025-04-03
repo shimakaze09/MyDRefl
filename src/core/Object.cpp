@@ -2,7 +2,7 @@
 // Created by Admin on 3/04/2025.
 //
 
-#include <MyDRefl/ObjectPtr.h>
+#include <MyDRefl/Object.h>
 
 #include <MyDRefl/ReflMngr.h>
 
