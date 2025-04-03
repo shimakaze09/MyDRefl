@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "ObjectPtr.h"
+#include <cassert>
+
 #include "Util.h"
 
 namespace My::MyDRefl {
@@ -15,11 +16,11 @@ class BaseInfo {
       : is_polymorphic{is_polymorphic},
         is_virtual{is_virtual},
         funcs{std::move(funcs)} {
-    assert(funcs.static_derived_to_base);
-    assert((is_virtual && !funcs.static_base_to_derived) ||
-           (!is_virtual && funcs.static_base_to_derived));
-    assert((is_polymorphic && funcs.dynamic_base_to_derived) ||
-           (!is_polymorphic && !funcs.dynamic_base_to_derived));
+    assert(this->funcs.static_derived_to_base);
+    assert((is_virtual && !this->funcs.static_base_to_derived) ||
+           (!is_virtual && this->funcs.static_base_to_derived));
+    assert((is_polymorphic && this->funcs.dynamic_base_to_derived) ||
+           (!is_polymorphic && !this->funcs.dynamic_base_to_derived));
   }
 
   bool IsVirtual() const noexcept { return is_virtual; }
@@ -63,10 +64,4 @@ class BaseInfo {
   bool is_virtual;
   InheritCastFunctions funcs;
 };
-
-template <typename Derived, typename Base>
-static constexpr BaseInfo MakeBaseInfo() noexcept {
-  return {inherit_cast_functions<Derived, Base>(), std::is_polymorphic_v<Base>,
-          is_virtual_base_of_v<Base, Derived>};
-}
 }  // namespace My::MyDRefl

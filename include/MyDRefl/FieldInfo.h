@@ -13,8 +13,8 @@ struct FieldInfo {
   AttrSet attrs;
 };
 
-struct Field {
+struct FieldRef {
   StrID ID;
-  const FieldInfo& info;
+  FieldInfo& info;
 };
 }  // namespace My::MyDRefl

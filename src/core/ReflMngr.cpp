@@ -37,19 +37,19 @@ static bool ForEachTypeID(TypeID typeID,
 }
 
 static bool ForEachTypeInfo(TypeID typeID,
-                            const std::function<bool(Type)>& func,
+                            const std::function<bool(TypeRef)>& func,
                             std::set<TypeID>& visitedVBs) {
   auto target = ReflMngr::Instance().typeinfos.find(typeID);
 
   if (target == ReflMngr::Instance().typeinfos.end())
     return true;
 
-  const auto& typeinfo = target->second;
+  auto& typeinfo = target->second;
 
   if (!func({typeID, typeinfo}))
     return false;
 
-  for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
+  for (auto& [baseID, baseinfo] : typeinfo.baseinfos) {
     if (baseinfo.IsVirtual()) {
       if (visitedVBs.find(baseID) != visitedVBs.end())
         continue;
@@ -64,7 +64,8 @@ static bool ForEachTypeInfo(TypeID typeID,
 }
 
 static bool ForEachRWVar(
-    ObjectPtr obj, const std::function<bool(Type, Field, ObjectPtr)>& func,
+    ObjectPtr obj,
+    const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func,
     std::set<TypeID>& visitedVBs) {
   if (!obj)
     return true;
@@ -101,7 +102,7 @@ static bool ForEachRWVar(
 
 static bool ForEachRVar(
     ConstObjectPtr obj,
-    const std::function<bool(Type, Field, ConstObjectPtr)>& func,
+    const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func,
     std::set<TypeID>& visitedVBs) {
   if (!obj)
     return true;
@@ -111,9 +112,9 @@ static bool ForEachRVar(
   if (target == ReflMngr::Instance().typeinfos.end())
     return true;
 
-  const auto& typeinfo = target->second;
+  auto& typeinfo = target->second;
 
-  for (const auto& [fieldID, fieldInfo] : typeinfo.fieldinfos) {
+  for (auto& [fieldID, fieldInfo] : typeinfo.fieldinfos) {
     if (!func({obj.GetID(), typeinfo}, {fieldID, fieldInfo},
               fieldInfo.fieldptr.Map(obj)))
       return false;
@@ -136,7 +137,8 @@ static bool ForEachRVar(
 }
 
 static bool ForEachRWVar(
-    TypeID typeID, const std::function<bool(Type, Field, ObjectPtr)>& func,
+    TypeID typeID,
+    const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func,
     std::set<TypeID>& visitedVBs) {
   if (!typeID)
     return true;
@@ -171,7 +173,8 @@ static bool ForEachRWVar(
 }
 
 static bool ForEachRVar(
-    TypeID typeID, const std::function<bool(Type, Field, ConstObjectPtr)>& func,
+    TypeID typeID,
+    const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func,
     std::set<TypeID>& visitedVBs) {
   if (!typeID)
     return true;
@@ -181,9 +184,9 @@ static bool ForEachRVar(
   if (target == ReflMngr::Instance().typeinfos.end())
     return true;
 
-  const auto& typeinfo = target->second;
+  auto& typeinfo = target->second;
 
-  for (const auto& [fieldID, fieldInfo] : typeinfo.fieldinfos) {
+  for (auto& [fieldID, fieldInfo] : typeinfo.fieldinfos) {
     if (fieldInfo.fieldptr.IsObject()) {
       if (!func({typeID, typeinfo}, {fieldID, fieldInfo},
                 fieldInfo.fieldptr.Map()))
@@ -247,7 +250,7 @@ ReflMngr::ReflMngr() {
                     std::move(global));
 }
 
-void ReflMngr::Clear() {
+void ReflMngr::Clear() noexcept {
   // field attrs
   for (auto& [typeID, typeinfo] : typeinfos) {
     for (auto& [fieldID, fieldinfo] : typeinfo.fieldinfos)
@@ -326,13 +329,16 @@ StrID ReflMngr::AddMethod(TypeID typeID, std::string_view name,
   return methodID;
 }
 
-TypeID ReflMngr::RegisterTypePro(std::string_view name, size_t size,
-                                 size_t alignment, MethodInfo ctor,
-                                 MethodInfo dtor) {
-  TypeID typeID = RegisterType(name, size, alignment);
-  AddMethod(typeID, StrIDRegistry::Meta::ctor, std::move(ctor));
-  AddMethod(typeID, StrIDRegistry::Meta::dtor, std::move(dtor));
-  return typeID;
+bool ReflMngr::AddBase(TypeID derivedID, TypeID baseID, BaseInfo baseinfo) {
+  auto ttarget = typeinfos.find(derivedID);
+  if (ttarget == typeinfos.end())
+    return false;
+  auto& typeinfo = ttarget->second;
+  auto btarget = typeinfo.baseinfos.find(baseID);
+  if (btarget != typeinfo.baseinfos.end())
+    return false;
+  typeinfo.baseinfos.emplace_hint(btarget, baseID, std::move(baseinfo));
+  return true;
 }
 
 void* ReflMngr::Malloc(uint64_t size) const {
@@ -631,6 +637,22 @@ ConstObjectPtr ReflMngr::RVar(ConstObjectPtr obj,
   return nullptr;
 }
 
+ObjectPtr ReflMngr::RWVar(ObjectPtr obj, TypeID baseID,
+                          StrID fieldID) noexcept {
+  auto base = StaticCast_DerivedToBase(obj, baseID);
+  if (!base)
+    return nullptr;
+  return RWVar(base, fieldID);
+}
+
+ConstObjectPtr ReflMngr::RVar(ConstObjectPtr obj, TypeID baseID,
+                              StrID fieldID) const noexcept {
+  auto base = StaticCast_DerivedToBase(obj, baseID);
+  if (!base)
+    return nullptr;
+  return RVar(base, fieldID);
+}
+
 bool ReflMngr::IsStaticInvocable(TypeID typeID, StrID methodID,
                                  Span<TypeID> argTypeIDs) const noexcept {
   auto typetarget = typeinfos.find(typeID);
@@ -814,15 +836,15 @@ void ReflMngr::ForEachTypeID(TypeID typeID,
 }
 
 void ReflMngr::ForEachType(TypeID typeID,
-                           const std::function<bool(Type)>& func) const {
+                           const std::function<bool(TypeRef)>& func) const {
   std::set<TypeID> visitedVBs;
   details::ForEachTypeInfo(typeID, func, visitedVBs);
 }
 
 void ReflMngr::ForEachField(
-    TypeID typeID, const std::function<bool(Type, Field)>& func) const {
-  ForEachType(typeID, [&func](Type type) {
-    for (const auto& [fieldID, fieldInfo] : type.info.fieldinfos) {
+    TypeID typeID, const std::function<bool(TypeRef, FieldRef)>& func) const {
+  ForEachType(typeID, [&func](TypeRef type) {
+    for (auto& [fieldID, fieldInfo] : type.info.fieldinfos) {
       if (func(type, {fieldID, fieldInfo}))
         return false;
     }
@@ -831,9 +853,9 @@ void ReflMngr::ForEachField(
 }
 
 void ReflMngr::ForEachMethod(
-    TypeID typeID, const std::function<bool(Type, Method)>& func) const {
-  ForEachType(typeID, [&func](Type type) {
-    for (const auto& [methodID, methodInfo] : type.info.methodinfos) {
+    TypeID typeID, const std::function<bool(TypeRef, Method)>& func) const {
+  ForEachType(typeID, [&func](TypeRef type) {
+    for (auto& [methodID, methodInfo] : type.info.methodinfos) {
       if (!func(type, {methodID, methodInfo}))
         return false;
     }
@@ -843,28 +865,28 @@ void ReflMngr::ForEachMethod(
 
 void ReflMngr::ForEachRWVar(
     ObjectPtr obj,
-    const std::function<bool(Type, Field, ObjectPtr)>& func) const {
+    const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const {
   std::set<TypeID> visitedVBs;
   details::ForEachRWVar(obj, func, visitedVBs);
 }
 
 void ReflMngr::ForEachRVar(
     ConstObjectPtr obj,
-    const std::function<bool(Type, Field, ConstObjectPtr)>& func) const {
+    const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const {
   std::set<TypeID> visitedVBs;
   details::ForEachRVar(obj, func, visitedVBs);
 }
 
 void ReflMngr::ForEachRWVar(
     TypeID typeID,
-    const std::function<bool(Type, Field, ObjectPtr)>& func) const {
+    const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const {
   std::set<TypeID> visitedVBs;
   details::ForEachRWVar(typeID, func, visitedVBs);
 }
 
 void ReflMngr::ForEachRVar(
     TypeID typeID,
-    const std::function<bool(Type, Field, ConstObjectPtr)>& func) const {
+    const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const {
   std::set<TypeID> visitedVBs;
   details::ForEachRVar(typeID, func, visitedVBs);
 }

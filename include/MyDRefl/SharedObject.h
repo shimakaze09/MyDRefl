@@ -121,43 +121,19 @@ class SharedObject {
     return *AsPtr<T>();
   }
 
-  ObjectPtr AsObjectPtr() & noexcept { return {ID, block.Get()}; }
+  ObjectPtr AsObjectPtr() noexcept { return {ID, block.Get()}; }
 
-  ConstObjectPtr AsObjectPtr() const& noexcept { return {ID, block.Get()}; }
+  ConstObjectPtr AsObjectPtr() const noexcept { return {ID, block.Get()}; }
 
-  operator ObjectPtr() & noexcept { return AsObjectPtr(); }
+  operator ObjectPtr() noexcept { return AsObjectPtr(); }
 
-  operator ConstObjectPtr() const& noexcept { return AsObjectPtr(); }
+  operator ConstObjectPtr() const noexcept { return AsObjectPtr(); }
 
   long UseCount() const noexcept { return block.UseCount(); }
 
   explicit operator bool() const noexcept {
     return ID && static_cast<bool>(block);
   }
-
-  /*bool operator==(const My::MyDRefl::SharedObject& right) const noexcept {
-            return GetID() == right.GetID() && GetPtr() == right.GetPtr();
-        }
-
-        bool operator!=(const My::MyDRefl::SharedObject& right) const noexcept {
-            return GetID() != right.GetID() || GetPtr() != right.GetPtr();
-        }
-
-        bool operator<(const My::MyDRefl::SharedObject& right) const noexcept {
-            return GetID() < right.GetID() || (GetID() == right.GetID() && GetPtr() < right.GetPtr());
-        }
-
-        bool operator>=(const My::MyDRefl::SharedObject& right) const noexcept {
-            return GetID() > right.GetID() || (GetID() == right.GetID() && GetPtr() >= right.GetPtr());
-        }
-
-        bool operator>(const My::MyDRefl::SharedObject& right) const noexcept {
-            return GetID() > right.GetID() || (GetID() == right.GetID() && GetPtr() > right.GetPtr());
-        }
-
-        bool operator<=(const My::MyDRefl::SharedObject& right) const noexcept {
-            return GetID() < right.GetID() || (GetID() == right.GetID() && GetPtr() <= right.GetPtr());
-        }*/
 
  private:
   TypeID ID;

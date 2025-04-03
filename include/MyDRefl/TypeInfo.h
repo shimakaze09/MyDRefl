@@ -57,8 +57,8 @@ struct TypeInfo {
                       void* args_buffer, void* result_buffer) const;
 };
 
-struct Type {
+struct TypeRef {
   TypeID ID;
-  const TypeInfo& info;
+  TypeInfo& info;
 };
 }  // namespace My::MyDRefl

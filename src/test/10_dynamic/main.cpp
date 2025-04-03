@@ -13,10 +13,10 @@ enum class Color { RED, GREEN, BLUE };
 
 int main() {
   ReflMngr::Instance().AddDynamicField<const std::string>(GlobalID, "author",
-                                                          "Ubpa");
+                                                          "My");
   ReflMngr::Instance().AddDynamicField<const Color>(GlobalID, "theme",
                                                     Color::RED);
-  ReflMngr::Instance().RegisterTypePro<int>();
+  ReflMngr::Instance().RegisterTypeAuto<int>();
   ReflMngr::Instance().AddDynamicField<const size_t>(TypeID::of<int>, "bits",
                                                      sizeof(int) * 8);
 

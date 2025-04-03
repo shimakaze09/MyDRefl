@@ -41,7 +41,7 @@ int main() {
   ReflMngr::Instance().RWVar(p, ID_y).As<float>() = 2.f;
 
   ReflMngr::Instance().ForEachRVar(
-      p, [](Type type, Field field, ConstObjectPtr var) {
+      p, [](TypeRef type, FieldRef field, ConstObjectPtr var) {
         std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
                   << var.As<float>() << std::endl;
         return true;

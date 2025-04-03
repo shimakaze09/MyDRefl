@@ -40,62 +40,32 @@ int main() {
   auto ID_min_value = ReflMngr::Instance().nregistry.Register("min_value");
   auto ID_max_value = ReflMngr::Instance().nregistry.Register("max_value");
 
-  {  // register MyInspector::Range
-    TypeInfo typeinfo{
-        sizeof(MyInspector::Range),
-        alignof(MyInspector::Range),
-        {
-            // fields
-            ReflMngr::Instance().GenerateField<&MyInspector::Range::min_value>(
-                "min_value"),
-            ReflMngr::Instance().GenerateField<&MyInspector::Range::max_value>(
-                "max_value"),
-        },
-        {// methods
-         ReflMngr::Instance().GenerateConstructor<MyInspector::Range>(),
-         ReflMngr::Instance()
-             .GenerateConstructor<MyInspector::Range, float, float>(),
-         ReflMngr::Instance().GenerateDestructor<MyInspector::Range>()}};
-    ReflMngr::Instance().typeinfos.emplace(ID_MyInspector_Range,
-                                           std::move(typeinfo));
+  {  // register
+    ReflMngr::Instance().RegisterTypeAuto<MyInspector::Range>();
+    ReflMngr::Instance().AddField<&MyInspector::Range::min_value>("min_value");
+    ReflMngr::Instance().AddField<&MyInspector::Range::max_value>("max_value");
+    ReflMngr::Instance().AddConstructor<MyInspector::Range, float, float>();
+
+    ReflMngr::Instance().RegisterTypeAuto<MyInspector::A>();
+
+    ReflMngr::Instance().RegisterTypeAuto<Point>();
+    ReflMngr::Instance().AddConstructor<Point, float, float>();
+    ReflMngr::Instance().AddField<&Point::x>("x");
+    ReflMngr::Instance().AddField<&Point::y>("y");
   }
 
-  {  // register MyInspector::A
-    TypeInfo typeinfo{
-        sizeof(MyInspector::A),
-        alignof(MyInspector::A),
-        {},  // fields
-        {    // methods
-         ReflMngr::Instance().GenerateConstructor<MyInspector::A>(),
-         ReflMngr::Instance().GenerateDestructor<MyInspector::A>()}};
-    ReflMngr::Instance().typeinfos.emplace(ID_MyInspector_A,
-                                           std::move(typeinfo));
-  }
-  {  // register Point
-    TypeInfo typeinfo{
-        sizeof(Point),
-        alignof(Point),
-        {// fields
-         ReflMngr::Instance().GenerateField<&Point::x>(
-             "x",
-             {ReflMngr::Instance().MakeShared<MyInspector::Range>(1.f, 2.f)}),
-         ReflMngr::Instance().GenerateField<&Point::y>(
-             "y", {ReflMngr::Instance().MakeShared<MyInspector::A>()})}};
-    ReflMngr::Instance().typeinfos.emplace(ID_Point, std::move(typeinfo));
-  }
+  auto p = ReflMngr::Instance().MakeShared(TypeID::of<Point>, 1.f, 2.f);
 
-  Point p;
-  ObjectPtr ptr{ID_Point, &p};
-  ReflMngr::Instance().RWVar(ptr, StrID{"x"}).As<float>() = 1.f;
-  ReflMngr::Instance().RWVar(ptr, StrID{"y"}).As<float>() = 2.f;
+  ReflMngr::Instance().RWVar(p, StrID{"x"}).As<float>() += 1.f;
+  ReflMngr::Instance().RWVar(p, StrID{"y"}).As<float>() += 2.f;
 
-  ReflMngr::Instance().ForEachRVar(ptr, [](Type type, Field field,
-                                           ConstObjectPtr var) {
+  ReflMngr::Instance().ForEachRVar(p, [](TypeRef type, FieldRef field,
+                                         ConstObjectPtr var) {
     for (const auto& attr : field.info.attrs) {
       std::cout << "[" << ReflMngr::Instance().tregistry.Nameof(attr.GetID())
                 << "]" << std::endl;
       ReflMngr::Instance().ForEachRVar(
-          attr, [](Type type, Field field, ConstObjectPtr var) {
+          attr, [](TypeRef type, FieldRef field, ConstObjectPtr var) {
             std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
                       << var.As<float>() << std::endl;
             return true;

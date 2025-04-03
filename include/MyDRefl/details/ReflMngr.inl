@@ -289,11 +289,11 @@ MethodPtr ReflMngr::GenerateStaticMethodPtr(Func&& func) {
 /////////////
 
 template <typename T, typename... Args>
-TypeID ReflMngr::RegisterTypePro(AttrSet attrs_ctor, AttrSet attrs_dtor) {
-  return RegisterTypePro(
-      type_name<T>().name, sizeof(T), alignof(T),
-      {GenerateConstructorPtr<T, Args...>(), std::move(attrs_ctor)},
-      {GenerateDestructorPtr<T>(), std::move(attrs_dtor)});
+TypeID ReflMngr::RegisterTypeAuto(AttrSet attrs_ctor, AttrSet attrs_dtor) {
+  TypeID typeID = RegisterType(type_name<T>().name, sizeof(T), alignof(T));
+  AddConstructor<T, Args...>(std::move(attrs_ctor));
+  AddDestructor<T>(std::move(attrs_dtor));
+  return typeID;
 }
 
 template <auto field_data>
@@ -314,6 +314,20 @@ StrID ReflMngr::AddMethod(std::string_view name, AttrSet attrs) {
                    name, {GenerateMethodPtr<funcptr>(), std::move(attrs)});
 }
 
+template <typename T, typename... Args>
+bool ReflMngr::AddConstructor(AttrSet attrs) {
+  return AddMethod(TypeID::of<T>, StrIDRegistry::Meta::ctor,
+                   {GenerateConstructorPtr<T, Args...>(), std::move(attrs)})
+      .Valid();
+}
+
+template <typename T>
+bool ReflMngr::AddDestructor(AttrSet attrs) {
+  return AddMethod(TypeID::of<T>, StrIDRegistry::Meta::dtor,
+                   {GenerateDestructorPtr<T>(), std::move(attrs)})
+      .Valid();
+}
+
 template <typename Func>
 StrID ReflMngr::AddMemberMethod(std::string_view name, Func&& func,
                                 AttrSet attrs) {
@@ -321,6 +335,19 @@ StrID ReflMngr::AddMemberMethod(std::string_view name, Func&& func,
       TypeID::of<typename details::WrapFuncTraits<std::decay_t<Func>>::Object>,
       name,
       {GenerateMemberMethodPtr(std::forward<Func>(func)), std::move(attrs)});
+}
+
+template <typename Derived, typename Base>
+static BaseInfo ReflMngr::GenerateBaseInfo() {
+  return {inherit_cast_functions<Derived, Base>(), std::is_polymorphic_v<Base>,
+          is_virtual_base_of_v<Base, Derived>};
+}
+
+template <typename Derived, typename... Bases>
+bool ReflMngr::AddBases() {
+  return (AddBase(TypeID::of<Derived>, TypeID::of<Bases>,
+                  GenerateBaseInfo<Derived, Bases>()) &&
+          ...);
 }
 
 //
@@ -486,8 +513,8 @@ template <typename T, typename... Args>
 ObjectPtr ReflMngr::New(Args... args) {
   static_assert(!std::is_const_v<T> && !std::is_volatile_v<T> &&
                 !std::is_reference_v<T>);
-  if (!IsRegisteredType(TypeID::of<T>))
-    RegisterTypePro<T, Args...>();
+  if (!IsRegistered(TypeID::of<T>))
+    RegisterTypeAuto<T, Args...>();
   AddMethod(TypeID::of<T>, StrIDRegistry::Meta::ctor,
             {GenerateConstructorPtr<T, Args...>()});
   return New(TypeID::of<T>, std::forward<Args>(args)...);
@@ -509,8 +536,8 @@ template <typename T, typename... Args>
 SharedObject ReflMngr::MakeShared(Args... args) {
   static_assert(!std::is_const_v<T> && !std::is_volatile_v<T> &&
                 !std::is_reference_v<T>);
-  if (!IsRegisteredType(TypeID::of<T>))
-    RegisterTypePro<T, Args...>();
+  if (!IsRegistered(TypeID::of<T>))
+    RegisterTypeAuto<T, Args...>();
   AddMethod(TypeID::of<T>, StrIDRegistry::Meta::ctor,
             {GenerateConstructorPtr<T, Args...>()});
   return MakeShared(TypeID::of<T>, std::forward<Args>(args)...);
