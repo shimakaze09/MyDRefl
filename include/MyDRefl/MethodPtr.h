@@ -7,8 +7,6 @@
 #include "ObjectPtr.h"
 #include "Util.h"
 
-#include <MyContainer/Span.h>
-
 #include <variant>
 #include <vector>
 
@@ -149,15 +147,6 @@ class MethodPtr {
       func;
   ResultDesc resultDesc;
   ParamList paramList;
-};
-
-struct InvokeResult {
-  bool success{false};
-  TypeID resultID;
-  Destructor destructor;
-
-  template <typename T>
-  T Move(void* result_buffer);
 };
 }  // namespace My::MyDRefl
 

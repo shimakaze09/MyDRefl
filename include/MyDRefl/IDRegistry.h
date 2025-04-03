@@ -23,6 +23,8 @@ class IDRegistry {
   void Register(T ID, std::string_view name);
 
  public:
+  IDRegistry();
+
   bool IsRegistered(T ID) const noexcept;
   std::string_view Nameof(T ID) const noexcept;
 
@@ -31,12 +33,10 @@ class IDRegistry {
 
  private:
   std::pmr::monotonic_buffer_resource resource;
-  std::unordered_map<T, std::string_view> id2name;
+  std::pmr::unordered_map<T, std::string_view> id2name;
 
 #ifndef NDEBUG
  public:
-  IDRegistry() : unmanagedIDs(&resource) {}
-
   bool IsUnmanaged(T ID) const noexcept;
   void ClearUnmanaged() noexcept;
 
@@ -164,12 +164,9 @@ class TypeIDRegistry : public IDRegistry<TypeID> {
   }
 
   template <typename T>
-  void IsRegistered() const noexcept {
-    IsRegistered(type_name<T>());
+  bool IsRegistered() const noexcept {
+    return IDRegistry<TypeID>::IsRegistered(type_name<T>());
   }
-
- private:
-  IDRegistry registry;
 };
 }  // namespace My::MyDRefl
 

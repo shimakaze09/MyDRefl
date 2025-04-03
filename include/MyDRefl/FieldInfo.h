@@ -12,9 +12,4 @@ struct FieldInfo {
   FieldPtr fieldptr;
   AttrSet attrs;
 };
-
-struct FieldRef {
-  StrID ID;
-  FieldInfo& info;
-};
 }  // namespace My::MyDRefl

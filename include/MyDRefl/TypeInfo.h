@@ -56,9 +56,4 @@ struct TypeInfo {
   InvokeResult Invoke(void* obj, StrID methodID, Span<TypeID> argTypeIDs,
                       void* args_buffer, void* result_buffer) const;
 };
-
-struct TypeRef {
-  TypeID ID;
-  TypeInfo& info;
-};
 }  // namespace My::MyDRefl

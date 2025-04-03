@@ -28,15 +28,11 @@ int main() {
   // ReflMngr::Instance().Delete(v);
   SharedObject v = ReflMngr::Instance().MakeShared(TypeID::of<Vec>);
 
-  ReflMngr::Instance().RWVar(v, StrID{"x"}).As<float>() = 3.f;
-  ReflMngr::Instance().RWVar(v, StrID{"y"}).As<float>() = 4.f;
+  v->RWVar(StrID{"x"}).As<float>() = 3.f;
+  v->RWVar(StrID{"y"}).As<float>() = 4.f;
 
-  std::cout << "x: " << ReflMngr::Instance().RVar(v, StrID{"x"}).As<float>()
-            << std::endl;
-  std::cout << "norm: "
-            << ReflMngr::Instance().Invoke<float>(v.AsObjectPtr(),
-                                                  StrID{"norm"})
-            << std::endl;
+  std::cout << "x: " << v->RVar(StrID{"x"}).As<float>() << std::endl;
+  std::cout << "norm: " << v->Invoke<float>(StrID{"norm"}) << std::endl;
 
   ReflMngr::Instance().ForEachField(TypeID::of<Vec>, [](TypeRef type,
                                                         FieldRef field) {
@@ -50,11 +46,9 @@ int main() {
     return true;
   });
 
-  ReflMngr::Instance().ForEachRVar(
-      v,  // ObjectPtr
-      [](TypeRef type, FieldRef field, ConstObjectPtr var) {
-        std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
-                  << var.As<float>() << std::endl;
-        return true;
-      });
+  v->ForEachRVar([](TypeRef type, FieldRef field, ConstObjectPtr var) {
+    std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
+              << var.As<float>() << std::endl;
+    return true;
+  });
 }
