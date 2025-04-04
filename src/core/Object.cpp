@@ -66,6 +66,13 @@ InvokeResult ConstObjectPtr::Invoke(StrID methodID, void* result_buffer,
                                      args_buffer);
 }
 
+SharedObject ConstObjectPtr::MInvoke(
+    StrID methodID, Span<TypeID> argTypeIDs, void* args_buffer,
+    MemoryResourceType memory_rsrc_type) const {
+  return ReflMngr::Instance().MInvoke(*this, methodID, argTypeIDs, args_buffer,
+                                      memory_rsrc_type);
+}
+
 //
 // ObjectPtr
 //////////////
@@ -108,6 +115,13 @@ InvokeResult ObjectPtr::Invoke(StrID methodID, void* result_buffer,
                                void* args_buffer) const {
   return ReflMngr::Instance().Invoke(*this, methodID, result_buffer, argTypeIDs,
                                      args_buffer);
+}
+
+SharedObject ObjectPtr::MInvoke(StrID methodID, Span<TypeID> argTypeIDs,
+                                void* args_buffer,
+                                MemoryResourceType memory_rsrc_type) const {
+  return ReflMngr::Instance().MInvoke(*this, methodID, argTypeIDs, args_buffer,
+                                      memory_rsrc_type);
 }
 
 void ObjectPtr::ForEachRWVar(

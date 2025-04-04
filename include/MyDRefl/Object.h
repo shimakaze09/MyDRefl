@@ -14,15 +14,10 @@
 #include <functional>
 
 namespace My::MyDRefl {
-struct InvokableResult {
-  bool success{false};
-  TypeID resultID;
-  size_t size{0};
-  size_t alignment{0};
-
-  constexpr bool IsVoid() const noexcept { return resultID.Is<void>(); }
-
-  constexpr operator bool() const noexcept { return success; }
+enum class MemoryResourceType {
+  MONO,
+  SYNC,
+  UNSYNC,
 };
 
 struct InvokeResult {
@@ -38,6 +33,7 @@ struct InvokeResult {
   constexpr operator bool() const noexcept { return success; }
 };
 
+class SharedObject;
 struct TypeInfo;
 struct FieldInfo;
 
@@ -166,6 +162,23 @@ class ConstObjectPtr : public ObjectPtrBase {
 
   template <typename T, typename... Args>
   T Invoke(StrID methodID, Args... args) const;
+
+  SharedObject MInvoke(
+      StrID methodID, Span<TypeID> argTypeIDs = {}, void* args_buffer = nullptr,
+      MemoryResourceType memory_rsrc_type = MemoryResourceType::SYNC) const;
+
+  template <typename... Args>
+  SharedObject MInvoke(StrID methodID, MemoryResourceType memory_rsrc_type,
+                       Args... args);
+
+  template <typename... Args>
+  SharedObject MonoMInvoke(StrID methodID, Args... args);
+
+  template <typename... Args>
+  SharedObject SyncMInvoke(StrID methodID, Args... args);
+
+  template <typename... Args>
+  SharedObject UnsyncMInvoke(StrID methodID, Args... args);
 };
 
 class ObjectPtr : public ObjectPtrBase {
@@ -206,6 +219,10 @@ class ObjectPtr : public ObjectPtrBase {
                       Span<TypeID> argTypeIDs = {},
                       void* args_buffer = nullptr) const;
 
+  SharedObject MInvoke(
+      StrID methodID, Span<TypeID> argTypeIDs = {}, void* args_buffer = nullptr,
+      MemoryResourceType memory_rsrc_type = MemoryResourceType::SYNC) const;
+
   template <typename... Args>
   bool IsInvocable(StrID methodID) const noexcept;
 
@@ -219,6 +236,19 @@ class ObjectPtr : public ObjectPtrBase {
 
   template <typename T, typename... Args>
   T Invoke(StrID methodID, Args... args) const;
+
+  template <typename... Args>
+  SharedObject MInvoke(StrID methodID, MemoryResourceType memory_rsrc_type,
+                       Args... args);
+
+  template <typename... Args>
+  SharedObject MonoMInvoke(StrID methodID, Args... args);
+
+  template <typename... Args>
+  SharedObject SyncMInvoke(StrID methodID, Args... args);
+
+  template <typename... Args>
+  SharedObject UnsyncMInvoke(StrID methodID, Args... args);
 
   // self [r/w] vars and all bases' [r/w] vars
   void ForEachRWVar(

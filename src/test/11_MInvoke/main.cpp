@@ -1,5 +1,5 @@
 //
-// Created by Admin on 2/04/2025.
+// Created by Admin on 4/04/2025.
 //
 
 #include <MyDRefl/MyDRefl.h>
@@ -14,6 +14,15 @@ struct Vec {
   float y;
 
   float norm() const noexcept { return std::sqrt(x * x + y * y); }
+
+  Vec copy() const noexcept { return *this; }
+
+  Vec operator+(const Vec& v) const noexcept {
+    Vec rst;
+    rst.x = x + v.x;
+    rst.y = y + v.y;
+    return rst;
+  }
 };
 
 int main() {
@@ -21,6 +30,9 @@ int main() {
   ReflMngr::Instance().AddField<&Vec::x>("x");
   ReflMngr::Instance().AddField<&Vec::y>("y");
   ReflMngr::Instance().AddMethod<&Vec::norm>("norm");
+  ReflMngr::Instance().AddMethod<&Vec::copy>("copy");
+  ReflMngr::Instance().AddMethod<&Vec::operator+ >(
+      StrIDRegistry::Meta::operator_add);
 
   // [ or ]
   // ObjectPtr v = ReflMngr::Instance().New(TypeID::of<Vec>);
@@ -31,8 +43,8 @@ int main() {
   v->RWVar(StrID{"x"}).As<float>() = 3.f;
   v->RWVar(StrID{"y"}).As<float>() = 4.f;
 
-  std::cout << "x: " << v->RVar("x").As<float>() << std::endl;
-  std::cout << "norm: " << v->Invoke<float>("norm") << std::endl;
+  std::cout << "x: " << v->RVar(StrID{"x"}).As<float>() << std::endl;
+  std::cout << "norm: " << v->Invoke<float>(StrID{"norm"}) << std::endl;
 
   ReflMngr::Instance().ForEachField(TypeID::of<Vec>, [](TypeRef type,
                                                         FieldRef field) {
@@ -47,6 +59,15 @@ int main() {
   });
 
   v->ForEachRVar([](TypeRef type, FieldRef field, ConstObjectPtr var) {
+    std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
+              << var.As<float>() << std::endl;
+    return true;
+  });
+
+  auto w = v->SyncMInvoke<const Vec&>(StrIDRegistry::Meta::operator_add,
+                                      v.As<Vec>());
+
+  w->ForEachRVar([](TypeRef type, FieldRef field, ConstObjectPtr var) {
     std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
               << var.As<float>() << std::endl;
     return true;
