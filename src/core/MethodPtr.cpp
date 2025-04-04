@@ -14,7 +14,8 @@ ParamList::ParamList(std::vector<Parameter> params) : params{params} {
     if (param.alignment > alignment)
       alignment = param.alignment;
 
-    curOffset = (curOffset + param.alignment - 1) / param.alignment;
+    curOffset =
+        (curOffset + param.alignment - 1) / param.alignment * param.alignment;
     offsets.push_back(curOffset);
     curOffset += param.size;
   }

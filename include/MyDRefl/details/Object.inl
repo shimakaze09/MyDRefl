@@ -11,7 +11,7 @@ template <typename T>
 T InvokeResult::Move(void* result_buffer) {
   assert(result_buffer);
 
-  if constexpr (!std::is_lvalue_reference_v<T> &&
+  if constexpr (!std::is_reference_v<T> &&
                 std::is_default_constructible_v<std::remove_reference_t<T>>) {
     if (!success)
       return std::forward<T>(T{});
@@ -20,15 +20,15 @@ T InvokeResult::Move(void* result_buffer) {
 
   assert(resultID = TypeID::of<T>);
 
-  if constexpr (std::is_lvalue_reference_v<T>) {
+  if constexpr (std::is_reference_v<T>) {
     using PtrT = std::add_pointer_t<std::remove_reference_t<T>>;
     assert(!destructor);
-    return *buffer_as<PtrT>(result_buffer);
+    return std::forward<T>(*buffer_as<PtrT>(result_buffer));
   } else {
-    T rst = std::move(buffer_as<T>(result_buffer));
+    T rst = std::move(buffer_as<type_buffer_decay_t<T>>(result_buffer));
     if (destructor)
       destructor(result_buffer);
-    return rst;
+    return std::forward<T>(rst);
   }
 }
 
@@ -102,10 +102,13 @@ bool ObjectPtr::IsInvocable(StrID methodID) const noexcept {
 template <typename T>
 T ObjectPtr::InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs,
                        void* args_buffer) const {
-  std::uint8_t result_buffer[sizeof(T)];
-  auto result = Invoke(methodID, result_buffer, argTypeIDs, args_buffer);
-  assert(result.resultID == TypeID::of<T>);
-  return result.Move<T>(result_buffer);
+  if constexpr (!std::is_void_v<T>) {
+    std::uint8_t result_buffer[sizeof(type_buffer_decay_t<T>)];
+    auto result = Invoke(methodID, result_buffer, argTypeIDs, args_buffer);
+    assert(result.resultID == TypeID::of<T>);
+    return result.Move<T>(result_buffer);
+  } else
+    Invoke(methodID, nullptr, argTypeIDs, args_buffer);
 }
 
 template <typename... Args>
