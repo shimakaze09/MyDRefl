@@ -13,6 +13,7 @@
 
 #include <cassert>
 #include <functional>
+#include <memory>
 
 namespace My::MyDRefl {
 enum class MemoryResourceType {
@@ -35,6 +36,7 @@ struct InvokeResult {
 };
 
 class SharedObject;
+class SharedConstObject;
 struct TypeInfo;
 struct FieldInfo;
 
@@ -105,8 +107,8 @@ class ObjectPtrBase {
   }
 
  protected:
-  void* ptr;
   TypeID ID;
+  void* ptr;
 };
 
 class ConstObjectPtr : public ObjectPtrBase {
@@ -115,6 +117,8 @@ class ConstObjectPtr : public ObjectPtrBase {
 
   constexpr ConstObjectPtr(TypeID ID, const void* ptr) noexcept
       : ObjectPtrBase{ID, const_cast<void*>(ptr)} {}
+
+  ConstObjectPtr(const SharedConstObject& obj) noexcept;
 
   constexpr const void* GetPtr() const noexcept { return ptr; }
 
@@ -283,6 +287,126 @@ class ObjectPtr : public ObjectPtrBase {
 static_assert(sizeof(ObjectPtr) == sizeof(ConstObjectPtr) &&
               alignof(ObjectPtr) == alignof(ConstObjectPtr));
 
+using SharedBuffer = std::shared_ptr<void>;
+using SharedConstBuffer = std::shared_ptr<const void>;
+
+// SharedBuffer + ID
+class SharedConstObject {
+ public:
+  //
+  // Constructor
+  ////////////////
+
+  constexpr SharedConstObject() noexcept = default;
+
+  SharedConstObject(const SharedConstObject& obj)
+      : ID{obj.ID}, buffer{obj.buffer} {}
+
+  SharedConstObject(SharedConstObject&& obj) noexcept
+      : ID{obj.ID}, buffer{std::move(obj.buffer)} {}
+
+  constexpr SharedConstObject(std::nullptr_t) noexcept {}
+
+  explicit constexpr SharedConstObject(TypeID ID) noexcept : ID{ID} {}
+
+  SharedConstObject(TypeID ID, const SharedConstBuffer& buffer) noexcept
+      : ID{ID}, buffer{buffer} {}
+
+  SharedConstObject(TypeID ID, SharedConstBuffer&& buffer) noexcept
+      : ID{ID}, buffer{std::move(buffer)} {}
+
+  template <typename U, typename Deleter>
+  SharedConstObject(ObjectPtr obj, Deleter&& d) noexcept
+      : ID{obj.GetID()}, buffer{obj.GetPtr(), std::forward<Deleter>(d)} {}
+
+  template <typename U, typename Deleter, typename Alloc>
+  SharedConstObject(ObjectPtr obj, Deleter&& d, Alloc&& alloc) noexcept
+      : ID{obj.GetID()},
+        buffer{obj.GetPtr(), std::forward<Deleter>(d),
+               std::forward<Alloc>(alloc)} {}
+
+  //
+  // Assign
+  ///////////
+
+  SharedConstObject& operator=(const SharedConstObject& rhs) noexcept {
+    ID = rhs.ID;
+    buffer = rhs.buffer;
+    return *this;
+  }
+
+  SharedConstObject& operator=(SharedConstObject&& rhs) noexcept {
+    SharedConstObject(std::move(rhs)).Swap(*this);
+    return *this;
+  }
+
+  SharedConstObject& operator=(std::nullptr_t) noexcept {
+    Reset();
+    return *this;
+  }
+
+  //
+  // Modifiers
+  //////////////
+
+  void Reset() noexcept {
+    buffer.reset();
+    ID.Reset();
+  }
+
+  void Swap(SharedConstObject& rhs) noexcept {
+    std::swap(ID, rhs.ID);
+    buffer.swap(rhs.buffer);
+  }
+
+  //
+  // Observers
+  //////////////
+
+  TypeID GetID() const noexcept { return ID; }
+
+  SharedConstBuffer GetBuffer() & noexcept { return buffer; }
+
+  const SharedConstBuffer& GetBuffer() const& noexcept { return buffer; }
+
+  SharedConstBuffer GetBuffer() && noexcept { return std::move(buffer); }
+
+  const void* GetPtr() const noexcept { return buffer.get(); }
+
+  template <typename T>
+  const T* AsPtr() const noexcept {
+    assert(ID.Is<T>());
+    return reinterpret_cast<const T*>(GetPtr());
+  }
+
+  template <typename T>
+  const T& As() const noexcept {
+    assert(GetPtr());
+    return *AsPtr<T>();
+  }
+
+  ConstObjectPtr AsObjectPtr() const noexcept { return {ID, buffer.get()}; }
+
+  long UseCount() const noexcept { return buffer.use_count(); }
+
+  operator bool() const noexcept { return ID && static_cast<bool>(buffer); }
+
+  operator ConstObjectPtr() const noexcept { return AsObjectPtr(); }
+
+  //
+  // Meta
+  /////////
+
+  template <typename Arg>
+  SharedObject operator+(Arg rhs) const {
+    return AsObjectPtr()->operator+ <Arg>(std::forward<Arg>(rhs));
+  }
+
+ private:
+  TypeID ID;
+  SharedConstBuffer buffer;
+};
+
 // SharedBuffer + ID
 class SharedObject {
  public:
@@ -292,53 +416,43 @@ class SharedObject {
 
   constexpr SharedObject() noexcept = default;
 
+  SharedObject(const SharedObject& obj) : ID{obj.ID}, buffer{obj.buffer} {}
+
+  SharedObject(SharedObject&& obj) noexcept
+      : ID{obj.ID}, buffer{std::move(obj.buffer)} {}
+
   constexpr SharedObject(std::nullptr_t) noexcept {}
 
   explicit constexpr SharedObject(TypeID ID) noexcept : ID{ID} {}
 
-  SharedObject(TypeID ID, SharedBuffer& block) noexcept
-      : ID{ID}, block{block} {}
+  SharedObject(TypeID ID, const SharedBuffer& buffer) noexcept
+      : ID{ID}, buffer{buffer} {}
 
-  SharedObject(TypeID ID, SharedBuffer&& block) noexcept
-      : ID{ID}, block{std::move(block)} {}
+  SharedObject(TypeID ID, SharedBuffer&& buffer) noexcept
+      : ID{ID}, buffer{std::move(buffer)} {}
 
-  SharedObject(const SharedObject& obj)
-      : ID{obj.ID}, block{obj.block} {}  // only exception
-
-  SharedObject(SharedObject&& obj) noexcept
-      : ID{obj.ID}, block{std::move(obj.block)} {}
-
-  SharedObject(ObjectPtr obj, void (*deleter)(void*)) noexcept
-      : ID{obj.GetID()}, block{obj.GetPtr(), deleter} {}
-
-  SharedObject(ObjectPtr obj, std::function<void(void*)> deleter) noexcept
-      : ID{obj.GetID()}, block{obj.GetPtr(), deleter} {}
-
-  template <typename U, typename Deleter>
+  template <typename Deleter>
   SharedObject(ObjectPtr obj, Deleter&& d) noexcept
-      : ID{obj.GetID()}, block{obj.GetPtr(), std::forward<Deleter>(d)} {}
+      : ID{obj.GetID()}, buffer{obj.GetPtr(), std::forward<Deleter>(d)} {}
 
   template <typename U, typename Deleter, typename Alloc>
   SharedObject(ObjectPtr obj, Deleter&& d, Alloc&& alloc) noexcept
       : ID{obj.GetID()},
-        block{obj.GetPtr(), std::forward<Deleter>(d),
-              std::forward<Alloc>(alloc)} {}
+        buffer{obj.GetPtr(), std::forward<Deleter>(d),
+               std::forward<Alloc>(alloc)} {}
 
   //
   // Assign
   ///////////
 
-  SharedObject& operator=(SharedObject& rhs) noexcept {
+  SharedObject& operator=(const SharedObject& rhs) noexcept {
     ID = rhs.ID;
-    block = rhs.block;
+    buffer = rhs.buffer;
     return *this;
   }
 
-  SharedObject& operator=(const SharedObject& rhs) = delete;
-
   SharedObject& operator=(SharedObject&& rhs) noexcept {
-    ID = rhs.ID;
-    block = std::move(rhs.block);
+    SharedObject(std::move(rhs)).Swap(*this);
     return *this;
   }
 
@@ -352,11 +466,14 @@ class SharedObject {
   //////////////
 
   void Reset() noexcept {
-    block.Reset();
+    buffer.reset();
     ID.Reset();
   }
 
-  void Swap(SharedObject& rhs) noexcept { block.Swap(rhs.block); }
+  void Swap(SharedObject& rhs) noexcept {
+    std::swap(ID, rhs.ID);
+    buffer.swap(rhs.buffer);
+  }
 
   //
   // Observers
@@ -364,70 +481,42 @@ class SharedObject {
 
   TypeID GetID() const noexcept { return ID; }
 
-  SharedBuffer GetBuffer() & noexcept { return block; }
+  SharedBuffer GetBuffer() & noexcept { return buffer; }
 
-  const SharedBuffer& GetBuffer() const& noexcept { return block; }
+  const SharedBuffer& GetBuffer() const& noexcept { return buffer; }
 
-  SharedBuffer GetBuffer() && noexcept { return std::move(block); }
+  SharedBuffer GetBuffer() && noexcept { return std::move(buffer); }
 
-  void* GetPtr() noexcept { return block.Get(); }
-
-  const void* GetPtr() const noexcept { return block.Get(); }
+  void* GetPtr() const noexcept { return buffer.get(); }
 
   template <typename T>
-  T* AsPtr() noexcept {
+  T* AsPtr() const noexcept {
     return reinterpret_cast<T*>(GetPtr());
   }
 
   template <typename T>
-  const T* AsPtr() const noexcept {
-    return const_cast<SharedObject*>(this)->AsPtr<T>();
-  }
-
-  template <typename T>
-  T& As() & noexcept {
+  T& As() const noexcept {
     assert(GetPtr());
     return *AsPtr<T>();
   }
 
-  template <typename T>
-  const T& As() const& noexcept {
-    assert(GetPtr());
-    return *AsPtr<T>();
-  }
-
-  template <typename T>
-  T As() && noexcept {
-    assert(GetPtr());
-    return std::move(*AsPtr<T>());
-  }
-
-  ObjectPtr AsObjectPtr() noexcept { return {ID, block.Get()}; }
-
-  ConstObjectPtr AsObjectPtr() const noexcept { return {ID, block.Get()}; }
-
-  operator ObjectPtr() noexcept { return AsObjectPtr(); }
-
-  operator ConstObjectPtr() const noexcept { return AsObjectPtr(); }
+  ObjectPtr AsObjectPtr() const noexcept { return {ID, buffer.get()}; }
 
   ObjectPtr operator->() noexcept { return AsObjectPtr(); }
 
-  ConstObjectPtr operator->() const noexcept { return AsObjectPtr(); }
+  long UseCount() const noexcept { return buffer.use_count(); }
 
-  long UseCount() const noexcept { return block.UseCount(); }
+  operator bool() const noexcept { return ID && static_cast<bool>(buffer); }
 
-  explicit operator bool() const noexcept {
-    return ID && static_cast<bool>(block);
-  }
+  operator ObjectPtr() const noexcept { return AsObjectPtr(); }
+
+  operator SharedConstObject() const noexcept {
+    return {ID, SharedConstBuffer{buffer}};
+  };
 
   //
   // Meta
   /////////
-
-  template <typename Arg>
-  SharedObject operator+(Arg rhs) {
-    return AsObjectPtr()->operator+ <Arg>(std::forward<Arg>(rhs));
-  }
 
   template <typename Arg>
   SharedObject operator+(Arg rhs) const {
@@ -436,7 +525,7 @@ class SharedObject {
 
  private:
   TypeID ID;
-  SharedBuffer block;
+  SharedBuffer buffer;
 };
 }  // namespace My::MyDRefl
 

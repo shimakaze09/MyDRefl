@@ -12,6 +12,9 @@ using namespace My::MyDRefl;
 // ObjectPtrBase
 //////////////////
 
+ConstObjectPtr::ConstObjectPtr(const SharedConstObject& obj) noexcept
+    : ConstObjectPtr{obj.GetID(), obj.GetPtr()} {}
+
 ConstObjectPtr ObjectPtrBase::RVar(StrID fieldID) const noexcept {
   return ReflMngr::Instance().RVar({ID, ptr}, fieldID);
 }

@@ -186,36 +186,44 @@ struct std::hash<My::MyDRefl::SharedObject> {
   }
 };
 
-inline bool operator==(const My::MyDRefl::SharedObject& left,
-                       const My::MyDRefl::SharedObject& right) noexcept {
+template <>
+struct std::hash<My::MyDRefl::SharedConstObject> {
+  std::size_t operator()(
+      const My::MyDRefl::SharedConstObject& obj) const noexcept {
+    return obj.GetID().GetValue() ^ std::hash<const void*>()(obj.GetPtr());
+  }
+};
+
+inline bool operator==(const My::MyDRefl::SharedConstObject& left,
+                       const My::MyDRefl::SharedConstObject& right) noexcept {
   return left.GetID() == right.GetID() && left.GetPtr() == right.GetPtr();
 }
 
-inline bool operator!=(const My::MyDRefl::SharedObject& left,
-                       const My::MyDRefl::SharedObject& right) noexcept {
+inline bool operator!=(const My::MyDRefl::SharedConstObject& left,
+                       const My::MyDRefl::SharedConstObject& right) noexcept {
   return left.GetID() != right.GetID() || left.GetPtr() != right.GetPtr();
 }
 
-inline bool operator<(const My::MyDRefl::SharedObject& left,
-                      const My::MyDRefl::SharedObject& right) noexcept {
+inline bool operator<(const My::MyDRefl::SharedConstObject& left,
+                      const My::MyDRefl::SharedConstObject& right) noexcept {
   return left.GetID() < right.GetID() ||
          (left.GetID() == right.GetID() && left.GetPtr() < right.GetPtr());
 }
 
-inline bool operator>=(const My::MyDRefl::SharedObject& left,
-                       const My::MyDRefl::SharedObject& right) noexcept {
+inline bool operator>=(const My::MyDRefl::SharedConstObject& left,
+                       const My::MyDRefl::SharedConstObject& right) noexcept {
   return left.GetID() > right.GetID() ||
          (left.GetID() == right.GetID() && left.GetPtr() >= right.GetPtr());
 }
 
-inline bool operator>(const My::MyDRefl::SharedObject& left,
-                      const My::MyDRefl::SharedObject& right) noexcept {
+inline bool operator>(const My::MyDRefl::SharedConstObject& left,
+                      const My::MyDRefl::SharedConstObject& right) noexcept {
   return left.GetID() > right.GetID() ||
          (left.GetID() == right.GetID() && left.GetPtr() > right.GetPtr());
 }
 
-inline bool operator<=(const My::MyDRefl::SharedObject& left,
-                       const My::MyDRefl::SharedObject& right) noexcept {
+inline bool operator<=(const My::MyDRefl::SharedConstObject& left,
+                       const My::MyDRefl::SharedConstObject& right) noexcept {
   return left.GetID() < right.GetID() ||
          (left.GetID() == right.GetID() && left.GetPtr() <= right.GetPtr());
 }
@@ -223,13 +231,18 @@ inline bool operator<=(const My::MyDRefl::SharedObject& left,
 template <class Elem, typename Traits>
 std::basic_ostream<Elem, Traits>& operator<<(
     std::basic_ostream<Elem, Traits>& out,
-    const My::MyDRefl::SharedObject& obj) {
+    const My::MyDRefl::SharedConstObject& obj) {
   return out << obj.GetID().GetValue() << obj.GetPtr();
 }
 
 namespace std {
 inline void swap(My::MyDRefl::SharedObject& left,
                  My::MyDRefl::SharedObject& right) noexcept {
+  left.Swap(right);
+}
+
+inline void swap(My::MyDRefl::SharedConstObject& left,
+                 My::MyDRefl::SharedConstObject& right) noexcept {
   left.Swap(right);
 }
 }  // namespace std
