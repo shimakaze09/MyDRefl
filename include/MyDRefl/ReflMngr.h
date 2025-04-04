@@ -9,7 +9,7 @@
 #include "TypeInfo.h"
 
 namespace My::MyDRefl {
-constexpr TypeID GlobalID = TypeID{TypeIDRegistry::Meta::global};
+constexpr TypeID GlobalID = TypeIDRegistry::MetaID::global;
 
 class ReflMngr {
  public:
@@ -155,13 +155,13 @@ class ReflMngr {
 
   template <typename T, typename... Args>
   std::pair<StrID, MethodInfo> GenerateConstructor(AttrSet attrs = {}) {
-    return {StrID{StrIDRegistry::Meta::ctor},
+    return {StrIDRegistry::MetaID::ctor,
             {GenerateConstructorPtr<T, Args...>(), std::move(attrs)}};
   }
 
   template <typename T>
   std::pair<StrID, MethodInfo> GenerateDestructor(AttrSet attrs = {}) {
-    return {StrID{StrIDRegistry::Meta::dtor},
+    return {StrIDRegistry::MetaID::dtor,
             {GenerateDestructorPtr<T>(), std::move(attrs)}};
   }
 

@@ -15,11 +15,11 @@
 #include <functional>
 #include <memory>
 
-#define OBJECT_PTR_DEFINE_OPERATOR(op, name)                      \
-  template <typename Arg>                                         \
-  SharedObject operator##op(Arg rhs) const {                      \
-    return SyncMInvoke<Arg>(StrIDRegistry::Meta::operator_##name, \
-                            std::forward<Arg>(rhs));              \
+#define OBJECT_PTR_DEFINE_OPERATOR(op, name)                        \
+  template <typename Arg>                                           \
+  SharedObject operator##op(Arg rhs) const {                        \
+    return SyncMInvoke<Arg>(StrIDRegistry::MetaID::operator_##name, \
+                            std::forward<Arg>(rhs));                \
   }
 
 #define SHARED_OBJECT_DEFINE_OPERATOR(op)                            \
@@ -230,7 +230,7 @@ class ConstObjectPtr : public ObjectPtrBase {
 
   template <typename... Args>
   SharedObject operator()(Args... args) const {
-    return SyncMInvoke<Args...>(StrIDRegistry::Meta::operator_call,
+    return SyncMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
                                 std::forward<Args>(args)...);
   }
 };
@@ -340,7 +340,7 @@ class ObjectPtr : public ObjectPtrBase {
 
   template <typename... Args>
   SharedObject operator()(Args... args) const {
-    return SyncMInvoke<Args...>(StrIDRegistry::Meta::operator_call,
+    return SyncMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
                                 std::forward<Args>(args)...);
   }
 };

@@ -47,7 +47,7 @@ int main() {
   {
     Vec{10.f, 10.f};
     auto& v = ReflMngr::Instance().Invoke<Vec&, const Vec&>(
-        obj.AsObjectPtr(), StrID{StrIDRegistry::Meta::operator_assign_add},
+        obj.AsObjectPtr(), StrIDRegistry::MetaID::operator_assign_add,
         Vec{10.f, 10.f});
 
     std::cout << v.x << ", " << v.y << std::endl;
@@ -55,8 +55,7 @@ int main() {
 
   {
     auto& v = ReflMngr::Instance().Invoke<Vec&, float>(
-        obj.AsObjectPtr(), StrID{StrIDRegistry::Meta::operator_assign_add},
-        2.f);
+        obj.AsObjectPtr(), StrIDRegistry::MetaID::operator_assign_add, 2.f);
     std::cout << v.x << ", " << v.y << std::endl;
   }
 
