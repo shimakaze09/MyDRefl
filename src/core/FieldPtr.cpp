@@ -48,7 +48,7 @@ ObjectPtr FieldPtr::Map() noexcept {
           assert(false);
           return nullptr;
         } else if constexpr (std::is_same_v<T, Buffer>) {
-          return {valueID, value.data()};
+          return {valueID, &value};
         } else if constexpr (std::is_same_v<T, const Buffer>) {
           assert(false);
           return nullptr;
@@ -77,7 +77,7 @@ ConstObjectPtr FieldPtr::Map() const noexcept {
         } else if constexpr (std::is_same_v<T, SharedConstBuffer>) {
           return {valueID, value.get()};
         } else if constexpr (std::is_same_v<T, Buffer>) {
-          return {valueID, value.data()};
+          return {valueID, &value};
         } else if constexpr (std::is_same_v<T, const Buffer>) {
           return {valueID, value.data()};
         } else
@@ -105,7 +105,7 @@ ConstObjectPtr FieldPtr::Map(const void* obj) const noexcept {
         } else if constexpr (std::is_same_v<T, SharedConstBuffer>) {
           return {valueID, value.get()};
         } else if constexpr (std::is_same_v<T, Buffer>) {
-          return {valueID, value.data()};
+          return {valueID, &value};
         } else if constexpr (std::is_same_v<T, const Buffer>) {
           return {valueID, value.data()};
         } else
@@ -127,7 +127,7 @@ ObjectPtr FieldPtr::Map(void* obj) noexcept {
     case 6:
       return {valueID, std::get<6>(data).get()};
     case 8:
-      return {valueID, std::get<8>(data).data()};
+      return {valueID, &std::get<8>(data)};
     default:
       assert("require variable" && false);
       return nullptr;

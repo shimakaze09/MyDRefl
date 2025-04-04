@@ -70,7 +70,7 @@ void IDRegistry<T>::UnregisterUnmanaged(T ID) noexcept {
 }
 
 template <typename T>
-void IDRegistry<T>::Clear() {
+void IDRegistry<T>::Clear() noexcept {
   id2name.clear();
 #ifndef NDEBUG
   unmanagedIDs.clear();

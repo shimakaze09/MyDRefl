@@ -13,6 +13,5 @@
 #include "MethodPtr.h"
 #include "Object.h"
 #include "ReflMngr.h"
-#include "SharedBuffer.h"
 #include "TypeInfo.h"
 #include "Util.h"

@@ -49,6 +49,7 @@ class ReflMngr {
   // field_data can be:
   // - static field: pointer to **non-void** type
   // - member object pointer: pointer to **non-void** type
+  // - enumerator
   template <auto field_data>
   FieldPtr GenerateFieldPtr();
 
@@ -57,12 +58,20 @@ class ReflMngr {
   // 2. pointer to **non-void** and **non-function** type
   // 3. functor : Value*(Object*)
   // > - result must be an pointer of **non-void** type
-  // 4. enum value
+  // 4. enumerator
   template <typename T>
   FieldPtr GenerateFieldPtr(T&& data);
 
+  // if T is bufferable, T will be stored as buffer,
+  // else we will use std::make_shared to store it
+  // require alignof(T) <= alignof(std::max_align_t)
   template <typename T, typename... Args>
   FieldPtr GenerateDynamicFieldPtr(Args&&... args);
+
+  // if T is bufferable, T will be stored as buffer,
+  // else we will use std::alloc_shared to store it
+  template <typename T, typename Alloc, typename... Args>
+  FieldPtr GenerateDynamicFieldPtrByAlloc(const Alloc& alloc, Args&&... args);
 
   std::pair<StrID, FieldInfo> GenerateField(std::string_view name,
                                             FieldPtr fieldptr,
@@ -70,6 +79,10 @@ class ReflMngr {
     return {nregistry.Register(name), {std::move(fieldptr), std::move(attrs)}};
   }
 
+  // field_data can be:
+  // - static field: pointer to **non-void** type
+  // - member object pointer: pointer to **non-void** type
+  // - enumerator
   template <auto field_data>
   std::pair<StrID, FieldInfo> GenerateField(std::string_view name,
                                             AttrSet attrs = {}) {
@@ -77,6 +90,12 @@ class ReflMngr {
                          std::move(attrs));
   }
 
+  // data can be:
+  // 1. member object pointer
+  // 2. pointer to **non-void** and **non-function** type
+  // 3. functor : Value*(Object*)
+  // > - result must be an pointer of **non-void** type
+  // 4. enumerator
   template <
       typename T,
       std::enable_if_t<!std::is_same_v<std::decay_t<T>, FieldPtr>, int> = 0>
@@ -86,6 +105,9 @@ class ReflMngr {
                          std::move(attrs));
   }
 
+  // if T is bufferable, T will be stored as buffer,
+  // else we will use std::make_shared to store it
+  // require alignof(T) <= alignof(std::max_align_t)
   template <typename T, typename... Args>
   std::pair<StrID, FieldInfo> GenerateDynamicFieldWithAttrs(
       std::string_view name, AttrSet attrs, Args&&... args) {
@@ -94,11 +116,36 @@ class ReflMngr {
         std::move(attrs));
   }
 
+  // if T is bufferable, T will be stored as buffer,
+  // else we will use std::make_shared to store it
+  // require alignof(T) <= alignof(std::max_align_t)
   template <typename T, typename... Args>
   std::pair<StrID, FieldInfo> GenerateDynamicField(std::string_view name,
                                                    Args&&... args) {
     return GenerateDynamicFieldWithAttrs<T>(name, {},
                                             std::forward<Args>(args)...);
+  }
+
+  // if T is bufferable, T will be stored as buffer,
+  // else we will use std::make_shared to store it
+  template <typename T, typename Alloc, typename... Args>
+  std::pair<StrID, FieldInfo> GenerateDynamicFieldByAllocWithAttrs(
+      std::string_view name, const Alloc& alloc, AttrSet attrs,
+      Args&&... args) {
+    return GenerateField(
+        name,
+        GenerateDynamicFieldPtrByAlloc<T>(alloc, std::forward<Args>(args)...),
+        std::move(attrs));
+  }
+
+  // if T is bufferable, T will be stored as buffer,
+  // else we will use std::make_shared to store it
+  template <typename T, typename Alloc, typename... Args>
+  std::pair<StrID, FieldInfo> GenerateDynamicFieldByAlloc(std::string_view name,
+                                                          const Alloc& alloc,
+                                                          Args&&... args) {
+    return GenerateDynamicFieldByAllocWithAttrs<T>(name, alloc, {},
+                                                   std::forward<Args>(args)...);
   }
 
   template <typename Return>
@@ -119,9 +166,11 @@ class ReflMngr {
   template <typename T>
   MethodPtr GenerateDestructorPtr();
 
+  // Func: Ret(const? volatile? Object&, Args...)
   template <typename Func>
   MethodPtr GenerateMemberMethodPtr(Func&& func);
 
+  // Func: Ret(Args...)
   template <typename Func>
   MethodPtr GenerateStaticMethodPtr(Func&& func);
 
@@ -131,12 +180,16 @@ class ReflMngr {
     return {nregistry.Register(name), {std::move(methodptr), std::move(attrs)}};
   }
 
+  // funcptr can be
+  // 1. member method : member function pointer
+  // 2. static method : function pointer
   template <auto funcptr>
   std::pair<StrID, MethodInfo> GenerateMethod(std::string_view name,
                                               AttrSet attrs = {}) {
     return GenerateMethod(name, GenerateMethodPtr<funcptr>(), std::move(attrs));
   }
 
+  // Func: Ret(const? volatile? Object&, Args...)
   template <typename Func>
   std::pair<StrID, MethodInfo> GenerateMemberMethod(std::string_view name,
                                                     Func&& func,
@@ -145,6 +198,7 @@ class ReflMngr {
                           std::move(attrs));
   }
 
+  // Func: Ret(Args...)
   template <typename Func>
   std::pair<StrID, MethodInfo> GenerateStaticMethod(std::string_view name,
                                                     Func&& func,
@@ -215,6 +269,23 @@ class ReflMngr {
                                       std::forward<Args>(args)...);
   }
 
+  template <typename T, typename Alloc, typename... Args>
+  StrID AddDynamicFieldByAllocWithAttr(TypeID typeID, std::string_view name,
+                                       const Alloc& alloc, AttrSet attrs,
+                                       Args&&... args) {
+    return AddField(
+        typeID, name,
+        {GenerateDynamicFieldPtrByAlloc<T>(alloc, std::forward<Args>(args)...),
+         std::move(attrs)});
+  }
+
+  template <typename T, typename Alloc, typename... Args>
+  StrID AddDynamicFieldByAlloc(TypeID typeID, std::string_view name,
+                               const Alloc& alloc, Args&&... args) {
+    return AddDynamicFieldByAllocWithAttr<T>(typeID, name, alloc, {},
+                                             std::forward<Args>(args)...);
+  }
+
   // funcptr is member function pointer
   // get TypeID from funcptr
   template <auto member_func_ptr>
@@ -229,9 +300,11 @@ class ReflMngr {
   template <typename T>
   bool AddDestructor(AttrSet attrs = {});
 
+  // Func: Ret(const? volatile? Object&, Args...)
   template <typename Func>
   StrID AddMemberMethod(std::string_view name, Func&& func, AttrSet attrs = {});
 
+  // Func: Ret(Args...)
   template <typename Func>
   StrID AddStaticMethod(TypeID typeID, std::string_view name, Func&& func,
                         AttrSet attrs = {}) {

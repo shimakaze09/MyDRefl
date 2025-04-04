@@ -27,6 +27,7 @@ int main() {
       << (ReflMngr::Instance().RVar(GlobalID, StrID{"theme"}).As<Color>() ==
           Color::RED)
       << std::endl;
+  std::cout << ReflMngr::Instance().RVar(GlobalID, "A").GetPtr() << std::endl;
 
   std::cout
       << ReflMngr::Instance().RVar(TypeID::of<int>, StrID{"bits"}).As<size_t>()

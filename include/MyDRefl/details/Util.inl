@@ -18,8 +18,9 @@ struct wrap_function_call<TypeList<Args...>>
 
 template <typename... OrigArgs, typename... BufferArgs>
 struct wrap_function_call_impl<TypeList<OrigArgs...>, TypeList<BufferArgs...>> {
-  template <typename Obj, auto func_ptr, typename ObjectPtr>
-  static constexpr decltype(auto) run(ObjectPtr ptr, void* args_buffer) {
+  template <typename Obj, auto func_ptr, typename MaybeConstVoidPtr>
+  static constexpr decltype(auto) run(MaybeConstVoidPtr ptr,
+                                      void* args_buffer) {
     return std::apply(
         [ptr](auto&&... bufferArgs) -> decltype(auto) {
           return (buffer_as<Obj>(ptr).*func_ptr)(type_buffer_recover<OrigArgs>(
@@ -38,8 +39,8 @@ struct wrap_function_call_impl<TypeList<OrigArgs...>, TypeList<BufferArgs...>> {
         std::move(*reinterpret_cast<std::tuple<BufferArgs...>*>(args_buffer)));
   }
 
-  template <typename Obj, typename Func, typename ObjectPtr>
-  static constexpr decltype(auto) run(ObjectPtr ptr, Func&& func,
+  template <typename Obj, typename Func, typename MaybeConstVoidPtr>
+  static constexpr decltype(auto) run(MaybeConstVoidPtr ptr, Func&& func,
                                       void* args_buffer) {
     return std::apply(
         [ptr, f = std::forward<Func>(func)](
@@ -90,15 +91,15 @@ struct WrapFuncTraits {
   using Traits = FuncTraits<F>;
   using ObjectArgList = typename Traits::ArgList;
   static_assert(!IsEmpty_v<ObjectArgList>);
-  using CVObjectRef = Front_t<ObjectArgList>;
-  static_assert(std::is_reference_v<CVObjectRef>);
-  using CVObject = std::remove_reference_t<CVObjectRef>;
+  using CVObjRef = Front_t<ObjectArgList>;
+  using CVObj = std::remove_reference_t<CVObjRef>;
 
  public:
   using ArgList = PopFront_t<ObjectArgList>;
-  using Object = std::remove_cv_t<CVObject>;
+  using Object = std::remove_cv_t<CVObj>;
   using Return = typename Traits::Return;
-  static constexpr bool is_const = std::is_const_v<CVObject>;
+  static constexpr bool is_const = std::is_const_v<CVObj>;
+  static_assert(is_const || !std::is_rvalue_reference_v<CVObjRef>);
 };
 }  // namespace My::MyDRefl::details
 
@@ -107,24 +108,30 @@ constexpr auto My::MyDRefl::wrap_member_function() noexcept {
   using FuncPtr = decltype(func_ptr);
   static_assert(std::is_member_function_pointer_v<FuncPtr>);
   using Traits = FuncTraits<FuncPtr>;
+  static_assert(Traits::ref != ReferenceMode::RIGHT);
   using Obj = typename Traits::Object;
   using Return = typename Traits::Return;
   using ArgList = typename Traits::ArgList;
-  using ObjectPtr = std::conditional_t<Traits::is_const, const void*, void*>;
+  using MaybeConstVoidPtr =
+      std::conditional_t<Traits::is_const, const void*, void*>;
   static_assert(std::is_void_v<Return> ||
                 !std::is_const_v<Return> && !std::is_volatile_v<Return>);
-  constexpr auto wrapped_function = [](ObjectPtr obj, void* result_buffer,
+  constexpr auto wrapped_function = [](MaybeConstVoidPtr obj,
+                                       void* result_buffer,
                                        void* args_buffer) -> Destructor {
     if constexpr (!std::is_void_v<Return>) {
       Return rst =
           details::wrap_function_call<ArgList>::template run<Obj, func_ptr>(
               obj, args_buffer);
-      auto transformed_rst =
-          type_buffer_decay<Return>(std::forward<Return>(rst));
-      using BReturn = decltype(transformed_rst);
-      buffer_as<BReturn>(result_buffer) =
-          std::forward<BReturn>(transformed_rst);
-      return destructor<BReturn>();
+      if (result_buffer) {
+        auto transformed_rst =
+            type_buffer_decay<Return>(std::forward<Return>(rst));
+        using BReturn = decltype(transformed_rst);
+        buffer_as<BReturn>(result_buffer) =
+            std::forward<BReturn>(transformed_rst);
+        return destructor<BReturn>();
+      } else
+        return destructor<void>();
     } else {
       details::wrap_function_call<ArgList>::template run<Obj, func_ptr>(
           obj, args_buffer);
@@ -140,21 +147,25 @@ constexpr auto My::MyDRefl::wrap_member_function(Func&& func) noexcept {
   using Return = typename Traits::Return;
   using Obj = typename Traits::Object;
   using ArgList = typename Traits::ArgList;
-  using ObjectPtr = std::conditional_t<Traits::is_const, const void*, void*>;
+  using MaybeConstVoidPtr =
+      std::conditional_t<Traits::is_const, const void*, void*>;
   static_assert(std::is_void_v<Return> ||
                 !std::is_const_v<Return> && !std::is_volatile_v<Return>);
   /*constexpr*/ auto wrapped_function =
-      [f = std::forward<Func>(func)](ObjectPtr obj, void* result_buffer,
+      [f = std::forward<Func>(func)](MaybeConstVoidPtr obj, void* result_buffer,
                                      void* args_buffer) mutable -> Destructor {
     if constexpr (!std::is_void_v<Return>) {
       Return rst = details::wrap_function_call<ArgList>::template run<Obj>(
           obj, std::forward<Func>(f), args_buffer);
-      auto transformed_rst =
-          type_buffer_decay<Return>(std::forward<Return>(rst));
-      using BReturn = decltype(transformed_rst);
-      buffer_as<BReturn>(result_buffer) =
-          std::forward<BReturn>(transformed_rst);
-      return destructor<BReturn>();
+      if (result_buffer) {
+        auto transformed_rst =
+            type_buffer_decay<Return>(std::forward<Return>(rst));
+        using BReturn = decltype(transformed_rst);
+        buffer_as<BReturn>(result_buffer) =
+            std::forward<BReturn>(transformed_rst);
+        return destructor<BReturn>();
+      } else
+        return destructor<void>();
     } else {
       details::wrap_function_call<ArgList>::template run<Obj>(
           obj, std::forward<Func>(f), args_buffer);
@@ -178,12 +189,15 @@ constexpr auto My::MyDRefl::wrap_static_function() noexcept {
     if constexpr (!std::is_void_v<Return>) {
       Return rst = details::wrap_function_call<ArgList>::template run<func_ptr>(
           args_buffer);
-      auto transformed_rst =
-          type_buffer_decay<Return>(std::forward<Return>(rst));
-      using BReturn = decltype(transformed_rst);
-      buffer_as<BReturn>(result_buffer) =
-          std::forward<BReturn>(transformed_rst);
-      return destructor<BReturn>();
+      if (result_buffer) {
+        auto transformed_rst =
+            type_buffer_decay<Return>(std::forward<Return>(rst));
+        using BReturn = decltype(transformed_rst);
+        buffer_as<BReturn>(result_buffer) =
+            std::forward<BReturn>(transformed_rst);
+        return destructor<BReturn>();
+      } else
+        return destructor<void>();
     } else {
       details::wrap_function_call<ArgList>::template run<func_ptr>(args_buffer);
       return destructor<void>();
@@ -205,12 +219,15 @@ constexpr auto My::MyDRefl::wrap_static_function(Func&& func) noexcept {
     if constexpr (!std::is_void_v<Return>) {
       Return rst = details::wrap_function_call<ArgList>::template run(
           std::forward<Func>(f), args_buffer);
-      auto transformed_rst =
-          type_buffer_decay<Return>(std::forward<Return>(rst));
-      using BReturn = decltype(transformed_rst);
-      buffer_as<BReturn>(result_buffer) =
-          std::forward<BReturn>(transformed_rst);
-      return destructor<BReturn>();
+      if (result_buffer) {
+        auto transformed_rst =
+            type_buffer_decay<Return>(std::forward<Return>(rst));
+        using BReturn = decltype(transformed_rst);
+        buffer_as<BReturn>(result_buffer) =
+            std::forward<BReturn>(transformed_rst);
+        return destructor<BReturn>();
+      } else
+        return destructor<void>();
     } else {
       details::wrap_function_call<ArgList>::template run(std::forward<Func>(f),
                                                          args_buffer);

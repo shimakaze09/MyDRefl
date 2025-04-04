@@ -29,7 +29,7 @@ class IDRegistry {
   std::string_view Nameof(T ID) const noexcept;
 
   void UnregisterUnmanaged(T ID) noexcept;
-  void Clear();
+  void Clear() noexcept;
 
  private:
   std::pmr::monotonic_buffer_resource resource;
@@ -238,12 +238,12 @@ class TypeIDRegistry : public IDRegistry<TypeID> {
   // unmanaged
   template <typename T>
   void Register() {
-    RegisterUnmanaged(type_name<T>());
+    IDRegistry<TypeID>::RegisterUnmanaged(TypeID::of<T>, type_name<T>());
   }
 
   template <typename T>
   bool IsRegistered() const noexcept {
-    return IDRegistry<TypeID>::IsRegistered(type_name<T>());
+    return IDRegistry<TypeID>::IsRegistered(TypeID::of<T>);
   }
 };
 }  // namespace My::MyDRefl

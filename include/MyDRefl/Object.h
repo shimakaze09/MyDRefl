@@ -5,7 +5,6 @@
 #pragma once
 
 #include "IDRegistry.h"
-#include "SharedBuffer.h"
 #include "Util.h"
 
 #include <MyContainer/Span.h>
@@ -29,6 +28,9 @@
   }
 
 namespace My::MyDRefl {
+using SharedBuffer = std::shared_ptr<void>;
+using SharedConstBuffer = std::shared_ptr<const void>;
+
 struct InvokeResult {
   bool success{false};
   TypeID resultID;
@@ -258,8 +260,8 @@ class ObjectPtr : public ObjectPtrBase {
   using ObjectPtrBase::ObjectPtrBase;
 
   template <typename T, std::enable_if_t<!std::is_void_v<T>, int> = 0>
-  constexpr ObjectPtr(std::add_volatile_t<std::remove_cv_t<T>>* ptr)
-      : ObjectPtr{TypeID::of<T>, ptr} {}
+  constexpr ObjectPtr(std::remove_const_t<T>* ptr)
+      : ObjectPtr{TypeID::of<std::remove_volatile_t<T>>, ptr} {}
 
   constexpr void* GetPtr() const noexcept { return ptr; }
 
@@ -396,14 +398,12 @@ class SharedConstObject {
       : ID{ID}, buffer{std::move(buffer)} {}
 
   template <typename U, typename Deleter>
-  SharedConstObject(ObjectPtr obj, Deleter&& d) noexcept
-      : ID{obj.GetID()}, buffer{obj.GetPtr(), std::forward<Deleter>(d)} {}
+  SharedConstObject(ObjectPtr obj, Deleter d) noexcept
+      : ID{obj.GetID()}, buffer{obj.GetPtr(), std::move(d)} {}
 
   template <typename U, typename Deleter, typename Alloc>
-  SharedConstObject(ObjectPtr obj, Deleter&& d, Alloc&& alloc) noexcept
-      : ID{obj.GetID()},
-        buffer{obj.GetPtr(), std::forward<Deleter>(d),
-               std::forward<Alloc>(alloc)} {}
+  SharedConstObject(ObjectPtr obj, Deleter d, Alloc alloc) noexcept
+      : ID{obj.GetID()}, buffer{obj.GetPtr(), std::move(d), alloc} {}
 
   //
   // Assign
@@ -445,11 +445,9 @@ class SharedConstObject {
 
   TypeID GetID() const noexcept { return ID; }
 
-  SharedConstBuffer GetBuffer() & noexcept { return buffer; }
+  SharedConstBuffer GetBuffer() noexcept { return buffer; }
 
-  const SharedConstBuffer& GetBuffer() const& noexcept { return buffer; }
-
-  SharedConstBuffer GetBuffer() && noexcept { return std::move(buffer); }
+  const SharedConstBuffer& GetBuffer() const noexcept { return buffer; }
 
   const void* GetPtr() const noexcept { return buffer.get(); }
 
@@ -538,14 +536,12 @@ class SharedObject {
       : ID{ID}, buffer{std::move(buffer)} {}
 
   template <typename Deleter>
-  SharedObject(ObjectPtr obj, Deleter&& d) noexcept
-      : ID{obj.GetID()}, buffer{obj.GetPtr(), std::forward<Deleter>(d)} {}
+  SharedObject(ObjectPtr obj, Deleter d) noexcept
+      : ID{obj.GetID()}, buffer{obj.GetPtr(), std::move(d)} {}
 
   template <typename U, typename Deleter, typename Alloc>
-  SharedObject(ObjectPtr obj, Deleter&& d, Alloc&& alloc) noexcept
-      : ID{obj.GetID()},
-        buffer{obj.GetPtr(), std::forward<Deleter>(d),
-               std::forward<Alloc>(alloc)} {}
+  SharedObject(ObjectPtr obj, Deleter d, Alloc alloc) noexcept
+      : ID{obj.GetID()}, buffer{obj.GetPtr(), std::move(d), alloc} {}
 
   //
   // Assign
@@ -587,11 +583,9 @@ class SharedObject {
 
   TypeID GetID() const noexcept { return ID; }
 
-  SharedBuffer GetBuffer() & noexcept { return buffer; }
+  SharedBuffer GetBuffer() noexcept { return buffer; }
 
-  const SharedBuffer& GetBuffer() const& noexcept { return buffer; }
-
-  SharedBuffer GetBuffer() && noexcept { return std::move(buffer); }
+  const SharedBuffer& GetBuffer() const noexcept { return buffer; }
 
   void* GetPtr() const noexcept { return buffer.get(); }
 
