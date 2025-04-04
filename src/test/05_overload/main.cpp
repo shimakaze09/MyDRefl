@@ -35,10 +35,10 @@ int main() {
     ReflMngr::Instance().AddField<&Vec::x>("x");
     ReflMngr::Instance().AddField<&Vec::y>("y");
     ReflMngr::Instance()
-        .AddMethod<MemFuncOf<Vec&(const Vec&)>::run(&Vec::operator+=)>(
+        .AddMethod<MemFuncOf<Vec&(const Vec&)>::get(&Vec::operator+=)>(
             StrIDRegistry::Meta::operator_assign_add);
     ReflMngr::Instance()
-        .AddMethod<MemFuncOf<Vec&(float)>::run(&Vec::operator+=)>(
+        .AddMethod<MemFuncOf<Vec&(float)>::get(&Vec::operator+=)>(
             StrIDRegistry::Meta::operator_assign_add);
   }
 

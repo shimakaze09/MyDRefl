@@ -75,13 +75,13 @@ int main() {
   ReflMngr::Instance().AddField<&Vec::x>("x");
   ReflMngr::Instance().AddField<&Vec::y>("y");
   ReflMngr::Instance()
-      .AddMethod<MemFuncOf<Vec(ConstObjectPtr) const noexcept>::run(
+      .AddMethod<MemFuncOf<Vec(ConstObjectPtr) const noexcept>::get(
           &Vec::operator+)>(StrIDRegistry::Meta::operator_add);
   ReflMngr::Instance()
-      .AddMethod<MemFuncOf<Vec(SharedConstObject) const noexcept>::run(
+      .AddMethod<MemFuncOf<Vec(SharedConstObject) const noexcept>::get(
           &Vec::operator+)>(StrIDRegistry::Meta::operator_add);
   ReflMngr::Instance()
-      .AddMethod<MemFuncOf<Vec(float) const noexcept>::run(&Vec::operator+)>(
+      .AddMethod<MemFuncOf<Vec(float) const noexcept>::get(&Vec::operator+)>(
           StrIDRegistry::Meta::operator_add);
   ReflMngr::Instance().AddMethod<&Vec::operator- >(
       StrIDRegistry::Meta::operator_minus);
@@ -106,7 +106,7 @@ int main() {
   SharedObject w5 = v / pv;
 
   v->Invoke("hello");
-  v->Invoke(std::string_view{ "hello" });
+  v->Invoke(std::string_view{"hello"});
   ReflMngr::Instance().AlignedFree(ReflMngr::Instance().AlignedMalloc(1, 1));
   SharedObject w6 = v[1];
   v(pv);

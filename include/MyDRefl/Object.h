@@ -15,11 +15,11 @@
 #include <functional>
 #include <memory>
 
-#define OBJECT_PTR_DEFINE_OPERATOR(op, name)                        \
-  template <typename Arg>                                           \
-  SharedObject operator##op(Arg rhs) const {                        \
-    return SyncMInvoke<Arg>(StrIDRegistry::MetaID::operator_##name, \
-                            std::forward<Arg>(rhs));                \
+#define OBJECT_PTR_DEFINE_OPERATOR(op, name)                     \
+  template <typename Arg>                                        \
+  SharedObject operator##op(Arg rhs) const {                     \
+    return DMInvoke<Arg>(StrIDRegistry::MetaID::operator_##name, \
+                         std::forward<Arg>(rhs));                \
   }
 
 #define SHARED_OBJECT_DEFINE_OPERATOR(op)                            \
@@ -29,12 +29,6 @@
   }
 
 namespace My::MyDRefl {
-enum class MemoryResourceType {
-  MONO,
-  SYNC,
-  UNSYNC,
-};
-
 struct InvokeResult {
   bool success{false};
   TypeID resultID;
@@ -122,15 +116,15 @@ class ObjectPtrBase {
   void ForEachRVar(
       const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const;
 
-  std::pmr::vector<TypeID> GetTypeIDs();
-  std::pmr::vector<TypeRef> GetTypes();
-  std::pmr::vector<TypeFieldRef> GetTypeFields();
-  std::pmr::vector<FieldRef> GetFields();
-  std::pmr::vector<TypeMethodRef> GetTypeMethods();
-  std::pmr::vector<MethodRef> GetMethods();
-  std::pmr::vector<std::tuple<TypeRef, FieldRef, ConstObjectPtr>>
+  std::vector<TypeID> GetTypeIDs();
+  std::vector<TypeRef> GetTypes();
+  std::vector<TypeFieldRef> GetTypeFields();
+  std::vector<FieldRef> GetFields();
+  std::vector<TypeMethodRef> GetTypeMethods();
+  std::vector<MethodRef> GetMethods();
+  std::vector<std::tuple<TypeRef, FieldRef, ConstObjectPtr>>
   GetTypeFieldRVars();
-  std::pmr::vector<ConstObjectPtr> GetRVars();
+  std::vector<ConstObjectPtr> GetRVars();
 
  protected:
   template <typename T>
@@ -212,23 +206,17 @@ class ConstObjectPtr : public ObjectPtrBase {
   template <typename T, typename... Args>
   T Invoke(StrID methodID, Args... args) const;
 
-  SharedObject MInvoke(
-      StrID methodID, Span<const TypeID> argTypeIDs = {},
-      void* args_buffer = nullptr,
-      MemoryResourceType memory_rsrc_type = MemoryResourceType::SYNC) const;
+  SharedObject MInvoke(StrID methodID, Span<const TypeID> argTypeIDs = {},
+                       void* args_buffer = nullptr,
+                       std::pmr::memory_resource* rst_rsrc =
+                           std::pmr::get_default_resource()) const;
 
   template <typename... Args>
-  SharedObject MInvoke(StrID methodID, MemoryResourceType memory_rsrc_type,
+  SharedObject MInvoke(StrID methodID, std::pmr::memory_resource* rst_rsrc,
                        Args... args) const;
 
   template <typename... Args>
-  SharedObject MonoMInvoke(StrID methodID, Args... args) const;
-
-  template <typename... Args>
-  SharedObject SyncMInvoke(StrID methodID, Args... args) const;
-
-  template <typename... Args>
-  SharedObject UnsyncMInvoke(StrID methodID, Args... args) const;
+  SharedObject DMInvoke(StrID methodID, Args... args) const;
 
   //
   // Meta
@@ -260,8 +248,8 @@ class ConstObjectPtr : public ObjectPtrBase {
 
   template <typename... Args>
   SharedObject operator()(Args... args) const {
-    return SyncMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
-                                std::forward<Args>(args)...);
+    return DMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
+                             std::forward<Args>(args)...);
   }
 };
 
@@ -308,10 +296,10 @@ class ObjectPtr : public ObjectPtrBase {
                       Span<const TypeID> argTypeIDs = {},
                       void* args_buffer = nullptr) const;
 
-  SharedObject MInvoke(
-      StrID methodID, Span<const TypeID> argTypeIDs = {},
-      void* args_buffer = nullptr,
-      MemoryResourceType memory_rsrc_type = MemoryResourceType::SYNC) const;
+  SharedObject MInvoke(StrID methodID, Span<const TypeID> argTypeIDs = {},
+                       void* args_buffer = nullptr,
+                       std::pmr::memory_resource* rst_rsrc =
+                           std::pmr::get_default_resource()) const;
 
   template <typename... Args>
   bool IsInvocable(StrID methodID) const noexcept;
@@ -328,25 +316,18 @@ class ObjectPtr : public ObjectPtrBase {
   T Invoke(StrID methodID, Args... args) const;
 
   template <typename... Args>
-  SharedObject MInvoke(StrID methodID, MemoryResourceType memory_rsrc_type,
+  SharedObject MInvoke(StrID methodID, std::pmr::memory_resource* rst_rsrc,
                        Args... args) const;
 
   template <typename... Args>
-  SharedObject MonoMInvoke(StrID methodID, Args... args) const;
-
-  template <typename... Args>
-  SharedObject SyncMInvoke(StrID methodID, Args... args) const;
-
-  template <typename... Args>
-  SharedObject UnsyncMInvoke(StrID methodID, Args... args) const;
+  SharedObject DMInvoke(StrID methodID, Args... args) const;
 
   // self [r/w] vars and all bases' [r/w] vars
   void ForEachRWVar(
       const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const;
 
-  std::pmr::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>>
-  GetTypeFieldRWVars();
-  std::pmr::vector<ObjectPtr> GetRWVars();
+  std::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>> GetTypeFieldRWVars();
+  std::vector<ObjectPtr> GetRWVars();
 
   //
   // Meta
@@ -378,8 +359,8 @@ class ObjectPtr : public ObjectPtrBase {
 
   template <typename... Args>
   SharedObject operator()(Args... args) const {
-    return SyncMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
-                                std::forward<Args>(args)...);
+    return DMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
+                             std::forward<Args>(args)...);
   }
 };
 
