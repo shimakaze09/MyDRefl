@@ -4,15 +4,11 @@
 
 #pragma once
 
+#include "Basic.h"
 #include "IDRegistry.h"
-#include "Util.h"
 
 #include <MyContainer/Span.h>
-#include <MyTemplate/TypeID.h>
 
-#include <cassert>
-#include <functional>
-#include <memory>
 #include <optional>
 
 #define OBJECT_PTR_DEFINE_OPERATOR(op, name)                     \
@@ -29,53 +25,8 @@
   }
 
 namespace My::MyDRefl {
-using SharedBuffer = std::shared_ptr<void>;
-using SharedConstBuffer = std::shared_ptr<const void>;
-
-struct InvokeResult {
-  bool success{false};
-  TypeID resultID;
-  Destructor destructor;
-
-  template <typename T>
-  T Move(void* result_buffer);
-
-  constexpr bool IsVoid() const noexcept { return resultID.Is<void>(); }
-
-  constexpr operator bool() const noexcept { return success; }
-};
-
 class SharedObject;
 class SharedConstObject;
-struct TypeInfo;
-struct FieldInfo;
-struct MethodInfo;
-
-struct TypeRef {
-  TypeID ID;
-  TypeInfo& info;
-};
-
-struct FieldRef {
-  StrID ID;
-  FieldInfo& info;
-};
-
-struct MethodRef {
-  StrID ID;
-  MethodInfo& info;
-};
-
-struct TypeFieldRef {
-  TypeRef type;
-  FieldRef field;
-};
-
-struct TypeMethodRef {
-  TypeRef type;
-  MethodRef method;
-};
-
 class ConstObjectPtr;
 
 class ObjectPtrBase {
@@ -201,15 +152,15 @@ class ConstObjectPtr : public ObjectPtrBase {
   ConstObjectPtr StaticCast(TypeID typeID) const noexcept;
   ConstObjectPtr DynamicCast(TypeID typeID) const noexcept;
 
-  bool IsInvocable(StrID methodID,
-                   Span<const TypeID> argTypeIDs = {}) const noexcept;
+  InvocableResult IsInvocable(
+      StrID methodID, Span<const TypeID> argTypeIDs = {}) const noexcept;
 
   InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
                       Span<const TypeID> argTypeIDs = {},
                       void* args_buffer = nullptr) const;
 
   template <typename... Args>
-  bool IsInvocable(StrID methodID) const noexcept;
+  InvocableResult IsInvocable(StrID methodID) const noexcept;
 
   template <typename T>
   T InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs = {},
@@ -305,8 +256,8 @@ class ObjectPtr : public ObjectPtrBase {
   ObjectPtr StaticCast(TypeID typeID) const noexcept;
   ObjectPtr DynamicCast(TypeID typeID) const noexcept;
 
-  bool IsInvocable(StrID methodID,
-                   Span<const TypeID> argTypeIDs = {}) const noexcept;
+  InvocableResult IsInvocable(
+      StrID methodID, Span<const TypeID> argTypeIDs = {}) const noexcept;
 
   InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
                       Span<const TypeID> argTypeIDs = {},
@@ -318,7 +269,7 @@ class ObjectPtr : public ObjectPtrBase {
                            std::pmr::get_default_resource()) const;
 
   template <typename... Args>
-  bool IsInvocable(StrID methodID) const noexcept;
+  InvocableResult IsInvocable(StrID methodID) const noexcept;
 
   template <typename T>
   T InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs = {},
@@ -384,9 +335,6 @@ class ObjectPtr : public ObjectPtrBase {
 
 static_assert(sizeof(ObjectPtr) == sizeof(ConstObjectPtr) &&
               alignof(ObjectPtr) == alignof(ConstObjectPtr));
-
-using SharedBuffer = std::shared_ptr<void>;
-using SharedConstBuffer = std::shared_ptr<const void>;
 
 // SharedBuffer + ID
 class SharedConstObject {
@@ -667,6 +615,9 @@ class SharedObject {
   TypeID ID;
   SharedBuffer buffer;
 };
+
+static_assert(sizeof(SharedObject) == sizeof(SharedConstObject) &&
+              alignof(SharedObject) == alignof(SharedConstObject));
 
 template <typename T>
 constexpr auto Ptr(T&& p) noexcept {

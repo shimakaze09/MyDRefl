@@ -644,12 +644,13 @@ ConstObjectPtr ReflMngr::RVar(ConstObjectPtr obj, TypeID baseID,
   return RVar(base, fieldID);
 }
 
-bool ReflMngr::IsStaticInvocable(TypeID typeID, StrID methodID,
-                                 Span<const TypeID> argTypeIDs) const noexcept {
+InvocableResult ReflMngr::IsStaticInvocable(
+    TypeID typeID, StrID methodID,
+    Span<const TypeID> argTypeIDs) const noexcept {
   auto typetarget = typeinfos.find(typeID);
 
   if (typetarget == typeinfos.end())
-    return false;
+    return {};
 
   const auto& typeinfo = typetarget->second;
 
@@ -658,23 +659,25 @@ bool ReflMngr::IsStaticInvocable(TypeID typeID, StrID methodID,
   for (size_t i = 0; i < num; ++i, ++mtarget) {
     if (mtarget->second.methodptr.IsStatic() &&
         mtarget->second.methodptr.GetParamList().IsConpatibleWith(argTypeIDs))
-      return true;
+      return {true, mtarget->second.methodptr.GetResultDesc()};
   }
 
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
-    if (IsStaticInvocable(baseID, methodID, argTypeIDs))
-      return true;
+    auto rst = IsStaticInvocable(baseID, methodID, argTypeIDs);
+    if (rst)
+      return rst;
   }
 
-  return false;
+  return {};
 }
 
-bool ReflMngr::IsConstInvocable(TypeID typeID, StrID methodID,
-                                Span<const TypeID> argTypeIDs) const noexcept {
+InvocableResult ReflMngr::IsConstInvocable(
+    TypeID typeID, StrID methodID,
+    Span<const TypeID> argTypeIDs) const noexcept {
   auto typetarget = typeinfos.find(typeID);
 
   if (typetarget == typeinfos.end())
-    return false;
+    return {};
 
   const auto& typeinfo = typetarget->second;
 
@@ -683,23 +686,25 @@ bool ReflMngr::IsConstInvocable(TypeID typeID, StrID methodID,
   for (size_t i = 0; i < num; ++i, ++mtarget) {
     if (!mtarget->second.methodptr.IsMemberVariable() &&
         mtarget->second.methodptr.GetParamList().IsConpatibleWith(argTypeIDs))
-      return true;
+      return {true, mtarget->second.methodptr.GetResultDesc()};
   }
 
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
-    if (IsConstInvocable(baseID, methodID, argTypeIDs))
-      return true;
+    auto rst = IsConstInvocable(baseID, methodID, argTypeIDs);
+    if (rst)
+      return rst;
   }
 
-  return false;
+  return {};
 }
 
-bool ReflMngr::IsInvocable(TypeID typeID, StrID methodID,
-                           Span<const TypeID> argTypeIDs) const noexcept {
+InvocableResult ReflMngr::IsInvocable(
+    TypeID typeID, StrID methodID,
+    Span<const TypeID> argTypeIDs) const noexcept {
   auto typetarget = typeinfos.find(typeID);
 
   if (typetarget == typeinfos.end())
-    return false;
+    return {};
 
   const auto& typeinfo = typetarget->second;
 
@@ -707,15 +712,16 @@ bool ReflMngr::IsInvocable(TypeID typeID, StrID methodID,
   size_t num = typeinfo.methodinfos.count(methodID);
   for (size_t i = 0; i < num; ++i, ++mtarget) {
     if (mtarget->second.methodptr.GetParamList().IsConpatibleWith(argTypeIDs))
-      return true;
+      return {true, mtarget->second.methodptr.GetResultDesc()};
   }
 
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
-    if (IsInvocable(baseID, methodID, argTypeIDs))
-      return true;
+    auto rst = IsInvocable(baseID, methodID, argTypeIDs);
+    if (rst)
+      return rst;
   }
 
-  return false;
+  return {};
 }
 
 InvokeResult ReflMngr::Invoke(TypeID typeID, StrID methodID,

@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "IDRegistry.h"
-#include "Object.h"
 #include "TypeInfo.h"
 
 namespace My::MyDRefl {
@@ -391,12 +389,15 @@ class ReflMngr {
   // Invoke
   ///////////
 
-  bool IsStaticInvocable(TypeID typeID, StrID methodID,
-                         Span<const TypeID> argTypeIDs = {}) const noexcept;
-  bool IsConstInvocable(TypeID typeID, StrID methodID,
-                        Span<const TypeID> argTypeIDs = {}) const noexcept;
-  bool IsInvocable(TypeID typeID, StrID methodID,
-                   Span<const TypeID> argTypeIDs = {}) const noexcept;
+  InvocableResult IsStaticInvocable(
+      TypeID typeID, StrID methodID,
+      Span<const TypeID> argTypeIDs = {}) const noexcept;
+  InvocableResult IsConstInvocable(
+      TypeID typeID, StrID methodID,
+      Span<const TypeID> argTypeIDs = {}) const noexcept;
+  InvocableResult IsInvocable(
+      TypeID typeID, StrID methodID,
+      Span<const TypeID> argTypeIDs = {}) const noexcept;
 
   InvokeResult Invoke(TypeID typeID, StrID methodID,
                       void* result_buffer = nullptr,
@@ -416,11 +417,13 @@ class ReflMngr {
   // -- template --
 
   template <typename... Args>
-  bool IsStaticInvocable(TypeID typeID, StrID methodID) const noexcept;
+  InvocableResult IsStaticInvocable(TypeID typeID,
+                                    StrID methodID) const noexcept;
   template <typename... Args>
-  bool IsConstInvocable(TypeID typeID, StrID methodID) const noexcept;
+  InvocableResult IsConstInvocable(TypeID typeID,
+                                   StrID methodID) const noexcept;
   template <typename... Args>
-  bool IsInvocable(TypeID typeID, StrID methodID) const noexcept;
+  InvocableResult IsInvocable(TypeID typeID, StrID methodID) const noexcept;
 
   template <typename T>
   T InvokeRet(TypeID typeID, StrID methodID, Span<const TypeID> argTypeIDs = {},
