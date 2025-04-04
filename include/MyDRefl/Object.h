@@ -131,6 +131,10 @@ class ConstObjectPtr : public ObjectPtrBase {
   constexpr ConstObjectPtr(TypeID ID, const void* ptr) noexcept
       : ObjectPtrBase{ID, const_cast<void*>(ptr)} {}
 
+  template <typename T, std::enable_if_t<!std::is_void_v<T>, int> = 0>
+  constexpr ConstObjectPtr(const volatile T* ptr)
+      : ConstObjectPtr{TypeID::of<T>, ptr} {}
+
   ConstObjectPtr(const SharedConstObject& obj) noexcept;
 
   constexpr const void* GetPtr() const noexcept { return ptr; }
@@ -238,6 +242,10 @@ class ConstObjectPtr : public ObjectPtrBase {
 class ObjectPtr : public ObjectPtrBase {
  public:
   using ObjectPtrBase::ObjectPtrBase;
+
+  template <typename T, std::enable_if_t<!std::is_void_v<T>, int> = 0>
+  constexpr ObjectPtr(std::add_volatile_t<std::remove_cv_t<T>>* ptr)
+      : ObjectPtr{TypeID::of<T>, ptr} {}
 
   constexpr void* GetPtr() const noexcept { return ptr; }
 
@@ -638,6 +646,15 @@ class SharedObject {
   TypeID ID;
   SharedBuffer buffer;
 };
+
+template <typename T>
+constexpr auto Ptr(T&& p) noexcept {
+  using U = std::remove_reference_t<T>;
+  if constexpr (std::is_const_v<U>)
+    return ConstObjectPtr{TypeID::of<std::remove_cv_t<U>>, &p};
+  else
+    return ObjectPtr{TypeID::of<std::remove_volatile_t<U>>, &p};
+}
 }  // namespace My::MyDRefl
 
 #undef OBJECT_PTR_DEFINE_OPERATOR
