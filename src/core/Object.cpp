@@ -6,14 +6,12 @@
 
 #include <MyDRefl/ReflMngr.h>
 
+using namespace My;
 using namespace My::MyDRefl;
 
 //
 // ObjectPtrBase
 //////////////////
-
-ConstObjectPtr::ConstObjectPtr(const SharedConstObject& obj) noexcept
-    : ConstObjectPtr{obj.GetID(), obj.GetPtr()} {}
 
 ConstObjectPtr ObjectPtrBase::RVar(StrID fieldID) const noexcept {
   return ReflMngr::Instance().RVar({ID, ptr}, fieldID);
@@ -30,9 +28,45 @@ void ObjectPtrBase::ForEachRVar(
   return ReflMngr::Instance().ForEachRVar({ID, ptr}, func);
 }
 
+std::pmr::vector<TypeID> ObjectPtrBase::GetTypeIDs() {
+  return ReflMngr::Instance().GetTypeIDs(ID);
+}
+
+std::pmr::vector<TypeRef> ObjectPtrBase::GetTypes() {
+  return ReflMngr::Instance().GetTypes(ID);
+}
+
+std::pmr::vector<TypeFieldRef> ObjectPtrBase::GetTypeFields() {
+  return ReflMngr::Instance().GetTypeFields(ID);
+}
+
+std::pmr::vector<FieldRef> ObjectPtrBase::GetFields() {
+  return ReflMngr::Instance().GetFields(ID);
+}
+
+std::pmr::vector<TypeMethodRef> ObjectPtrBase::GetTypeMethods() {
+  return ReflMngr::Instance().GetTypeMethods(ID);
+}
+
+std::pmr::vector<MethodRef> ObjectPtrBase::GetMethods() {
+  return ReflMngr::Instance().GetMethods(ID);
+}
+
+std::pmr::vector<std::tuple<TypeRef, FieldRef, ConstObjectPtr>>
+ObjectPtrBase::GetTypeFieldRVars() {
+  return ReflMngr::Instance().GetTypeFieldRVars({ID, ptr});
+}
+
+std::pmr::vector<ConstObjectPtr> ObjectPtrBase::GetRVars() {
+  return ReflMngr::Instance().GetRVars({ID, ptr});
+}
+
 //
 // ConstObjectPtr
 ///////////////////
+
+ConstObjectPtr::ConstObjectPtr(const SharedConstObject& obj) noexcept
+    : ConstObjectPtr{obj.GetID(), obj.GetPtr()} {}
 
 ConstObjectPtr ConstObjectPtr::StaticCast_DerivedToBase(
     TypeID typeID) const noexcept {
@@ -130,4 +164,13 @@ SharedObject ObjectPtr::MInvoke(StrID methodID, Span<const TypeID> argTypeIDs,
 void ObjectPtr::ForEachRWVar(
     const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const {
   return ReflMngr::Instance().ForEachRWVar(*this, func);
+}
+
+std::pmr::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>>
+ObjectPtr::GetTypeFieldRWVars() {
+  return ReflMngr::Instance().GetTypeFieldRWVars(*this);
+}
+
+std::pmr::vector<ObjectPtr> ObjectPtr::GetRWVars() {
+  return ReflMngr::Instance().GetRWVars(*this);
 }

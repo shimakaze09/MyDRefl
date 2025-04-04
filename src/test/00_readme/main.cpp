@@ -34,21 +34,15 @@ int main() {
   std::cout << "x: " << v->RVar("x").As<float>() << std::endl;
   std::cout << "norm: " << v->Invoke<float>("norm") << std::endl;
 
-  ReflMngr::Instance().ForEachField(TypeID::of<Vec>, [](TypeRef type,
-                                                        FieldRef field) {
+  for (auto field : ReflMngr::Instance().GetFields(TypeID::of<Vec>))
     std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << std::endl;
-    return true;
-  });
 
-  ReflMngr::Instance().ForEachMethod(TypeID::of<Vec>, [](TypeRef type,
-                                                         Method method) {
+  for (auto method : ReflMngr::Instance().GetMethods(TypeID::of<Vec>))
     std::cout << ReflMngr::Instance().nregistry.Nameof(method.ID) << std::endl;
-    return true;
-  });
 
-  v->ForEachRVar([](TypeRef type, FieldRef field, ConstObjectPtr var) {
+  for (const auto& [type, field, var] : v->GetTypeFieldRVars()) {
     std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
               << var.As<float>() << std::endl;
     return true;
-  });
+  }
 }

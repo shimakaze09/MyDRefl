@@ -53,7 +53,7 @@ int main() {
   });
 
   ReflMngr::Instance().ForEachMethod(TypeID::of<Vec>, [](TypeRef type,
-                                                         Method method) {
+                                                         MethodRef method) {
     std::cout << ReflMngr::Instance().nregistry.Nameof(method.ID) << std::endl;
     return true;
   });

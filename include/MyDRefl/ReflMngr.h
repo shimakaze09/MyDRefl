@@ -413,6 +413,8 @@ class ReflMngr {
   // Algorithm
   //////////////
 
+  // ForEach (DFS)
+
   // self typeID and all bases' typeID
   void ForEachTypeID(TypeID typeID,
                      const std::function<bool(TypeID)>& func) const;
@@ -427,7 +429,17 @@ class ReflMngr {
 
   // self methods and all bases' methods
   void ForEachMethod(TypeID typeID,
-                     const std::function<bool(TypeRef, Method)>& func) const;
+                     const std::function<bool(TypeRef, MethodRef)>& func) const;
+
+  // self [r/w] object vars and all bases' [r/w] object vars
+  void ForEachRWVar(
+      TypeID typeID,
+      const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const;
+
+  // self [r] object vars and all bases' [r] object vars
+  void ForEachRVar(
+      TypeID typeID,
+      const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const;
 
   // self [r/w] vars and all bases' [r/w] vars
   void ForEachRWVar(
@@ -439,15 +451,26 @@ class ReflMngr {
       ConstObjectPtr obj,
       const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const;
 
-  // self [r/w] object vars and all bases' [r/w] object vars
-  void ForEachRWVar(
-      TypeID typeID,
-      const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const;
+  // gather (use sync_rsrc)
 
-  // self [r] object vars and all bases' [r] object vars
-  void ForEachRVar(
-      TypeID typeID,
-      const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const;
+  std::pmr::vector<TypeID> GetTypeIDs(TypeID typeID);
+  std::pmr::vector<TypeRef> GetTypes(TypeID typeID);
+  std::pmr::vector<TypeFieldRef> GetTypeFields(TypeID typeID);
+  std::pmr::vector<FieldRef> GetFields(TypeID typeID);
+  std::pmr::vector<TypeMethodRef> GetTypeMethods(TypeID typeID);
+  std::pmr::vector<MethodRef> GetMethods(TypeID typeID);
+  std::pmr::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>> GetTypeFieldRWVars(
+      TypeID typeID);
+  std::pmr::vector<ObjectPtr> GetRWVars(TypeID typeID);
+  std::pmr::vector<std::tuple<TypeRef, FieldRef, ConstObjectPtr>>
+  GetTypeFieldRVars(TypeID typeID);
+  std::pmr::vector<ConstObjectPtr> GetRVars(TypeID typeID);
+  std::pmr::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>> GetTypeFieldRWVars(
+      ObjectPtr obj);
+  std::pmr::vector<ObjectPtr> GetRWVars(ObjectPtr obj);
+  std::pmr::vector<std::tuple<TypeRef, FieldRef, ConstObjectPtr>>
+  GetTypeFieldRVars(ConstObjectPtr obj);
+  std::pmr::vector<ConstObjectPtr> GetRVars(ConstObjectPtr obj);
 
   //
   // Memory

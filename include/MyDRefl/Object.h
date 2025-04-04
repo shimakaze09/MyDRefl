@@ -52,6 +52,7 @@ class SharedObject;
 class SharedConstObject;
 struct TypeInfo;
 struct FieldInfo;
+struct MethodInfo;
 
 struct TypeRef {
   TypeID ID;
@@ -61,6 +62,21 @@ struct TypeRef {
 struct FieldRef {
   StrID ID;
   FieldInfo& info;
+};
+
+struct MethodRef {
+  StrID ID;
+  MethodInfo& info;
+};
+
+struct TypeFieldRef {
+  TypeRef type;
+  FieldRef field;
+};
+
+struct TypeMethodRef {
+  TypeRef type;
+  MethodRef method;
 };
 
 class ConstObjectPtr;
@@ -105,6 +121,16 @@ class ObjectPtrBase {
   // self [r] vars and all bases' [r] vars
   void ForEachRVar(
       const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const;
+
+  std::pmr::vector<TypeID> GetTypeIDs();
+  std::pmr::vector<TypeRef> GetTypes();
+  std::pmr::vector<TypeFieldRef> GetTypeFields();
+  std::pmr::vector<FieldRef> GetFields();
+  std::pmr::vector<TypeMethodRef> GetTypeMethods();
+  std::pmr::vector<MethodRef> GetMethods();
+  std::pmr::vector<std::tuple<TypeRef, FieldRef, ConstObjectPtr>>
+  GetTypeFieldRVars();
+  std::pmr::vector<ConstObjectPtr> GetRVars();
 
  protected:
   template <typename T>
@@ -317,6 +343,10 @@ class ObjectPtr : public ObjectPtrBase {
   // self [r/w] vars and all bases' [r/w] vars
   void ForEachRWVar(
       const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const;
+
+  std::pmr::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>>
+  GetTypeFieldRWVars();
+  std::pmr::vector<ObjectPtr> GetRWVars();
 
   //
   // Meta
