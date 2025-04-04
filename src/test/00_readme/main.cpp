@@ -3,7 +3,6 @@
 //
 
 #include <MyDRefl/MyDRefl.h>
-
 #include <iostream>
 
 using namespace My;
@@ -40,6 +39,5 @@ int main() {
   for (const auto& [type, field, var] : v->GetTypeFieldRVars()) {
     std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
               << var.As<float>() << std::endl;
-    return true;
   }
 }
