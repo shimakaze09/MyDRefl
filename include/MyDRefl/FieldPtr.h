@@ -214,17 +214,17 @@ class FieldPtr {
 
   constexpr bool IsObject() const noexcept { return data.index() >= 4; }
 
-  // variable object
-  ObjectPtr Map() noexcept;
-
   // { variable | const } object
-  ConstObjectPtr Map() const noexcept;
+  ConstObjectPtr RVar() const noexcept;
+
+  // variable object
+  ObjectPtr RWVar() noexcept;
 
   // all
-  ConstObjectPtr Map(const void* obj) const noexcept;
+  ConstObjectPtr RVar(const void* obj) const noexcept;
 
   // variable
-  ObjectPtr Map(void* obj) noexcept;
+  ObjectPtr RWVar(void* obj) noexcept;
 
  private:
   TypeID valueID;

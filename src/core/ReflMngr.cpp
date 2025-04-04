@@ -92,7 +92,7 @@ static bool ForEachRWVar(
   for (auto& [fieldID, fieldInfo] : typeinfo.fieldinfos) {
     if (!fieldInfo.fieldptr.IsConst()) {
       if (!func({obj.GetID(), typeinfo}, {fieldID, fieldInfo},
-                fieldInfo.fieldptr.Map(obj)))
+                fieldInfo.fieldptr.RWVar(obj)))
         return false;
     }
   }
@@ -128,7 +128,7 @@ static bool ForEachRVar(
 
   for (auto& [fieldID, fieldInfo] : typeinfo.fieldinfos) {
     if (!func({obj.GetID(), typeinfo}, {fieldID, fieldInfo},
-              fieldInfo.fieldptr.Map(obj)))
+              fieldInfo.fieldptr.RVar(obj)))
       return false;
   }
 
@@ -165,7 +165,7 @@ static bool ForEachRWVar(
   for (auto& [fieldID, fieldInfo] : typeinfo.fieldinfos) {
     if (fieldInfo.fieldptr.IsObject() && !fieldInfo.fieldptr.IsConst()) {
       if (!func({typeID, typeinfo}, {fieldID, fieldInfo},
-                fieldInfo.fieldptr.Map()))
+                fieldInfo.fieldptr.RWVar()))
         return false;
     }
   }
@@ -201,7 +201,7 @@ static bool ForEachRVar(
   for (auto& [fieldID, fieldInfo] : typeinfo.fieldinfos) {
     if (fieldInfo.fieldptr.IsObject()) {
       if (!func({typeID, typeinfo}, {fieldID, fieldInfo},
-                fieldInfo.fieldptr.Map()))
+                fieldInfo.fieldptr.RVar()))
         return false;
     }
   }
@@ -551,7 +551,7 @@ ObjectPtr ReflMngr::RWVar(TypeID typeID, StrID fieldID) noexcept {
   auto ftarget = typeinfo.fieldinfos.find(fieldID);
   if (ftarget != typeinfo.fieldinfos.end() &&
       ftarget->second.fieldptr.IsObject())
-    return ftarget->second.fieldptr.Map();
+    return ftarget->second.fieldptr.RWVar();
 
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
     auto bptr = RWVar(baseID, fieldID);
@@ -572,7 +572,7 @@ ConstObjectPtr ReflMngr::RVar(TypeID typeID, StrID fieldID) const noexcept {
   auto ftarget = typeinfo.fieldinfos.find(fieldID);
   if (ftarget != typeinfo.fieldinfos.end() &&
       ftarget->second.fieldptr.IsObject())
-    return ftarget->second.fieldptr.Map();
+    return ftarget->second.fieldptr.RVar();
 
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
     auto bptr = RVar(baseID, fieldID);
@@ -593,7 +593,7 @@ ObjectPtr ReflMngr::RWVar(ObjectPtr obj, StrID fieldID) noexcept {
   auto ftarget = typeinfo.fieldinfos.find(fieldID);
   if (ftarget != typeinfo.fieldinfos.end() &&
       ftarget->second.fieldptr.IsVariable())
-    return ftarget->second.fieldptr.Map(obj);
+    return ftarget->second.fieldptr.RWVar(obj);
 
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
     auto bptr = RWVar(ObjectPtr{baseID, baseinfo.StaticCast_DerivedToBase(obj)},
@@ -615,7 +615,7 @@ ConstObjectPtr ReflMngr::RVar(ConstObjectPtr obj,
 
   auto ftarget = typeinfo.fieldinfos.find(fieldID);
   if (ftarget != typeinfo.fieldinfos.end())
-    return ftarget->second.fieldptr.Map(obj);
+    return ftarget->second.fieldptr.RVar(obj);
 
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
     auto bptr =
@@ -1086,7 +1086,7 @@ void ReflMngr::ForEachField(
     TypeID typeID, const std::function<bool(TypeRef, FieldRef)>& func) const {
   ForEachType(typeID, [&func](TypeRef type) {
     for (auto& [fieldID, fieldInfo] : type.info.fieldinfos) {
-      if (func(type, {fieldID, fieldInfo}))
+      if (!func(type, {fieldID, fieldInfo}))
         return false;
     }
     return true;
@@ -1259,5 +1259,112 @@ std::vector<ConstObjectPtr> ReflMngr::GetRVars(ConstObjectPtr obj) {
     rst.push_back(var);
     return true;
   });
+  return rst;
+}
+
+std::optional<TypeID> ReflMngr::FindTypeID(
+    TypeID typeID, const std::function<bool(TypeID)>& func) const {
+  std::optional<TypeID> rst;
+  ForEachTypeID(typeID, [&rst, func](TypeID typeID) {
+    if (!func(typeID))
+      return true;
+
+    rst.emplace(typeID);
+    return false;  // stop
+  });
+  return rst;
+}
+
+std::optional<TypeRef> ReflMngr::FindType(
+    TypeID typeID, const std::function<bool(TypeRef)>& func) const {
+  std::optional<TypeRef> rst;
+  ForEachType(typeID, [&rst, func](TypeRef type) {
+    if (!func(type))
+      return true;
+
+    rst.emplace(type);
+    return false;  // stop
+  });
+  return rst;
+}
+
+std::optional<FieldRef> ReflMngr::FindField(
+    TypeID typeID, const std::function<bool(FieldRef)>& func) const {
+  std::optional<FieldRef> rst;
+  ForEachField(typeID, [&rst, func](TypeRef type, FieldRef field) {
+    if (!func(field))
+      return true;
+
+    rst.emplace(field);
+    return false;  // stop
+  });
+  return rst;
+}
+
+std::optional<MethodRef> ReflMngr::FindMethod(
+    TypeID typeID, const std::function<bool(MethodRef)>& func) const {
+  std::optional<MethodRef> rst;
+  ForEachMethod(typeID, [&rst, func](TypeRef type, MethodRef method) {
+    if (!func(method))
+      return true;
+
+    rst.emplace(method);
+    return false;  // stop
+  });
+  return rst;
+}
+
+ObjectPtr ReflMngr::FindRWVar(
+    TypeID typeID, const std::function<bool(ObjectPtr)>& func) const {
+  ObjectPtr rst;
+  ForEachRWVar(typeID,
+               [&rst, func](TypeRef type, FieldRef method, ObjectPtr obj) {
+                 if (!func(obj))
+                   return true;
+
+                 rst = obj;
+                 return false;  // stop
+               });
+  return rst;
+}
+
+ConstObjectPtr ReflMngr::FindRVar(
+    TypeID typeID, const std::function<bool(ConstObjectPtr)>& func) const {
+  ConstObjectPtr rst;
+  ForEachRVar(typeID,
+              [&rst, func](TypeRef type, FieldRef method, ConstObjectPtr obj) {
+                if (!func(obj))
+                  return true;
+
+                rst = obj;
+                return false;  // stop
+              });
+  return rst;
+}
+
+ObjectPtr ReflMngr::FindRWVar(
+    ObjectPtr obj, const std::function<bool(ObjectPtr)>& func) const {
+  ObjectPtr rst;
+  ForEachRWVar(obj, [&rst, func](TypeRef type, FieldRef method, ObjectPtr obj) {
+    if (!func(obj))
+      return true;
+
+    rst = obj;
+    return false;  // stop
+  });
+  return rst;
+}
+
+ConstObjectPtr ReflMngr::FindRVar(
+    ConstObjectPtr obj, const std::function<bool(ConstObjectPtr)>& func) const {
+  ConstObjectPtr rst;
+  ForEachRVar(obj,
+              [&rst, func](TypeRef type, FieldRef method, ConstObjectPtr obj) {
+                if (!func(obj))
+                  return true;
+
+                rst = obj;
+                return false;  // stop
+              });
   return rst;
 }
