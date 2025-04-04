@@ -11,32 +11,26 @@ template <typename OrigArgList, typename BufferArgList>
 struct wrap_function_call_impl;
 
 template <typename... Args>
-struct wrap_function_call<TypeList<Args...>>
-    : wrap_function_call_impl<TypeList<Args...>,
-                              TypeList<decltype(type_buffer_decay<Args>(
-                                  std::declval<Args>()))...>> {};
-
-template <typename... OrigArgs, typename... BufferArgs>
-struct wrap_function_call_impl<TypeList<OrigArgs...>, TypeList<BufferArgs...>> {
+struct wrap_function_call<TypeList<Args...>> {
   template <typename Obj, auto func_ptr, typename MaybeConstVoidPtr>
   static constexpr decltype(auto) run(MaybeConstVoidPtr ptr,
                                       void* args_buffer) {
     return std::apply(
-        [ptr](auto&&... bufferArgs) -> decltype(auto) {
-          return (buffer_as<Obj>(ptr).*func_ptr)(type_buffer_recover<OrigArgs>(
-              std::forward<decltype(bufferArgs)>(bufferArgs))...);
+        [ptr](auto... pointers) -> decltype(auto) {
+          return (buffer_as<Obj>(ptr).*func_ptr)(std::forward<Args>(
+              *reinterpret_cast<std::add_pointer_t<Args>>(pointers))...);
         },
-        std::move(*reinterpret_cast<std::tuple<BufferArgs...>*>(args_buffer)));
+        *reinterpret_cast<std::array<void*, sizeof...(Args)>*>(args_buffer));
   }
 
   template <auto func_ptr>
   static constexpr decltype(auto) run(void* args_buffer) {
     return std::apply(
-        [](auto&&... bufferArgs) -> decltype(auto) {
-          return func_ptr(type_buffer_recover<OrigArgs>(
-              std::forward<decltype(bufferArgs)>(bufferArgs))...);
+        [](auto... pointers) -> decltype(auto) {
+          return func_ptr(std::forward<Args>(
+              *reinterpret_cast<std::add_pointer_t<Args>>(pointers))...);
         },
-        std::move(*reinterpret_cast<std::tuple<BufferArgs...>*>(args_buffer)));
+        *reinterpret_cast<std::array<void*, sizeof...(Args)>*>(args_buffer));
   }
 
   template <typename Obj, typename Func, typename MaybeConstVoidPtr>
@@ -44,29 +38,29 @@ struct wrap_function_call_impl<TypeList<OrigArgs...>, TypeList<BufferArgs...>> {
                                       void* args_buffer) {
     return std::apply(
         [ptr, f = std::forward<Func>(func)](
-            auto&&... bufferArgs) mutable -> decltype(auto) {
+            auto*... pointers) mutable -> decltype(auto) {
           if constexpr (std::is_member_function_pointer_v<std::decay_t<Func>>)
-            return (buffer_as<Obj>(ptr).*f)(type_buffer_recover<OrigArgs>(
-                std::forward<decltype(bufferArgs)>(bufferArgs))...);
+            return (buffer_as<Obj>(ptr).*f)(std::forward<Args>(
+                *reinterpret_cast<std::add_pointer_t<Args>>(pointers))...);
           else {
             return std::forward<Func>(f)(
                 buffer_as<Obj>(ptr),
-                type_buffer_recover<OrigArgs>(
-                    std::forward<decltype(bufferArgs)>(bufferArgs))...);
+                std::forward<Args>(
+                    *reinterpret_cast<std::add_pointer_t<Args>>(pointers))...);
           }
         },
-        std::move(*reinterpret_cast<std::tuple<BufferArgs...>*>(args_buffer)));
+        *reinterpret_cast<std::array<void*, sizeof...(Args)>*>(args_buffer));
   }
 
   template <typename Func>
   static constexpr decltype(auto) run(Func&& func, void* args_buffer) {
     return std::apply(
         [f = std::forward<Func>(func)](
-            auto&&... bufferArgs) mutable -> decltype(auto) {
-          return std::forward<Func>(f)(type_buffer_recover<OrigArgs>(
-              std::forward<decltype(bufferArgs)>(bufferArgs))...);
+            auto*... pointers) mutable -> decltype(auto) {
+          return std::forward<Func>(f)(std::forward<Args>(
+              *reinterpret_cast<std::add_pointer_t<Args>>(pointers))...);
         },
-        std::move(*reinterpret_cast<std::tuple<BufferArgs...>*>(args_buffer)));
+        *reinterpret_cast<std::array<void*, sizeof...(Args)>*>(args_buffer));
   }
 };
 
@@ -132,12 +126,13 @@ constexpr auto My::MyDRefl::wrap_member_function() noexcept {
           details::wrap_function_call<ArgList>::template run<Obj, func_ptr>(
               obj, args_buffer);
       if (result_buffer) {
-        auto transformed_rst =
-            type_buffer_decay<Return>(std::forward<Return>(rst));
-        using BReturn = decltype(transformed_rst);
-        buffer_as<BReturn>(result_buffer) =
-            std::forward<BReturn>(transformed_rst);
-        return destructor<BReturn>();
+        if constexpr (std::is_reference_v<Return>) {
+          buffer_as<std::add_pointer_t<Return>>(result_buffer) = &rst;
+          return destructor<Return>();
+        } else {
+          buffer_as<Return>(result_buffer) = std::move(rst);
+          return destructor<Return>();
+        }
       } else
         return destructor<void>();
     } else {
@@ -166,12 +161,13 @@ constexpr auto My::MyDRefl::wrap_member_function(Func&& func) noexcept {
       Return rst = details::wrap_function_call<ArgList>::template run<Obj>(
           obj, std::forward<Func>(f), args_buffer);
       if (result_buffer) {
-        auto transformed_rst =
-            type_buffer_decay<Return>(std::forward<Return>(rst));
-        using BReturn = decltype(transformed_rst);
-        buffer_as<BReturn>(result_buffer) =
-            std::forward<BReturn>(transformed_rst);
-        return destructor<BReturn>();
+        if constexpr (std::is_reference_v<Return>) {
+          buffer_as<std::add_pointer_t<Return>>(result_buffer) = &rst;
+          return destructor<Return>();
+        } else {
+          buffer_as<Return>(result_buffer) = std::move(rst);
+          return destructor<Return>();
+        }
       } else
         return destructor<void>();
     } else {
@@ -198,12 +194,13 @@ constexpr auto My::MyDRefl::wrap_static_function() noexcept {
       Return rst = details::wrap_function_call<ArgList>::template run<func_ptr>(
           args_buffer);
       if (result_buffer) {
-        auto transformed_rst =
-            type_buffer_decay<Return>(std::forward<Return>(rst));
-        using BReturn = decltype(transformed_rst);
-        buffer_as<BReturn>(result_buffer) =
-            std::forward<BReturn>(transformed_rst);
-        return destructor<BReturn>();
+        if constexpr (std::is_reference_v<Return>) {
+          buffer_as<std::add_pointer_t<Return>>(result_buffer) = &rst;
+          return destructor<Return>();
+        } else {
+          buffer_as<Return>(result_buffer) = std::move(rst);
+          return destructor<Return>();
+        }
       } else
         return destructor<void>();
     } else {
@@ -228,12 +225,13 @@ constexpr auto My::MyDRefl::wrap_static_function(Func&& func) noexcept {
       Return rst = details::wrap_function_call<ArgList>::template run(
           std::forward<Func>(f), args_buffer);
       if (result_buffer) {
-        auto transformed_rst =
-            type_buffer_decay<Return>(std::forward<Return>(rst));
-        using BReturn = decltype(transformed_rst);
-        buffer_as<BReturn>(result_buffer) =
-            std::forward<BReturn>(transformed_rst);
-        return destructor<BReturn>();
+        if constexpr (std::is_reference_v<Return>) {
+          buffer_as<std::add_pointer_t<Return>>(result_buffer) = &rst;
+          return destructor<Return>();
+        } else {
+          buffer_as<Return>(result_buffer) = std::move(rst);
+          return destructor<Return>();
+        }
       } else
         return destructor<void>();
     } else {

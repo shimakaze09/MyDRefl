@@ -10,26 +10,13 @@
 #include <vector>
 
 namespace My::MyDRefl {
-struct Parameter {
-  TypeID typeID;
-  size_t size;
-  size_t alignment;
-};
-
 class ParamList {
  public:
   ParamList() noexcept = default;
-  ParamList(std::vector<Parameter> params);
 
-  size_t GetBufferSize() const noexcept { return size; }
+  ParamList(std::vector<TypeID> params) : params{std::move(params)} {}
 
-  size_t GetBufferAlignment() const noexcept { return alignment; }
-
-  const std::vector<size_t>& GetOffsets() const noexcept { return offsets; }
-
-  const std::vector<Parameter>& GetParameters() const noexcept {
-    return params;
-  }
+  const std::vector<TypeID>& GetParameters() const noexcept { return params; }
 
   bool IsConpatibleWith(Span<const TypeID> typeIDs) const noexcept;
   bool operator==(const ParamList& rhs) const noexcept;
@@ -39,10 +26,7 @@ class ParamList {
   }
 
  private:
-  size_t size{0};
-  size_t alignment{1};
-  std::vector<size_t> offsets;
-  std::vector<Parameter> params;
+  std::vector<TypeID> params;
 };
 
 class ArgsView {
@@ -54,7 +38,11 @@ class ArgsView {
 
   const ParamList& GetParamList() const noexcept { return paramList; }
 
-  ObjectPtr At(size_t idx) const noexcept;
+  // call Dereference(AsConst) later
+  ObjectPtr At(size_t idx) const noexcept {
+    assert(idx < paramList.GetParameters().size());
+    return {paramList.GetParameters()[idx], forward_offset(buffer, idx)};
+  }
 
  private:
   void* buffer;
@@ -140,5 +128,3 @@ class MethodPtr {
   ParamList paramList;
 };
 }  // namespace My::MyDRefl
-
-#include "details/MethodPtr.inl"
