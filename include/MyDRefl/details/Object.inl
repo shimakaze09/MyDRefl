@@ -28,6 +28,8 @@ template <typename... Args>
 InvokeResult ConstObjectPtr::InvokeArgs(StrID methodID, void* result_buffer,
                                         Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return Invoke(methodID, Span<const TypeID>{argTypeIDs},
@@ -39,6 +41,8 @@ InvokeResult ConstObjectPtr::InvokeArgs(StrID methodID, void* result_buffer,
 template <typename T, typename... Args>
 T ConstObjectPtr::Invoke(StrID methodID, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return InvokeRet<T>(methodID, Span<const TypeID>{argTypeIDs},
@@ -52,6 +56,8 @@ SharedObject ConstObjectPtr::MInvoke(StrID methodID,
                                      std::pmr::memory_resource* rst_rsrc,
                                      Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return MInvoke(methodID, Span<const TypeID>{argTypeIDs},
@@ -91,6 +97,8 @@ template <typename... Args>
 InvokeResult ObjectPtr::InvokeArgs(StrID methodID, void* result_buffer,
                                    Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return Invoke(methodID, Span<const TypeID>{argTypeIDs},
@@ -102,6 +110,8 @@ InvokeResult ObjectPtr::InvokeArgs(StrID methodID, void* result_buffer,
 template <typename T, typename... Args>
 T ObjectPtr::Invoke(StrID methodID, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return InvokeRet<T>(methodID, Span<const TypeID>{argTypeIDs},
@@ -115,6 +125,8 @@ SharedObject ObjectPtr::MInvoke(StrID methodID,
                                 std::pmr::memory_resource* rst_rsrc,
                                 Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return MInvoke(methodID, Span<const TypeID>{argTypeIDs},
@@ -178,13 +190,6 @@ inline bool operator<=(const My::MyDRefl::SharedConstObject& left,
                        const My::MyDRefl::SharedConstObject& right) noexcept {
   return left.GetID() < right.GetID() ||
          (left.GetID() == right.GetID() && left.GetPtr() <= right.GetPtr());
-}
-
-template <class Elem, typename Traits>
-std::basic_ostream<Elem, Traits>& operator<<(
-    std::basic_ostream<Elem, Traits>& out,
-    const My::MyDRefl::SharedConstObject& obj) {
-  return out << obj.GetID().GetValue() << obj.GetPtr();
 }
 
 namespace std {

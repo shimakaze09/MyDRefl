@@ -200,7 +200,7 @@ class ConstObjectPtr : public ObjectPtrBase {
   /////////
 
   OBJECT_PTR_DEFINE_OPERATOR(+, add)
-  OBJECT_PTR_DEFINE_OPERATOR(-, minus)
+  OBJECT_PTR_DEFINE_OPERATOR(-, sub)
   OBJECT_PTR_DEFINE_OPERATOR(*, mul)
   OBJECT_PTR_DEFINE_OPERATOR(/, div)
   OBJECT_PTR_DEFINE_OPERATOR(%, mod)
@@ -209,22 +209,35 @@ class ConstObjectPtr : public ObjectPtrBase {
   OBJECT_PTR_DEFINE_OPERATOR(^, bxor)
   OBJECT_PTR_DEFINE_OPERATOR(<<, lshift)
   OBJECT_PTR_DEFINE_OPERATOR(>>, rshift)
+  //OBJECT_PTR_DEFINE_OPERATOR(&&, and)
+  //OBJECT_PTR_DEFINE_OPERATOR(||, or)
 
-  OBJECT_PTR_DEFINE_OPERATOR(+=, assign_add)
-  OBJECT_PTR_DEFINE_OPERATOR(-=, assign_minus)
-  OBJECT_PTR_DEFINE_OPERATOR(*=, assign_mul)
-  OBJECT_PTR_DEFINE_OPERATOR(/=, assign_div)
-  OBJECT_PTR_DEFINE_OPERATOR(%=, assign_mod)
-  OBJECT_PTR_DEFINE_OPERATOR(&=, assign_band)
-  OBJECT_PTR_DEFINE_OPERATOR(|=, assign_bor)
-  OBJECT_PTR_DEFINE_OPERATOR(^=, assign_bxor)
-  OBJECT_PTR_DEFINE_OPERATOR(<<=, assign_lshift)
-  OBJECT_PTR_DEFINE_OPERATOR(>>=, assign_rshift)
+  //OBJECT_PTR_DEFINE_OPERATOR(+=, assign_add)
+  //OBJECT_PTR_DEFINE_OPERATOR(-=, assign_sub)
+  //OBJECT_PTR_DEFINE_OPERATOR(*=, assign_mul)
+  //OBJECT_PTR_DEFINE_OPERATOR(/=, assign_div)
+  //OBJECT_PTR_DEFINE_OPERATOR(%=, assign_mod)
+  //OBJECT_PTR_DEFINE_OPERATOR(&=, assign_band)
+  //OBJECT_PTR_DEFINE_OPERATOR(|=, assign_bor)
+  //OBJECT_PTR_DEFINE_OPERATOR(^=, assign_bxor)
+  //OBJECT_PTR_DEFINE_OPERATOR(<<=, assign_lshift)
+  //OBJECT_PTR_DEFINE_OPERATOR(>>=, assign_rshift)
 
   OBJECT_PTR_DEFINE_OPERATOR([], subscript)
+  OBJECT_PTR_DEFINE_OPERATOR(->*, member_of_pointer)
 
-  SharedObject operator*() const;
+  SharedObject operator+() const;
+  SharedObject operator-() const;
+  SharedObject operator~() const;
+  //SharedObject operator++() const;
+  //SharedObject operator++(int) const;
+  //SharedObject operator--() const;
+  //SharedObject operator--(int) const;
+  //SharedObject operator!() const;
   SharedObject operator[](std::size_t n) const;
+  SharedObject operator*() const;
+
+  //SharedObject operator&() const;
 
   template <typename... Args>
   SharedObject operator()(Args... args) const {
@@ -316,7 +329,7 @@ class ObjectPtr : public ObjectPtrBase {
   /////////
 
   OBJECT_PTR_DEFINE_OPERATOR(+, add)
-  OBJECT_PTR_DEFINE_OPERATOR(-, minus)
+  OBJECT_PTR_DEFINE_OPERATOR(-, sub)
   OBJECT_PTR_DEFINE_OPERATOR(*, mul)
   OBJECT_PTR_DEFINE_OPERATOR(/, div)
   OBJECT_PTR_DEFINE_OPERATOR(%, mod)
@@ -325,9 +338,11 @@ class ObjectPtr : public ObjectPtrBase {
   OBJECT_PTR_DEFINE_OPERATOR(^, bxor)
   OBJECT_PTR_DEFINE_OPERATOR(<<, lshift)
   OBJECT_PTR_DEFINE_OPERATOR(>>, rshift)
+  //OBJECT_PTR_DEFINE_OPERATOR(&&, and)
+  //OBJECT_PTR_DEFINE_OPERATOR(||, or)
 
   OBJECT_PTR_DEFINE_OPERATOR(+=, assign_add)
-  OBJECT_PTR_DEFINE_OPERATOR(-=, assign_minus)
+  OBJECT_PTR_DEFINE_OPERATOR(-=, assign_sub)
   OBJECT_PTR_DEFINE_OPERATOR(*=, assign_mul)
   OBJECT_PTR_DEFINE_OPERATOR(/=, assign_div)
   OBJECT_PTR_DEFINE_OPERATOR(%=, assign_mod)
@@ -338,13 +353,20 @@ class ObjectPtr : public ObjectPtrBase {
   OBJECT_PTR_DEFINE_OPERATOR(>>=, assign_rshift)
 
   OBJECT_PTR_DEFINE_OPERATOR([], subscript)
+  OBJECT_PTR_DEFINE_OPERATOR(->*, member_of_pointer)
 
-  SharedObject operator*() const;
+  SharedObject operator+() const;
+  SharedObject operator-() const;
+  SharedObject operator~() const;
   SharedObject operator++() const;
   SharedObject operator++(int) const;
   SharedObject operator--() const;
   SharedObject operator--(int) const;
+  //SharedObject operator!() const;
   SharedObject operator[](std::size_t n) const;
+  SharedObject operator*() const;
+
+  //SharedObject operator&() const;
 
   template <typename... Args>
   SharedObject operator()(Args... args) const {
@@ -479,6 +501,8 @@ class SharedConstObject {
   SHARED_OBJECT_DEFINE_OPERATOR(^)
   SHARED_OBJECT_DEFINE_OPERATOR(<<)
   SHARED_OBJECT_DEFINE_OPERATOR(>>)
+  //SHARED_OBJECT_DEFINE_OPERATOR(&&, and)
+  //SHARED_OBJECT_DEFINE_OPERATOR(||, or)
 
   SHARED_OBJECT_DEFINE_OPERATOR(+=)
   SHARED_OBJECT_DEFINE_OPERATOR(-=)
@@ -492,9 +516,20 @@ class SharedConstObject {
   SHARED_OBJECT_DEFINE_OPERATOR(>>=)
 
   SHARED_OBJECT_DEFINE_OPERATOR([])
+  SHARED_OBJECT_DEFINE_OPERATOR(->*)
 
-  SharedObject operator*();
-  SharedObject operator[](std::size_t n);
+  SharedObject operator+() const;
+  SharedObject operator-() const;
+  SharedObject operator~() const;
+  //SharedObject operator++() const;
+  //SharedObject operator++(int) const;
+  //SharedObject operator--() const;
+  //SharedObject operator--(int) const;
+  //SharedObject operator!() const;
+  SharedObject operator[](std::size_t n) const;
+  SharedObject operator*() const;
+
+  //SharedObject operator&() const;
 
   template <typename... Args>
   SharedObject operator()(Args... args) const {
@@ -646,7 +681,9 @@ class SharedObject {
 
   SHARED_OBJECT_DEFINE_OPERATOR([])
 
-  SHARED_OBJECT_DEFINE_UNARY_OPERATOR(*)
+  SHARED_OBJECT_DEFINE_UNARY_OPERATOR(+)
+  SHARED_OBJECT_DEFINE_UNARY_OPERATOR(-)
+  SHARED_OBJECT_DEFINE_UNARY_OPERATOR(~)
   SHARED_OBJECT_DEFINE_UNARY_OPERATOR(++)
   SHARED_OBJECT_DEFINE_UNARY_OPERATOR(--)
 
@@ -655,6 +692,7 @@ class SharedObject {
   SharedObject operator--(int) const { return AsObjectPtr()--; }
 
   SharedObject operator[](std::size_t n) const { return AsObjectPtr()[n]; }
+  SHARED_OBJECT_DEFINE_UNARY_OPERATOR(*)
 
   template <typename... Args>
   SharedObject operator()(Args... args) const {

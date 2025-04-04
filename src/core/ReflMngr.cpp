@@ -1375,7 +1375,17 @@ ConstObjectPtr ReflMngr::FindRVar(
   return rst;
 }
 
-bool ReflMngr::IsPointerToVariable(ConstObjectPtr pointer_obj) const {
+bool ReflMngr::IsPointerOrReference(ConstObjectPtr pointer_obj) const {
+  if (!pointer_obj)
+    return false;
+
+  auto name = tregistry.Nameof(pointer_obj.GetID());
+
+  return type_name_is_pointer(name) || type_name_is_reference(name);
+}
+
+bool ReflMngr::IsPointerOrReferenceToVariable(
+    ConstObjectPtr pointer_obj) const {
   if (!pointer_obj)
     return false;
 

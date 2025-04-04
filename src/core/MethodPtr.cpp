@@ -4,6 +4,8 @@
 
 #include <MyDRefl/MethodPtr.h>
 
+#include <MyDRefl/ReflMngr.h>
+
 using namespace My::MyDRefl;
 
 bool ParamList::IsConpatibleWith(Span<const TypeID> typeIDs) const noexcept {
@@ -15,8 +17,42 @@ bool ParamList::IsConpatibleWith(Span<const TypeID> typeIDs) const noexcept {
       if ((params[i] != TypeID::of<ConstObjectPtr> ||
            typeIDs[i] != TypeID::of<ObjectPtr>) &&
           (params[i] != TypeID::of<SharedConstObject> ||
-           typeIDs[i] != TypeID::of<SharedObject>))
-        return false;
+           typeIDs[i] != TypeID::of<SharedObject>)) {
+        auto lhs = ReflMngr::Instance().tregistry.Nameof(params[i]);
+        auto rhs = ReflMngr::Instance().tregistry.Nameof(typeIDs[i]);
+        assert(!type_name_is_const(lhs) && !type_name_is_volatile(lhs) &&
+               !type_name_is_const(rhs) && !type_name_is_volatile(rhs));
+        if (type_name_is_rvalue_reference(lhs)) {
+          if (type_name_is_lvalue_reference(rhs))
+            return false;
+          if (type_name_is_rvalue_reference(rhs)) {
+            auto unref_lhs = type_name_remove_reference(lhs);
+            if (!type_name_is_const(unref_lhs))
+              return false;
+            auto unref_rhs = type_name_remove_reference(rhs);
+            assert(!type_name_is_volatile(unref_rhs));
+            if (type_name_remove_const(unref_lhs) != unref_rhs)
+              return false;
+          } else {
+            if (type_name_remove_cvref(lhs) != rhs)
+              return false;
+          }
+        } else if (type_name_is_lvalue_reference(lhs)) {
+          auto unref_lhs = type_name_remove_reference(lhs);
+          if (!type_name_is_const(unref_lhs))
+            return false;
+          if (type_name_remove_const(unref_lhs) != type_name_remove_cvref(rhs))
+            return false;
+        } else {
+          if (!type_name_is_rvalue_reference(rhs))
+            return false;
+          auto unref_rhs = type_name_remove_reference(rhs);
+          if (type_name_is_const(unref_rhs))
+            return false;
+          if (lhs != unref_rhs)
+            return false;
+        }
+      }
     }
   }
 

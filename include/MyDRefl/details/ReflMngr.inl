@@ -298,6 +298,117 @@ void ReflMngr::RegisterTypeAuto(AttrSet attrs_ctor, AttrSet attrs_dtor) {
     AddConstructor<T, Args...>(std::move(attrs_ctor));
   if constexpr (std::is_destructible_v<T>)
     AddDestructor<T>(std::move(attrs_dtor));
+
+  // meta
+
+  if constexpr (is_valid_v<operator_puls, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_puls,
+                    [](const T& lhs) { return +lhs; });
+  if constexpr (is_valid_v<operator_minus, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_minus,
+                    [](const T& lhs) { return -lhs; });
+
+  if constexpr (is_valid_v<operator_add, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_add,
+                    [](const T& lhs, const T& rhs) { return lhs + rhs; });
+  if constexpr (is_valid_v<operator_sub, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_sub,
+                    [](const T& lhs, const T& rhs) { return lhs + rhs; });
+  if constexpr (is_valid_v<operator_mul, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_mul,
+                    [](const T& lhs, const T& rhs) { return lhs * rhs; });
+  if constexpr (is_valid_v<operator_div, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_div,
+                    [](const T& lhs, const T& rhs) { return lhs / rhs; });
+  if constexpr (is_valid_v<operator_mod, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_mod,
+                    [](const T& lhs, const T& rhs) { return lhs % rhs; });
+
+  if constexpr (is_valid_v<operator_bnot, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_bnot,
+                    [](const T& lhs) { return ~lhs; });
+  if constexpr (is_valid_v<operator_band, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_band,
+                    [](const T& lhs, const T& rhs) { return lhs & rhs; });
+  if constexpr (is_valid_v<operator_bor, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_bor,
+                    [](const T& lhs, const T& rhs) { return lhs & rhs; });
+  if constexpr (is_valid_v<operator_bxor, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_bxor,
+                    [](const T& lhs, const T& rhs) { return lhs & rhs; });
+  if constexpr (is_valid_v<operator_lshift, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_lshift,
+                    [](const T& lhs, std::ostream& rhs) { return rhs << lhs; });
+  if constexpr (is_valid_v<operator_rshift, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_rshift,
+                    [](const T& lhs, std::istream& rhs) { return rhs >> lhs; });
+
+  if constexpr (is_valid_v<operator_pre_inc, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_pre_inc,
+                    [](T& lhs) { return ++lhs; });
+  if constexpr (is_valid_v<operator_post_inc, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_post_inc,
+                    [](T& lhs, int) { return lhs++; });
+  if constexpr (is_valid_v<operator_pre_dec, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_pre_dec,
+                    [](T& lhs) { return --lhs; });
+  if constexpr (is_valid_v<operator_post_dec, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_post_dec,
+                    [](T& lhs, int) { return lhs--; });
+
+  /*if constexpr (is_valid_v<operator_assign, T>)
+			AddMemberMethod(StrIDRegistry::Meta::operator_assign, [](T& lhs, const T& rhs) { return lhs = rhs; });*/
+  if constexpr (is_valid_v<operator_assign_add, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_assign_add,
+                    [](T& lhs, const T& rhs) { return lhs += rhs; });
+  if constexpr (is_valid_v<operator_assign_sub, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_assign_sub,
+                    [](T& lhs, const T& rhs) { return lhs -= rhs; });
+  if constexpr (is_valid_v<operator_assign_mul, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_assign_mul,
+                    [](T& lhs, const T& rhs) { return lhs *= rhs; });
+  if constexpr (is_valid_v<operator_assign_div, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_assign_div,
+                    [](T& lhs, const T& rhs) { return lhs /= rhs; });
+  if constexpr (is_valid_v<operator_assign_mod, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_assign_mod,
+                    [](T& lhs, const T& rhs) { return lhs %= rhs; });
+  if constexpr (is_valid_v<operator_assign_band, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_assign_band,
+                    [](T& lhs, const T& rhs) { return lhs &= rhs; });
+  if constexpr (is_valid_v<operator_assign_bor, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_assign_bor,
+                    [](T& lhs, const T& rhs) { return lhs |= rhs; });
+  if constexpr (is_valid_v<operator_assign_bxor, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_assign_bxor,
+                    [](T& lhs, const T& rhs) { return lhs ^= rhs; });
+  if constexpr (is_valid_v<operator_assign_lshift, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_assign_lshift,
+                    [](T& lhs, const T& rhs) { return lhs <<= rhs; });
+  if constexpr (is_valid_v<operator_assign_rshift, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_assign_rshift,
+                    [](T& lhs, const T& rhs) { return lhs >>= rhs; });
+
+  if constexpr (is_valid_v<operator_subscript, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_subscript,
+                    [](T& lhs, std::size_t rhs) { return lhs[rhs]; });
+  if constexpr (is_valid_v<operator_subscript_const, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_subscript_const,
+                    [](const T& lhs, std::size_t rhs) { return lhs[rhs]; });
+  if constexpr (is_valid_v<operator_deref, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_deref,
+                    [](T& lhs) { return *lhs; });
+  if constexpr (is_valid_v<operator_deref_const, T>)
+    AddMemberMethod(StrIDRegistry::Meta::operator_deref_const,
+                    [](const T& lhs) { return *lhs; });
+  /*if constexpr (is_valid_v<operator_ref, T>)
+			AddMemberMethod(StrIDRegistry::Meta::operator_ref, [](T& lhs) { return &lhs; });
+		if constexpr (is_valid_v<operator_ref_const, T>)
+			AddMemberMethod(StrIDRegistry::Meta::operator_ref_const, [](const T& lhs) { return &lhs; });*/
+  /*if constexpr (is_valid_v<operator_member, T>)
+			AddMemberMethod(StrIDRegistry::Meta::operator_member, [](T& lhs) { return lhs.operator->(); });
+		if constexpr (is_valid_v<operator_member_const, T>)
+			AddMemberMethod(StrIDRegistry::Meta::operator_member_const, [](const T& lhs) { return lhs.operator->(); });*/
 }
 
 template <auto field_data>
@@ -457,6 +568,8 @@ template <typename... Args>
 InvokeResult ReflMngr::InvokeArgs(TypeID typeID, StrID methodID,
                                   void* result_buffer, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return Invoke(typeID, methodID, result_buffer,
@@ -470,6 +583,8 @@ template <typename... Args>
 InvokeResult ReflMngr::InvokeArgs(ConstObjectPtr obj, StrID methodID,
                                   void* result_buffer, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return Invoke(obj, methodID, result_buffer, Span<const TypeID>{argTypeIDs},
@@ -482,6 +597,8 @@ template <typename... Args>
 InvokeResult ReflMngr::InvokeArgs(ObjectPtr obj, StrID methodID,
                                   void* result_buffer, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return Invoke(obj, methodID, result_buffer, Span<const TypeID>{argTypeIDs},
@@ -493,6 +610,8 @@ InvokeResult ReflMngr::InvokeArgs(ObjectPtr obj, StrID methodID,
 template <typename T, typename... Args>
 T ReflMngr::Invoke(TypeID typeID, StrID methodID, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return InvokeRet<T>(typeID, methodID, Span<const TypeID>{argTypeIDs},
@@ -504,6 +623,8 @@ T ReflMngr::Invoke(TypeID typeID, StrID methodID, Args... args) const {
 template <typename T, typename... Args>
 T ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return InvokeRet<T>(obj, methodID, Span<const TypeID>{argTypeIDs},
@@ -515,6 +636,8 @@ T ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID, Args... args) const {
 template <typename T, typename... Args>
 T ReflMngr::Invoke(ObjectPtr obj, StrID methodID, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return InvokeRet<T>(obj, methodID, Span<const TypeID>{argTypeIDs},
@@ -536,6 +659,8 @@ bool ReflMngr::IsConstructible(TypeID typeID) const noexcept {
 template <typename... Args>
 bool ReflMngr::Construct(ObjectPtr obj, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return Construct(obj, Span<const TypeID>{argTypeIDs},
@@ -547,6 +672,8 @@ bool ReflMngr::Construct(ObjectPtr obj, Args... args) const {
 template <typename... Args>
 ObjectPtr ReflMngr::New(TypeID typeID, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return New(typeID, Span<const TypeID>{argTypeIDs},
@@ -569,6 +696,8 @@ ObjectPtr ReflMngr::NewAuto(Args... args) {
 template <typename... Args>
 SharedObject ReflMngr::MakeShared(TypeID typeID, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return MakeShared(typeID, Span<const TypeID>{argTypeIDs},
@@ -597,6 +726,8 @@ SharedObject ReflMngr::MInvoke(TypeID typeID, StrID methodID,
                                std::pmr::memory_resource* rst_rsrc,
                                Args... args) {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return MInvoke(typeID, methodID, Span<const TypeID>{argTypeIDs},
@@ -611,6 +742,8 @@ SharedObject ReflMngr::MInvoke(ConstObjectPtr obj, StrID methodID,
                                std::pmr::memory_resource* rst_rsrc,
                                Args... args) {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return MInvoke(obj, methodID, Span<const TypeID>{argTypeIDs},
@@ -625,6 +758,8 @@ SharedObject ReflMngr::MInvoke(ObjectPtr obj, StrID methodID,
                                std::pmr::memory_resource* rst_rsrc,
                                Args... args) {
   if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     std::array argTypeIDs = {TypeID::of<Args>...};
     std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
     return MInvoke(obj, methodID, Span<const TypeID>{argTypeIDs},
