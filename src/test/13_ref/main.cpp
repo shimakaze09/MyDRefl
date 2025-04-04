@@ -91,7 +91,8 @@ int main() {
   a->Invoke<void, Data>("set", g);
   a->Invoke<void, Data&&>("set_r", std::move(g));
   std::cout << "a.lref: " << a->Invoke<Data&&>("get_r").value << std::endl;
-  std::cout << "a.get_c(): " << a->Invoke<const Data&>("get_c").value
+  std::cout << "a.get_c(): "
+            << a->DMInvoke("get_c")->DereferenceAsConst().As<Data>().value
             << std::endl;
   return 0;
 }

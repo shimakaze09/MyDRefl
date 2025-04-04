@@ -24,9 +24,15 @@
     return AsObjectPtr()->operator##op<Arg>(std::forward<Arg>(rhs)); \
   }
 
+#define SHARED_OBJECT_DEFINE_UNARY_OPERATOR(op) \
+  SharedObject operator##op() const {           \
+    return AsObjectPtr()->operator##op();       \
+  }
+
 namespace My::MyDRefl {
 class SharedObject;
 class SharedConstObject;
+class ObjectPtr;
 class ConstObjectPtr;
 
 class ObjectPtrBase {
@@ -93,9 +99,13 @@ class ObjectPtrBase {
   ConstObjectPtr FindRVar(
       const std::function<bool(ConstObjectPtr)>& func) const;
 
+  ObjectPtr Dereference() const;
+  ConstObjectPtr DereferenceAsConst() const;
+
  protected:
   template <typename T>
   constexpr T* AsPtr() const noexcept {
+    static_assert(!std::is_reference_v<T> && !std::is_const_v<T>);
     assert(Is<T>());
     return reinterpret_cast<T*>(ptr);
   }
@@ -213,6 +223,9 @@ class ConstObjectPtr : public ObjectPtrBase {
 
   OBJECT_PTR_DEFINE_OPERATOR([], subscript)
 
+  SharedObject operator*() const;
+  SharedObject operator[](std::size_t n) const;
+
   template <typename... Args>
   SharedObject operator()(Args... args) const {
     return DMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
@@ -326,6 +339,13 @@ class ObjectPtr : public ObjectPtrBase {
 
   OBJECT_PTR_DEFINE_OPERATOR([], subscript)
 
+  SharedObject operator*() const;
+  SharedObject operator++() const;
+  SharedObject operator++(int) const;
+  SharedObject operator--() const;
+  SharedObject operator--(int) const;
+  SharedObject operator[](std::size_t n) const;
+
   template <typename... Args>
   SharedObject operator()(Args... args) const {
     return DMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
@@ -416,15 +436,20 @@ class SharedConstObject {
   const void* GetPtr() const noexcept { return buffer.get(); }
 
   template <typename T>
-  const T* AsPtr() const noexcept {
+  const auto* AsPtr() const noexcept {
+    static_assert(!std::is_const_v<T> && !std::is_volatile_v<T>);
     assert(ID.Is<T>());
-    return reinterpret_cast<const T*>(GetPtr());
+    return reinterpret_cast<const type_buffer_decay_t<T>*>(GetPtr());
   }
 
   template <typename T>
-  const T& As() const noexcept {
+  decltype(auto) As() const noexcept {
     assert(GetPtr());
-    return *AsPtr<T>();
+    const auto* ptr = AsPtr<T>();
+    if constexpr (std::is_reference_v<T>)
+      return std::forward<T>(**ptr);
+    else
+      return *ptr;
   }
 
   ConstObjectPtr AsObjectPtr() const noexcept { return {ID, buffer.get()}; }
@@ -464,6 +489,9 @@ class SharedConstObject {
   SHARED_OBJECT_DEFINE_OPERATOR(>>=)
 
   SHARED_OBJECT_DEFINE_OPERATOR([])
+
+  SharedObject operator*();
+  SharedObject operator[](std::size_t n);
 
   template <typename... Args>
   SharedObject operator()(Args... args) const {
@@ -554,14 +582,20 @@ class SharedObject {
   void* GetPtr() const noexcept { return buffer.get(); }
 
   template <typename T>
-  T* AsPtr() const noexcept {
-    return reinterpret_cast<T*>(GetPtr());
+  auto* AsPtr() const noexcept {
+    static_assert(!std::is_const_v<T> && !std::is_volatile_v<T>);
+    assert(ID.Is<T>());
+    return reinterpret_cast<type_buffer_decay_t<T>*>(GetPtr());
   }
 
   template <typename T>
-  T& As() const noexcept {
+  decltype(auto) As() const noexcept {
     assert(GetPtr());
-    return *AsPtr<T>();
+    auto* ptr = AsPtr<T>();
+    if constexpr (std::is_reference_v<T>)
+      return std::forward<T>(**ptr);
+    else
+      return *ptr;
   }
 
   ObjectPtr AsObjectPtr() const noexcept { return {ID, buffer.get()}; }
@@ -606,6 +640,16 @@ class SharedObject {
 
   SHARED_OBJECT_DEFINE_OPERATOR([])
 
+  SHARED_OBJECT_DEFINE_UNARY_OPERATOR(*)
+  SHARED_OBJECT_DEFINE_UNARY_OPERATOR(++)
+  SHARED_OBJECT_DEFINE_UNARY_OPERATOR(--)
+
+  SharedObject operator++(int) const { return AsObjectPtr()++; }
+
+  SharedObject operator--(int) const { return AsObjectPtr()--; }
+
+  SharedObject operator[](std::size_t n) const { return AsObjectPtr()[n]; }
+
   template <typename... Args>
   SharedObject operator()(Args... args) const {
     return AsObjectPtr()->operator()<Args...>(std::forward<Args>(args)...);
@@ -631,5 +675,6 @@ constexpr auto Ptr(T&& p) noexcept {
 
 #undef OBJECT_PTR_DEFINE_OPERATOR
 #undef SHARED_OBJECT_DEFINE_OPERATOR
+#undef SHARED_OBJECT_DEFINE_UNARY_OPERATOR
 
 #include "details/Object.inl"

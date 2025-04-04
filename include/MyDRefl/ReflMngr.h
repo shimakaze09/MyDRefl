@@ -628,6 +628,13 @@ class ReflMngr {
   template <typename... Args>
   SharedObject DMInvoke(ObjectPtr obj, StrID methodID, Args... args);
 
+  //
+  // Type
+  /////////
+
+  ObjectPtr Dereference(ConstObjectPtr pointer_obj);
+  ConstObjectPtr DereferenceAsConst(ConstObjectPtr pointer_obj);
+
  private:
   ReflMngr();
   ~ReflMngr();

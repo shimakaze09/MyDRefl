@@ -216,6 +216,12 @@ constexpr auto wrap_member_function(Func&& func) noexcept;
 // - size : sizeof(Func)
 template <typename Func>
 constexpr auto wrap_static_function(Func&& func) noexcept;
+
+// traits
+template <typename T>
+struct is_iterator;
+template <typename T>
+constexpr bool is_iterator_v = is_iterator<T>::value;
 }  // namespace My::MyDRefl
 
 #include "details/Util.inl"

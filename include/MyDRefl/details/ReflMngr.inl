@@ -322,8 +322,10 @@ template <typename T, typename... Args>
 void ReflMngr::RegisterTypeAuto(AttrSet attrs_ctor, AttrSet attrs_dtor) {
   tregistry.Register<T>();
   RegisterType(type_name<T>(), sizeof(T), alignof(T));
-  AddConstructor<T, Args...>(std::move(attrs_ctor));
-  AddDestructor<T>(std::move(attrs_dtor));
+  if constexpr (sizeof...(Args) > 0 || std::is_default_constructible_v<T>)
+    AddConstructor<T, Args...>(std::move(attrs_ctor));
+  if constexpr (std::is_destructible_v<T>)
+    AddDestructor<T>(std::move(attrs_dtor));
 }
 
 template <auto field_data>
