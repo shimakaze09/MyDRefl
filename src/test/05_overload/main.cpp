@@ -42,7 +42,7 @@ int main() {
             StrIDRegistry::Meta::operator_assign_add);
   }
 
-  auto obj = ReflMngr::Instance().MakeShared<Vec>();
+  auto obj = ReflMngr::Instance().MakeShared(TypeID::of<Vec>);
 
   {
     Vec{10.f, 10.f};
