@@ -48,17 +48,15 @@ int main() {
   ReflMngr::Instance().RWVar(p, StrID{"x"}).As<float>() += 1.f;
   ReflMngr::Instance().RWVar(p, StrID{"y"}).As<float>() += 2.f;
 
-  ReflMngr::Instance().ForEachRVar(p, [](TypeRef type, FieldRef field,
-                                         ConstObjectPtr var) {
+  p->ForEachRVar([](TypeRef type, FieldRef field, ConstObjectPtr var) {
     for (const auto& attr : field.info.attrs) {
       std::cout << "[" << ReflMngr::Instance().tregistry.Nameof(attr.GetID())
                 << "]" << std::endl;
-      ReflMngr::Instance().ForEachRVar(
-          attr, [](TypeRef type, FieldRef field, ConstObjectPtr var) {
-            std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
-                      << var.As<float>() << std::endl;
-            return true;
-          });
+      attr->ForEachRVar([](TypeRef type, FieldRef field, ConstObjectPtr var) {
+        std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
+                  << var.As<float>() << std::endl;
+        return true;
+      });
       std::cout << "------" << std::endl;
     }
     std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "

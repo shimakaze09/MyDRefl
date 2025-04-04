@@ -15,6 +15,19 @@
 #include <functional>
 #include <memory>
 
+#define OBJECT_PTR_DEFINE_OPERATOR(op, name)                      \
+  template <typename Arg>                                         \
+  SharedObject operator##op(Arg rhs) const {                      \
+    return SyncMInvoke<Arg>(StrIDRegistry::Meta::operator_##name, \
+                            std::forward<Arg>(rhs));              \
+  }
+
+#define SHARED_OBJECT_DEFINE_OPERATOR(op)                            \
+  template <typename Arg>                                            \
+  SharedObject operator##op(Arg rhs) const {                         \
+    return AsObjectPtr()->operator##op<Arg>(std::forward<Arg>(rhs)); \
+  }
+
 namespace My::MyDRefl {
 enum class MemoryResourceType {
   MONO,
@@ -191,10 +204,34 @@ class ConstObjectPtr : public ObjectPtrBase {
   // Meta
   /////////
 
-  template <typename Arg>
-  SharedObject operator+(Arg rhs) const {
-    return SyncMInvoke<Arg>(StrIDRegistry::Meta::operator_add,
-                            std::forward<Arg>(rhs));
+  OBJECT_PTR_DEFINE_OPERATOR(+, add)
+  OBJECT_PTR_DEFINE_OPERATOR(-, minus)
+  OBJECT_PTR_DEFINE_OPERATOR(*, mul)
+  OBJECT_PTR_DEFINE_OPERATOR(/, div)
+  OBJECT_PTR_DEFINE_OPERATOR(%, mod)
+  OBJECT_PTR_DEFINE_OPERATOR(&, band)
+  OBJECT_PTR_DEFINE_OPERATOR(|, bor)
+  OBJECT_PTR_DEFINE_OPERATOR(^, bxor)
+  OBJECT_PTR_DEFINE_OPERATOR(<<, lshift)
+  OBJECT_PTR_DEFINE_OPERATOR(>>, rshift)
+
+  OBJECT_PTR_DEFINE_OPERATOR(+=, assign_add)
+  OBJECT_PTR_DEFINE_OPERATOR(-=, assign_minus)
+  OBJECT_PTR_DEFINE_OPERATOR(*=, assign_mul)
+  OBJECT_PTR_DEFINE_OPERATOR(/=, assign_div)
+  OBJECT_PTR_DEFINE_OPERATOR(%=, assign_mod)
+  OBJECT_PTR_DEFINE_OPERATOR(&=, assign_band)
+  OBJECT_PTR_DEFINE_OPERATOR(|=, assign_bor)
+  OBJECT_PTR_DEFINE_OPERATOR(^=, assign_bxor)
+  OBJECT_PTR_DEFINE_OPERATOR(<<=, assign_lshift)
+  OBJECT_PTR_DEFINE_OPERATOR(>>=, assign_rshift)
+
+  OBJECT_PTR_DEFINE_OPERATOR([], subscript)
+
+  template <typename... Args>
+  SharedObject operator()(Args... args) const {
+    return SyncMInvoke<Args...>(StrIDRegistry::Meta::operator_call,
+                                std::forward<Args>(args)...);
   }
 };
 
@@ -277,10 +314,34 @@ class ObjectPtr : public ObjectPtrBase {
   // Meta
   /////////
 
-  template <typename Arg>
-  SharedObject operator+(Arg rhs) const {
-    return SyncMInvoke<Arg>(StrIDRegistry::Meta::operator_add,
-                            std::forward<Arg>(rhs));
+  OBJECT_PTR_DEFINE_OPERATOR(+, add)
+  OBJECT_PTR_DEFINE_OPERATOR(-, minus)
+  OBJECT_PTR_DEFINE_OPERATOR(*, mul)
+  OBJECT_PTR_DEFINE_OPERATOR(/, div)
+  OBJECT_PTR_DEFINE_OPERATOR(%, mod)
+  OBJECT_PTR_DEFINE_OPERATOR(&, band)
+  OBJECT_PTR_DEFINE_OPERATOR(|, bor)
+  OBJECT_PTR_DEFINE_OPERATOR(^, bxor)
+  OBJECT_PTR_DEFINE_OPERATOR(<<, lshift)
+  OBJECT_PTR_DEFINE_OPERATOR(>>, rshift)
+
+  OBJECT_PTR_DEFINE_OPERATOR(+=, assign_add)
+  OBJECT_PTR_DEFINE_OPERATOR(-=, assign_minus)
+  OBJECT_PTR_DEFINE_OPERATOR(*=, assign_mul)
+  OBJECT_PTR_DEFINE_OPERATOR(/=, assign_div)
+  OBJECT_PTR_DEFINE_OPERATOR(%=, assign_mod)
+  OBJECT_PTR_DEFINE_OPERATOR(&=, assign_band)
+  OBJECT_PTR_DEFINE_OPERATOR(|=, assign_bor)
+  OBJECT_PTR_DEFINE_OPERATOR(^=, assign_bxor)
+  OBJECT_PTR_DEFINE_OPERATOR(<<=, assign_lshift)
+  OBJECT_PTR_DEFINE_OPERATOR(>>=, assign_rshift)
+
+  OBJECT_PTR_DEFINE_OPERATOR([], subscript)
+
+  template <typename... Args>
+  SharedObject operator()(Args... args) const {
+    return SyncMInvoke<Args...>(StrIDRegistry::Meta::operator_call,
+                                std::forward<Args>(args)...);
   }
 };
 
@@ -387,6 +448,8 @@ class SharedConstObject {
 
   ConstObjectPtr AsObjectPtr() const noexcept { return {ID, buffer.get()}; }
 
+  ConstObjectPtr operator->() const noexcept { return AsObjectPtr(); }
+
   long UseCount() const noexcept { return buffer.use_count(); }
 
   operator bool() const noexcept { return ID && static_cast<bool>(buffer); }
@@ -397,9 +460,33 @@ class SharedConstObject {
   // Meta
   /////////
 
-  template <typename Arg>
-  SharedObject operator+(Arg rhs) const {
-    return AsObjectPtr()->operator+ <Arg>(std::forward<Arg>(rhs));
+  SHARED_OBJECT_DEFINE_OPERATOR(+)
+  SHARED_OBJECT_DEFINE_OPERATOR(-)
+  SHARED_OBJECT_DEFINE_OPERATOR(*)
+  SHARED_OBJECT_DEFINE_OPERATOR(/)
+  SHARED_OBJECT_DEFINE_OPERATOR(%)
+  SHARED_OBJECT_DEFINE_OPERATOR(&)
+  SHARED_OBJECT_DEFINE_OPERATOR(|)
+  SHARED_OBJECT_DEFINE_OPERATOR(^)
+  SHARED_OBJECT_DEFINE_OPERATOR(<<)
+  SHARED_OBJECT_DEFINE_OPERATOR(>>)
+
+  SHARED_OBJECT_DEFINE_OPERATOR(+=)
+  SHARED_OBJECT_DEFINE_OPERATOR(-=)
+  SHARED_OBJECT_DEFINE_OPERATOR(*=)
+  SHARED_OBJECT_DEFINE_OPERATOR(/=)
+  SHARED_OBJECT_DEFINE_OPERATOR(%=)
+  SHARED_OBJECT_DEFINE_OPERATOR(&=)
+  SHARED_OBJECT_DEFINE_OPERATOR(|=)
+  SHARED_OBJECT_DEFINE_OPERATOR(^=)
+  SHARED_OBJECT_DEFINE_OPERATOR(<<=)
+  SHARED_OBJECT_DEFINE_OPERATOR(>>=)
+
+  SHARED_OBJECT_DEFINE_OPERATOR([])
+
+  template <typename... Args>
+  SharedObject operator()(Args... args) const {
+    return AsObjectPtr()->operator()<Args...>(std::forward<Args>(args)...);
   }
 
  private:
@@ -502,7 +589,7 @@ class SharedObject {
 
   ObjectPtr AsObjectPtr() const noexcept { return {ID, buffer.get()}; }
 
-  ObjectPtr operator->() noexcept { return AsObjectPtr(); }
+  ObjectPtr operator->() const noexcept { return AsObjectPtr(); }
 
   long UseCount() const noexcept { return buffer.use_count(); }
 
@@ -518,9 +605,33 @@ class SharedObject {
   // Meta
   /////////
 
-  template <typename Arg>
-  SharedObject operator+(Arg rhs) const {
-    return AsObjectPtr()->operator+ <Arg>(std::forward<Arg>(rhs));
+  SHARED_OBJECT_DEFINE_OPERATOR(+)
+  SHARED_OBJECT_DEFINE_OPERATOR(-)
+  SHARED_OBJECT_DEFINE_OPERATOR(*)
+  SHARED_OBJECT_DEFINE_OPERATOR(/)
+  SHARED_OBJECT_DEFINE_OPERATOR(%)
+  SHARED_OBJECT_DEFINE_OPERATOR(&)
+  SHARED_OBJECT_DEFINE_OPERATOR(|)
+  SHARED_OBJECT_DEFINE_OPERATOR(^)
+  SHARED_OBJECT_DEFINE_OPERATOR(<<)
+  SHARED_OBJECT_DEFINE_OPERATOR(>>)
+
+  SHARED_OBJECT_DEFINE_OPERATOR(+=)
+  SHARED_OBJECT_DEFINE_OPERATOR(-=)
+  SHARED_OBJECT_DEFINE_OPERATOR(*=)
+  SHARED_OBJECT_DEFINE_OPERATOR(/=)
+  SHARED_OBJECT_DEFINE_OPERATOR(%=)
+  SHARED_OBJECT_DEFINE_OPERATOR(&=)
+  SHARED_OBJECT_DEFINE_OPERATOR(|=)
+  SHARED_OBJECT_DEFINE_OPERATOR(^=)
+  SHARED_OBJECT_DEFINE_OPERATOR(<<=)
+  SHARED_OBJECT_DEFINE_OPERATOR(>>=)
+
+  SHARED_OBJECT_DEFINE_OPERATOR([])
+
+  template <typename... Args>
+  SharedObject operator()(Args... args) const {
+    return AsObjectPtr()->operator()<Args...>(std::forward<Args>(args)...);
   }
 
  private:
@@ -528,5 +639,8 @@ class SharedObject {
   SharedBuffer buffer;
 };
 }  // namespace My::MyDRefl
+
+#undef OBJECT_PTR_DEFINE_OPERATOR
+#undef SHARED_OBJECT_DEFINE_OPERATOR
 
 #include "details/Object.inl"

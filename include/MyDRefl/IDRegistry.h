@@ -105,8 +105,8 @@ class StrIDRegistry : public IDRegistry<StrID> {
     static constexpr char operator_assign_band[] = "MyDRefl::operator&=";
     static constexpr char operator_assign_bor[] = "MyDRefl::operator|=";
     static constexpr char operator_assign_bxor[] = "MyDRefl::operator^=";
-    static constexpr char operator_assign_lshift[] = "MyDRefl::operator<<";
-    static constexpr char operator_assign_rshift[] = "MyDRefl::operator>>";
+    static constexpr char operator_assign_lshift[] = "MyDRefl::operator<<=";
+    static constexpr char operator_assign_rshift[] = "MyDRefl::operator>>=";
 
     static constexpr char operator_new[] = "MyDRefl::operator new";
     static constexpr char operator_new_array[] = "MyDRefl::operator new[]";
