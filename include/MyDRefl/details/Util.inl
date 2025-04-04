@@ -111,8 +111,8 @@ constexpr auto My::MyDRefl::wrap_member_function() noexcept {
   using Return = typename Traits::Return;
   using ArgList = typename Traits::ArgList;
   using ObjPtr = std::conditional_t<Traits::is_const, const void*, void*>;
-  constexpr auto wrapped_function = [](ObjPtr obj, void* args_buffer,
-                                       void* result_buffer) -> Destructor {
+  constexpr auto wrapped_function = [](ObjPtr obj, void* result_buffer,
+                                       void* args_buffer) -> Destructor {
     if constexpr (!std::is_void_v<Return>) {
       Return rst =
           details::wrap_function_call<ArgList>::template run<Obj, func_ptr>(
@@ -140,9 +140,8 @@ constexpr auto My::MyDRefl::wrap_member_function(Func&& func) noexcept {
   using ArgList = typename Traits::ArgList;
   using ObjPtr = std::conditional_t<Traits::is_const, const void*, void*>;
   /*constexpr*/ auto wrapped_function =
-      [f = std::forward<Func>(func)](
-          ObjPtr obj, void* args_buffer,
-          void* result_buffer) mutable -> Destructor {
+      [f = std::forward<Func>(func)](ObjPtr obj, void* result_buffer,
+                                     void* args_buffer) mutable -> Destructor {
     if constexpr (!std::is_void_v<Return>) {
       Return rst = details::wrap_function_call<ArgList>::template run<Obj>(
           obj, std::forward<Func>(f), args_buffer);
@@ -168,8 +167,8 @@ constexpr auto My::MyDRefl::wrap_static_function() noexcept {
   using Traits = FuncTraits<FuncPtr>;
   using Return = typename Traits::Return;
   using ArgList = typename Traits::ArgList;
-  constexpr auto wrapped_function = [](void* args_buffer,
-                                       void* result_buffer) -> Destructor {
+  constexpr auto wrapped_function = [](void* result_buffer,
+                                       void* args_buffer) -> Destructor {
     if constexpr (!std::is_void_v<Return>) {
       Return rst = details::wrap_function_call<ArgList>::template run<func_ptr>(
           args_buffer);
@@ -193,8 +192,8 @@ constexpr auto My::MyDRefl::wrap_static_function(Func&& func) noexcept {
   using Return = typename Traits::Return;
   using ArgList = typename Traits::ArgList;
   /*constexpr*/ auto wrapped_function =
-      [f = std::forward<Func>(func)](
-          void* args_buffer, void* result_buffer) mutable -> Destructor {
+      [f = std::forward<Func>(func)](void* result_buffer,
+                                     void* args_buffer) mutable -> Destructor {
     if constexpr (!std::is_void_v<Return>) {
       Return rst = details::wrap_function_call<ArgList>::template run(
           std::forward<Func>(f), args_buffer);

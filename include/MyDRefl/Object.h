@@ -149,9 +149,9 @@ class ConstObjectPtr : public ObjectPtrBase {
 
   bool IsInvocable(StrID methodID, Span<TypeID> argTypeIDs = {}) const noexcept;
 
-  InvokeResult Invoke(StrID methodID, Span<TypeID> argTypeIDs = {},
-                      void* args_buffer = nullptr,
-                      void* result_buffer = nullptr) const;
+  InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
+                      Span<TypeID> argTypeIDs = {},
+                      void* args_buffer = nullptr) const;
 
   template <typename... Args>
   bool IsInvocable(StrID methodID) const noexcept;
@@ -202,9 +202,9 @@ class ObjectPtr : public ObjectPtrBase {
 
   bool IsInvocable(StrID methodID, Span<TypeID> argTypeIDs = {}) const noexcept;
 
-  InvokeResult Invoke(StrID methodID, Span<TypeID> argTypeIDs = {},
-                      void* args_buffer = nullptr,
-                      void* result_buffer = nullptr) const;
+  InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
+                      Span<TypeID> argTypeIDs = {},
+                      void* args_buffer = nullptr) const;
 
   template <typename... Args>
   bool IsInvocable(StrID methodID) const noexcept;
@@ -327,15 +327,21 @@ class SharedObject {
   }
 
   template <typename T>
-  T& As() noexcept {
+  T& As() & noexcept {
     assert(GetPtr());
     return *AsPtr<T>();
   }
 
   template <typename T>
-  const T& As() const noexcept {
+  const T& As() const& noexcept {
     assert(GetPtr());
     return *AsPtr<T>();
+  }
+
+  template <typename T>
+  T As() && noexcept {
+    assert(GetPtr());
+    return std::move(*AsPtr<T>());
   }
 
   ObjectPtr AsObjectPtr() noexcept { return {ID, block.Get()}; }

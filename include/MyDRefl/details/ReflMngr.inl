@@ -23,8 +23,8 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
     using Traits = FuncTraits<decltype(funcptr)>;
     if constexpr (std::is_member_function_pointer_v<FuncPtr>) {
       using ObjPtr = std::conditional_t<Traits::is_const, const void*, void*>;
-      constexpr auto wrapped_func = [](ObjPtr obj, ArgsView args,
-                                       void* result_buffer) -> Destructor {
+      constexpr auto wrapped_func = [](ObjPtr obj, void* result_buffer,
+                                       ArgsView args) -> Destructor {
         assert(((args.GetParamList().GetParameters()[Ns].typeID ==
                  TypeID::of<Args>) &&
                 ...));
@@ -35,13 +35,13 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
                  alignof(type_buffer_decay_t<Args>)) &&
                 ...));
         constexpr auto f = wrap_function<funcptr>();
-        return f(obj, args.GetBuffer(), result_buffer);
+        return f(obj, result_buffer, args.GetBuffer());
       };
       constexpr auto decayed_wrapped_func = DecayLambda(wrapped_func);
       return decayed_wrapped_func;
     } else if constexpr (is_function_pointer_v<FuncPtr>) {
-      constexpr auto wrapped_func = [](ArgsView args,
-                                       void* result_buffer) -> Destructor {
+      constexpr auto wrapped_func = [](void* result_buffer,
+                                       ArgsView args) -> Destructor {
         assert(((args.GetParamList().GetParameters()[Ns].typeID ==
                  TypeID::of<Args>) &&
                 ...));
@@ -52,7 +52,7 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
                  alignof(type_buffer_decay_t<Args>)) &&
                 ...));
         constexpr auto f = wrap_function<funcptr>();
-        return f(args.GetBuffer(), result_buffer);
+        return f(result_buffer, args.GetBuffer());
       };
       constexpr auto decayed_wrapped_func = DecayLambda(wrapped_func);
       return decayed_wrapped_func;
@@ -65,10 +65,9 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
       Func&& func, std::index_sequence<Ns...>) noexcept {
     using Traits = WrapFuncTraits<std::decay_t<Func>>;
     using ObjPtr = std::conditional_t<Traits::is_const, const void*, void*>;
-    /*constexpr*/ auto wrapped_func =
-        [f = std::forward<Func>(func)](
-            ObjPtr obj, ArgsView args,
-            void* result_buffer) mutable -> Destructor {
+    /*constexpr*/ auto wrapped_func = [f = std::forward<Func>(func)](
+                                          ObjPtr obj, void* result_buffer,
+                                          ArgsView args) mutable -> Destructor {
       assert(((args.GetParamList().GetParameters()[Ns].typeID ==
                TypeID::of<Args>) &&
               ...));
@@ -79,7 +78,7 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
                alignof(type_buffer_decay_t<Args>)) &&
               ...));
       auto wrapped_f = wrap_member_function(std::forward<Func>(f));
-      return wrapped_f(obj, args.GetBuffer(), result_buffer);
+      return wrapped_f(obj, result_buffer, args.GetBuffer());
     };
 
     return std::function{wrapped_func};
@@ -88,9 +87,9 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
   template <typename Func, size_t... Ns>
   static /*constexpr*/ auto GenerateStaticFunction(
       Func&& func, std::index_sequence<Ns...>) noexcept {
-    /*constexpr*/ auto wrapped_func =
-        [f = std::forward<Func>(func)](
-            ArgsView args, void* result_buffer) mutable -> Destructor {
+    /*constexpr*/ auto wrapped_func = [f = std::forward<Func>(func)](
+                                          void* result_buffer,
+                                          ArgsView args) mutable -> Destructor {
       assert(((args.GetParamList().GetParameters()[Ns].typeID ==
                TypeID::of<Args>) &&
               ...));
@@ -101,7 +100,7 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
                alignof(type_buffer_decay_t<Args>)) &&
               ...));
       auto wrapped_f = wrap_static_function(std::forward<Func>(f));
-      return wrapped_f(args.GetBuffer(), result_buffer);
+      return wrapped_f(result_buffer, args.GetBuffer());
     };
     return std::function{wrapped_func};
   }
@@ -403,7 +402,7 @@ T ReflMngr::InvokeRet(TypeID typeID, StrID methodID, Span<TypeID> argTypeIDs,
                       void* args_buffer) const {
   std::uint8_t result_buffer[sizeof(T)];
   auto result =
-      Invoke(typeID, methodID, argTypeIDs, args_buffer, result_buffer);
+      Invoke(typeID, methodID, result_buffer, argTypeIDs, args_buffer);
   assert(result.resultID == TypeID::of<T>);
   return result.Move<T>(result_buffer);
 }
@@ -412,16 +411,16 @@ template <typename T>
 T ReflMngr::InvokeRet(ConstObjectPtr obj, StrID methodID,
                       Span<TypeID> argTypeIDs, void* args_buffer) const {
   std::uint8_t result_buffer[sizeof(T)];
-  auto result = Invoke(obj, methodID, argTypeIDs, args_buffer, result_buffer);
+  auto result = Invoke(obj, methodID, result_buffer, argTypeIDs, args_buffer);
   assert(result.resultID == TypeID::of<T>);
   return result.Move<T>(result_buffer);
 }
 
 template <typename T>
-T ReflMngr::InvokeRet(Object obj, StrID methodID, Span<TypeID> argTypeIDs,
+T ReflMngr::InvokeRet(ObjectPtr obj, StrID methodID, Span<TypeID> argTypeIDs,
                       void* args_buffer) const {
   std::uint8_t result_buffer[sizeof(T)];
-  auto result = Invoke(obj, methodID, argTypeIDs, args_buffer, result_buffer);
+  auto result = Invoke(obj, methodID, result_buffer, argTypeIDs, args_buffer);
   assert(result.resultID == TypeID::of<T>);
   return result.Move<T>(result_buffer);
 }
@@ -433,10 +432,10 @@ InvokeResult ReflMngr::InvokeArgs(TypeID typeID, StrID methodID,
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return Invoke(typeID, methodID, Span<TypeID>{argTypeIDs},
-                  static_cast<void*>(&args_buffer), result_buffer);
+    return Invoke(typeID, methodID, result_buffer, Span<TypeID>{argTypeIDs},
+                  static_cast<void*>(&args_buffer));
   } else
-    return Invoke(typeID, methodID, {}, nullptr, result_buffer);
+    return Invoke(typeID, methodID, result_buffer);
 }
 
 template <typename... Args>
@@ -446,23 +445,23 @@ InvokeResult ReflMngr::InvokeArgs(ConstObjectPtr obj, StrID methodID,
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return Invoke(obj, methodID, Span<TypeID>{argTypeIDs},
-                  static_cast<void*>(&args_buffer), result_buffer);
+    return Invoke(obj, methodID, result_buffer, Span<TypeID>{argTypeIDs},
+                  static_cast<void*>(&args_buffer));
   } else
-    return Invoke(obj, methodID, {}, nullptr, result_buffer);
+    return Invoke(obj, methodID, result_buffer);
 }
 
 template <typename... Args>
-InvokeResult ReflMngr::InvokeArgs(Object obj, StrID methodID,
+InvokeResult ReflMngr::InvokeArgs(ObjectPtr obj, StrID methodID,
                                   void* result_buffer, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return Invoke(obj, methodID, Span<TypeID>{argTypeIDs},
-                  static_cast<void*>(&args_buffer), result_buffer);
+    return Invoke(obj, methodID, result_buffer, Span<TypeID>{argTypeIDs},
+                  static_cast<void*>(&args_buffer));
   } else
-    return Invoke(obj, methodID, {}, nullptr, result_buffer);
+    return Invoke(obj, methodID, result_buffer);
 }
 
 template <typename T, typename... Args>
@@ -490,7 +489,7 @@ T ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID, Args... args) const {
 }
 
 template <typename T, typename... Args>
-T ReflMngr::Invoke(Object obj, StrID methodID, Args... args) const {
+T ReflMngr::Invoke(ObjectPtr obj, StrID methodID, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
@@ -512,7 +511,7 @@ bool ReflMngr::IsConstructible(TypeID typeID) const noexcept {
 }
 
 template <typename... Args>
-bool ReflMngr::Construct(Object obj, Args... args) const {
+bool ReflMngr::Construct(ObjectPtr obj, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
@@ -524,7 +523,7 @@ bool ReflMngr::Construct(Object obj, Args... args) const {
 }
 
 template <typename... Args>
-Object ReflMngr::New(TypeID typeID, Args... args) const {
+ObjectPtr ReflMngr::New(TypeID typeID, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
@@ -536,7 +535,7 @@ Object ReflMngr::New(TypeID typeID, Args... args) const {
 }
 
 template <typename T, typename... Args>
-Object ReflMngr::New(Args... args) {
+ObjectPtr ReflMngr::New(Args... args) {
   static_assert(!std::is_const_v<T> && !std::is_volatile_v<T> &&
                 !std::is_reference_v<T>);
   if (!IsRegistered(TypeID::of<T>))

@@ -350,7 +350,7 @@ void* ReflMngr::Malloc(size_t size) const {
   std::uint8_t result_buffer[sizeof(void*)];
 
   auto result = Invoke(GlobalID, StrID(StrIDRegistry::Meta::malloc),
-                       argsTypeIDs, args_buffer, result_buffer);
+                       result_buffer, argsTypeIDs, args_buffer);
 
   if (result.success)
     return buffer_get<void*>(result_buffer, 0);
@@ -364,8 +364,8 @@ bool ReflMngr::Free(void* ptr) const {
   std::uint8_t args_buffer[sizeof(void*)];
   buffer_get<void*>(args_buffer, 0) = ptr;
 
-  auto result = Invoke(GlobalID, StrID(StrIDRegistry::Meta::free), argsTypeIDs,
-                       args_buffer);
+  auto result = Invoke(GlobalID, StrID(StrIDRegistry::Meta::free), nullptr,
+                       argsTypeIDs, args_buffer);
 
   return result.success;
 }
@@ -380,7 +380,7 @@ void* ReflMngr::AlignedMalloc(size_t size, size_t alignment) const {
   std::uint8_t result_buffer[sizeof(void*)];
 
   auto result = Invoke(GlobalID, StrID(StrIDRegistry::Meta::aligned_malloc),
-                       argsTypeIDs, args_buffer, result_buffer);
+                       result_buffer, argsTypeIDs, args_buffer);
 
   if (result.success)
     return buffer_get<void*>(result_buffer, 0);
@@ -395,7 +395,7 @@ bool ReflMngr::AlignedFree(void* ptr) const {
   buffer_get<void*>(args_buffer, 0) = ptr;
 
   auto result = Invoke(GlobalID, StrID(StrIDRegistry::Meta::aligned_free),
-                       argsTypeIDs, args_buffer);
+                       nullptr, argsTypeIDs, args_buffer);
 
   return result.success;
 }
@@ -713,8 +713,8 @@ bool ReflMngr::IsInvocable(TypeID typeID, StrID methodID,
 }
 
 InvokeResult ReflMngr::Invoke(TypeID typeID, StrID methodID,
-                              Span<TypeID> argTypeIDs, void* args_buffer,
-                              void* result_buffer) const {
+                              void* result_buffer, Span<TypeID> argTypeIDs,
+                              void* args_buffer) const {
   auto typetarget = typeinfos.find(typeID);
 
   if (typetarget == typeinfos.end())
@@ -722,13 +722,13 @@ InvokeResult ReflMngr::Invoke(TypeID typeID, StrID methodID,
 
   const auto& typeinfo = typetarget->second;
 
-  auto rst = typeinfo.Invoke(methodID, argTypeIDs, args_buffer, result_buffer);
+  auto rst = typeinfo.Invoke(methodID, result_buffer, argTypeIDs, args_buffer);
 
   if (rst.success)
     return rst;
 
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
-    auto rst = Invoke(baseID, methodID, argTypeIDs, args_buffer, result_buffer);
+    auto rst = Invoke(baseID, methodID, result_buffer, argTypeIDs, args_buffer);
     if (rst.success)
       return rst;
   }
@@ -737,8 +737,8 @@ InvokeResult ReflMngr::Invoke(TypeID typeID, StrID methodID,
 }
 
 InvokeResult ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID,
-                              Span<TypeID> argTypeIDs, void* args_buffer,
-                              void* result_buffer) const {
+                              void* result_buffer, Span<TypeID> argTypeIDs,
+                              void* args_buffer) const {
   auto typetarget = typeinfos.find(obj.GetID());
 
   if (typetarget == typeinfos.end())
@@ -747,7 +747,7 @@ InvokeResult ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID,
   const auto& typeinfo = typetarget->second;
 
   auto rst =
-      typeinfo.Invoke(obj, methodID, argTypeIDs, args_buffer, result_buffer);
+      typeinfo.Invoke(obj, methodID, result_buffer, argTypeIDs, args_buffer);
 
   if (rst.success)
     return rst;
@@ -755,7 +755,7 @@ InvokeResult ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID,
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
     auto rst =
         Invoke(ConstObjectPtr{baseID, baseinfo.StaticCast_DerivedToBase(obj)},
-               methodID, argTypeIDs, args_buffer, result_buffer);
+               methodID, result_buffer, argTypeIDs, args_buffer);
     if (rst.success)
       return rst;
   }
@@ -764,8 +764,8 @@ InvokeResult ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID,
 }
 
 InvokeResult ReflMngr::Invoke(ObjectPtr obj, StrID methodID,
-                              Span<TypeID> argTypeIDs, void* args_buffer,
-                              void* result_buffer) const {
+                              void* result_buffer, Span<TypeID> argTypeIDs,
+                              void* args_buffer) const {
   auto typetarget = typeinfos.find(obj.GetID());
 
   if (typetarget == typeinfos.end())
@@ -774,14 +774,14 @@ InvokeResult ReflMngr::Invoke(ObjectPtr obj, StrID methodID,
   const auto& typeinfo = typetarget->second;
 
   auto rst =
-      typeinfo.Invoke(obj, methodID, argTypeIDs, args_buffer, result_buffer);
+      typeinfo.Invoke(obj, methodID, result_buffer, argTypeIDs, args_buffer);
 
   if (rst.success)
     return rst;
 
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
     auto rst = Invoke(ObjectPtr{baseID, baseinfo.StaticCast_DerivedToBase(obj)},
-                      methodID, argTypeIDs, args_buffer, result_buffer);
+                      methodID, result_buffer, argTypeIDs, args_buffer);
     if (rst.success)
       return rst;
   }
@@ -813,8 +813,8 @@ bool ReflMngr::Construct(ObjectPtr obj, Span<TypeID> argTypeIDs,
   if (target == typeinfos.end())
     return false;
   const auto& typeinfo = target->second;
-  auto rst = typeinfo.Invoke(obj, StrID(StrIDRegistry::Meta::ctor), argTypeIDs,
-                             args_buffer, nullptr);
+  auto rst = typeinfo.Invoke(obj, StrID(StrIDRegistry::Meta::ctor), nullptr,
+                             argTypeIDs, args_buffer);
   return rst.success;
 }
 
@@ -824,7 +824,7 @@ bool ReflMngr::Destruct(ConstObjectPtr obj) const {
   if (target == typeinfos.end())
     return false;
   const auto& typeinfo = target->second;
-  auto rst = typeinfo.Invoke(obj, StrID(StrIDRegistry::Meta::dtor), {}, nullptr,
+  auto rst = typeinfo.Invoke(obj, StrID(StrIDRegistry::Meta::dtor), nullptr, {},
                              nullptr);
   return rst.success;
 }

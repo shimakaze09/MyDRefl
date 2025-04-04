@@ -59,11 +59,11 @@ bool ConstObjectPtr::IsInvocable(StrID methodID,
   return ReflMngr::Instance().IsConstInvocable(ID, methodID, argTypeIDs);
 }
 
-InvokeResult ConstObjectPtr::Invoke(StrID methodID, Span<TypeID> argTypeIDs,
-                                    void* args_buffer,
-                                    void* result_buffer) const {
-  return ReflMngr::Instance().Invoke(*this, methodID, argTypeIDs, args_buffer,
-                                     result_buffer);
+InvokeResult ConstObjectPtr::Invoke(StrID methodID, void* result_buffer,
+                                    Span<TypeID> argTypeIDs,
+                                    void* args_buffer) const {
+  return ReflMngr::Instance().Invoke(*this, methodID, result_buffer, argTypeIDs,
+                                     args_buffer);
 }
 
 //
@@ -103,10 +103,11 @@ bool ObjectPtr::IsInvocable(StrID methodID,
   return ReflMngr::Instance().IsInvocable(ID, methodID, argTypeIDs);
 }
 
-InvokeResult ObjectPtr::Invoke(StrID methodID, Span<TypeID> argTypeIDs,
-                               void* args_buffer, void* result_buffer) const {
-  return ReflMngr::Instance().Invoke(*this, methodID, argTypeIDs, args_buffer,
-                                     result_buffer);
+InvokeResult ObjectPtr::Invoke(StrID methodID, void* result_buffer,
+                               Span<TypeID> argTypeIDs,
+                               void* args_buffer) const {
+  return ReflMngr::Instance().Invoke(*this, methodID, result_buffer, argTypeIDs,
+                                     args_buffer);
 }
 
 void ObjectPtr::ForEachRWVar(
