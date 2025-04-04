@@ -35,11 +35,11 @@ T InvokeResult::Move(void* result_buffer) {
 template <typename... Args>
 bool ConstObjectPtr::IsInvocable(StrID methodID) const noexcept {
   std::array argTypeIDs = {TypeID::of<Args>...};
-  return IsInvocable(ID, methodID, Span<TypeID>{argTypeIDs});
+  return IsInvocable(ID, methodID, Span<const TypeID>{argTypeIDs});
 }
 
 template <typename T>
-T ConstObjectPtr::InvokeRet(StrID methodID, Span<TypeID> argTypeIDs,
+T ConstObjectPtr::InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs,
                             void* args_buffer) const {
   std::uint8_t result_buffer[sizeof(T)];
   auto result = Invoke(methodID, result_buffer, argTypeIDs, args_buffer);
@@ -54,7 +54,7 @@ InvokeResult ConstObjectPtr::InvokeArgs(StrID methodID, void* result_buffer,
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return Invoke(methodID, Span<TypeID>{argTypeIDs},
+    return Invoke(methodID, Span<const TypeID>{argTypeIDs},
                   static_cast<void*>(&args_buffer), result_buffer);
   } else
     return Invoke(methodID, {}, nullptr, result_buffer);
@@ -66,7 +66,7 @@ T ConstObjectPtr::Invoke(StrID methodID, Args... args) const {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return InvokeRet<T>(methodID, Span<TypeID>{argTypeIDs},
+    return InvokeRet<T>(methodID, Span<const TypeID>{argTypeIDs},
                         static_cast<void*>(&args_buffer));
   } else
     return InvokeRet<T>(methodID);
@@ -80,10 +80,10 @@ SharedObject ConstObjectPtr::MInvoke(StrID methodID,
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return MInvoke(methodID, Span<TypeID>{argTypeIDs},
+    return MInvoke(methodID, Span<const TypeID>{argTypeIDs},
                    static_cast<void*>(&args_buffer), memory_rsrc_type);
   } else
-    return MInvoke(methodID, Span<TypeID>{}, static_cast<void*>(nullptr),
+    return MInvoke(methodID, Span<const TypeID>{}, static_cast<void*>(nullptr),
                    memory_rsrc_type);
 }
 
@@ -108,11 +108,11 @@ SharedObject ConstObjectPtr::UnsyncMInvoke(StrID methodID, Args... args) {
 template <typename... Args>
 bool ObjectPtr::IsInvocable(StrID methodID) const noexcept {
   std::array argTypeIDs = {TypeID::of<Args>...};
-  return IsInvocable(ID, methodID, Span<TypeID>{argTypeIDs});
+  return IsInvocable(ID, methodID, Span<const TypeID>{argTypeIDs});
 }
 
 template <typename T>
-T ObjectPtr::InvokeRet(StrID methodID, Span<TypeID> argTypeIDs,
+T ObjectPtr::InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs,
                        void* args_buffer) const {
   std::uint8_t result_buffer[sizeof(T)];
   auto result = Invoke(methodID, result_buffer, argTypeIDs, args_buffer);
@@ -127,7 +127,7 @@ InvokeResult ObjectPtr::InvokeArgs(StrID methodID, void* result_buffer,
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return Invoke(methodID, Span<TypeID>{argTypeIDs},
+    return Invoke(methodID, Span<const TypeID>{argTypeIDs},
                   static_cast<void*>(&args_buffer), result_buffer);
   } else
     return Invoke(methodID, {}, nullptr, result_buffer);
@@ -139,7 +139,7 @@ T ObjectPtr::Invoke(StrID methodID, Args... args) const {
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return InvokeRet<T>(methodID, Span<TypeID>{argTypeIDs},
+    return InvokeRet<T>(methodID, Span<const TypeID>{argTypeIDs},
                         static_cast<void*>(&args_buffer));
   } else
     return InvokeRet<T>(methodID);
@@ -153,10 +153,10 @@ SharedObject ObjectPtr::MInvoke(StrID methodID,
     std::array argTypeIDs = {TypeID::of<Args>...};
     auto args_buffer =
         type_buffer_decay_as_tuple<Args...>(std::forward<Args>(args)...);
-    return MInvoke(methodID, Span<TypeID>{argTypeIDs},
+    return MInvoke(methodID, Span<const TypeID>{argTypeIDs},
                    static_cast<void*>(&args_buffer), memory_rsrc_type);
   } else
-    return MInvoke(methodID, Span<TypeID>{}, static_cast<void*>(nullptr),
+    return MInvoke(methodID, Span<const TypeID>{}, static_cast<void*>(nullptr),
                    memory_rsrc_type);
 }
 

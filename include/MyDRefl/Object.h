@@ -143,17 +143,18 @@ class ConstObjectPtr : public ObjectPtrBase {
   ConstObjectPtr StaticCast(TypeID typeID) const noexcept;
   ConstObjectPtr DynamicCast(TypeID typeID) const noexcept;
 
-  bool IsInvocable(StrID methodID, Span<TypeID> argTypeIDs = {}) const noexcept;
+  bool IsInvocable(StrID methodID,
+                   Span<const TypeID> argTypeIDs = {}) const noexcept;
 
   InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
-                      Span<TypeID> argTypeIDs = {},
+                      Span<const TypeID> argTypeIDs = {},
                       void* args_buffer = nullptr) const;
 
   template <typename... Args>
   bool IsInvocable(StrID methodID) const noexcept;
 
   template <typename T>
-  T InvokeRet(StrID methodID, Span<TypeID> argTypeIDs = {},
+  T InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs = {},
               void* args_buffer = nullptr) const;
 
   template <typename... Args>
@@ -164,7 +165,8 @@ class ConstObjectPtr : public ObjectPtrBase {
   T Invoke(StrID methodID, Args... args) const;
 
   SharedObject MInvoke(
-      StrID methodID, Span<TypeID> argTypeIDs = {}, void* args_buffer = nullptr,
+      StrID methodID, Span<const TypeID> argTypeIDs = {},
+      void* args_buffer = nullptr,
       MemoryResourceType memory_rsrc_type = MemoryResourceType::SYNC) const;
 
   template <typename... Args>
@@ -213,21 +215,23 @@ class ObjectPtr : public ObjectPtrBase {
   ObjectPtr StaticCast(TypeID typeID) const noexcept;
   ObjectPtr DynamicCast(TypeID typeID) const noexcept;
 
-  bool IsInvocable(StrID methodID, Span<TypeID> argTypeIDs = {}) const noexcept;
+  bool IsInvocable(StrID methodID,
+                   Span<const TypeID> argTypeIDs = {}) const noexcept;
 
   InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
-                      Span<TypeID> argTypeIDs = {},
+                      Span<const TypeID> argTypeIDs = {},
                       void* args_buffer = nullptr) const;
 
   SharedObject MInvoke(
-      StrID methodID, Span<TypeID> argTypeIDs = {}, void* args_buffer = nullptr,
+      StrID methodID, Span<const TypeID> argTypeIDs = {},
+      void* args_buffer = nullptr,
       MemoryResourceType memory_rsrc_type = MemoryResourceType::SYNC) const;
 
   template <typename... Args>
   bool IsInvocable(StrID methodID) const noexcept;
 
   template <typename T>
-  T InvokeRet(StrID methodID, Span<TypeID> argTypeIDs = {},
+  T InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs = {},
               void* args_buffer = nullptr) const;
 
   template <typename... Args>

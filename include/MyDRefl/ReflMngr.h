@@ -302,25 +302,25 @@ class ReflMngr {
   ///////////
 
   bool IsStaticInvocable(TypeID typeID, StrID methodID,
-                         Span<TypeID> argTypeIDs = {}) const noexcept;
+                         Span<const TypeID> argTypeIDs = {}) const noexcept;
   bool IsConstInvocable(TypeID typeID, StrID methodID,
-                        Span<TypeID> argTypeIDs = {}) const noexcept;
+                        Span<const TypeID> argTypeIDs = {}) const noexcept;
   bool IsInvocable(TypeID typeID, StrID methodID,
-                   Span<TypeID> argTypeIDs = {}) const noexcept;
+                   Span<const TypeID> argTypeIDs = {}) const noexcept;
 
   InvokeResult Invoke(TypeID typeID, StrID methodID,
                       void* result_buffer = nullptr,
-                      Span<TypeID> argTypeIDs = {},
+                      Span<const TypeID> argTypeIDs = {},
                       void* args_buffer = nullptr) const;
 
   InvokeResult Invoke(ConstObjectPtr obj, StrID methodID,
                       void* result_buffer = nullptr,
-                      Span<TypeID> argTypeIDs = {},
+                      Span<const TypeID> argTypeIDs = {},
                       void* args_buffer = nullptr) const;
 
   InvokeResult Invoke(ObjectPtr obj, StrID methodID,
                       void* result_buffer = nullptr,
-                      Span<TypeID> argTypeIDs = {},
+                      Span<const TypeID> argTypeIDs = {},
                       void* args_buffer = nullptr) const;
 
   // -- template --
@@ -333,13 +333,14 @@ class ReflMngr {
   bool IsInvocable(TypeID typeID, StrID methodID) const noexcept;
 
   template <typename T>
-  T InvokeRet(TypeID typeID, StrID methodID, Span<TypeID> argTypeIDs = {},
+  T InvokeRet(TypeID typeID, StrID methodID, Span<const TypeID> argTypeIDs = {},
               void* args_buffer = nullptr) const;
   template <typename T>
-  T InvokeRet(ConstObjectPtr obj, StrID methodID, Span<TypeID> argTypeIDs = {},
+  T InvokeRet(ConstObjectPtr obj, StrID methodID,
+              Span<const TypeID> argTypeIDs = {},
               void* args_buffer = nullptr) const;
   template <typename T>
-  T InvokeRet(ObjectPtr obj, StrID methodID, Span<TypeID> argTypeIDs = {},
+  T InvokeRet(ObjectPtr obj, StrID methodID, Span<const TypeID> argTypeIDs = {},
               void* args_buffer = nullptr) const;
 
   template <typename... Args>
@@ -364,10 +365,10 @@ class ReflMngr {
   /////////
 
   bool IsConstructible(TypeID typeID,
-                       Span<TypeID> argTypeIDs = {}) const noexcept;
+                       Span<const TypeID> argTypeIDs = {}) const noexcept;
   bool IsDestructible(TypeID typeID) const noexcept;
 
-  bool Construct(ObjectPtr obj, Span<TypeID> argTypeIDs = {},
+  bool Construct(ObjectPtr obj, Span<const TypeID> argTypeIDs = {},
                  void* args_buffer = nullptr) const;
   bool Destruct(ConstObjectPtr obj) const;
 
@@ -377,11 +378,11 @@ class ReflMngr {
   void* AlignedMalloc(size_t size, size_t alignment) const;
   bool AlignedFree(void* ptr) const;
 
-  ObjectPtr New(TypeID typeID, Span<TypeID> argTypeIDs = {},
+  ObjectPtr New(TypeID typeID, Span<const TypeID> argTypeIDs = {},
                 void* args_buffer = nullptr) const;
   bool Delete(ConstObjectPtr obj) const;
 
-  SharedObject MakeShared(TypeID typeID, Span<TypeID> argTypeIDs = {},
+  SharedObject MakeShared(TypeID typeID, Span<const TypeID> argTypeIDs = {},
                           void* args_buffer = nullptr) const;
 
   // -- template --
@@ -459,17 +460,17 @@ class ReflMngr {
                    size_t alignment = alignof(std::max_align_t));
 
   SharedObject MInvoke(
-      TypeID typeID, StrID methodID, Span<TypeID> argTypeIDs = {},
+      TypeID typeID, StrID methodID, Span<const TypeID> argTypeIDs = {},
       void* args_buffer = nullptr,
       MemoryResourceType memory_rsrc_type = MemoryResourceType::SYNC);
 
   SharedObject MInvoke(
-      ConstObjectPtr obj, StrID methodID, Span<TypeID> argTypeIDs = {},
+      ConstObjectPtr obj, StrID methodID, Span<const TypeID> argTypeIDs = {},
       void* args_buffer = nullptr,
       MemoryResourceType memory_rsrc_type = MemoryResourceType::SYNC);
 
   SharedObject MInvoke(
-      ObjectPtr obj, StrID methodID, Span<TypeID> argTypeIDs = {},
+      ObjectPtr obj, StrID methodID, Span<const TypeID> argTypeIDs = {},
       void* args_buffer = nullptr,
       MemoryResourceType memory_rsrc_type = MemoryResourceType::SYNC);
 

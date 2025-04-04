@@ -40,7 +40,7 @@ class ParamList {
     return params;
   }
 
-  bool IsConpatibleWith(Span<TypeID> typeIDs) const noexcept;
+  bool IsConpatibleWith(Span<const TypeID> typeIDs) const noexcept;
   bool operator==(const ParamList& rhs) const noexcept;
 
   bool operator!=(const ParamList& rhs) const noexcept {

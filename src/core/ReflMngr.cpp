@@ -11,7 +11,7 @@ using namespace My::MyDRefl;
 
 namespace My::MyDRefl::details {
 static bool IsStaticInvokable(const TypeInfo& typeinfo, StrID methodID,
-                              Span<TypeID> argTypeIDs) {
+                              Span<const TypeID> argTypeIDs) {
   auto mtarget = typeinfo.methodinfos.find(methodID);
   size_t num = typeinfo.methodinfos.count(methodID);
   for (size_t i = 0; i < num; ++i, ++mtarget) {
@@ -435,7 +435,7 @@ bool ReflMngr::AlignedFree(void* ptr) const {
   return result.success;
 }
 
-ObjectPtr ReflMngr::New(TypeID typeID, Span<TypeID> argTypeIDs,
+ObjectPtr ReflMngr::New(TypeID typeID, Span<const TypeID> argTypeIDs,
                         void* args_buffer) const {
   if (!IsConstructible(typeID, argTypeIDs))
     return nullptr;
@@ -474,7 +474,7 @@ bool ReflMngr::Delete(ConstObjectPtr obj) const {
   return free_success;
 }
 
-SharedObject ReflMngr::MakeShared(TypeID typeID, Span<TypeID> argTypeIDs,
+SharedObject ReflMngr::MakeShared(TypeID typeID, Span<const TypeID> argTypeIDs,
                                   void* args_buffer) const {
   ObjectPtr obj = New(typeID, argTypeIDs, args_buffer);
   return {obj, [typeID](void* ptr) {
@@ -692,7 +692,7 @@ ConstObjectPtr ReflMngr::RVar(ConstObjectPtr obj, TypeID baseID,
 }
 
 bool ReflMngr::IsStaticInvocable(TypeID typeID, StrID methodID,
-                                 Span<TypeID> argTypeIDs) const noexcept {
+                                 Span<const TypeID> argTypeIDs) const noexcept {
   auto typetarget = typeinfos.find(typeID);
 
   if (typetarget == typeinfos.end())
@@ -717,7 +717,7 @@ bool ReflMngr::IsStaticInvocable(TypeID typeID, StrID methodID,
 }
 
 bool ReflMngr::IsConstInvocable(TypeID typeID, StrID methodID,
-                                Span<TypeID> argTypeIDs) const noexcept {
+                                Span<const TypeID> argTypeIDs) const noexcept {
   auto typetarget = typeinfos.find(typeID);
 
   if (typetarget == typeinfos.end())
@@ -742,7 +742,7 @@ bool ReflMngr::IsConstInvocable(TypeID typeID, StrID methodID,
 }
 
 bool ReflMngr::IsInvocable(TypeID typeID, StrID methodID,
-                           Span<TypeID> argTypeIDs) const noexcept {
+                           Span<const TypeID> argTypeIDs) const noexcept {
   auto typetarget = typeinfos.find(typeID);
 
   if (typetarget == typeinfos.end())
@@ -766,7 +766,8 @@ bool ReflMngr::IsInvocable(TypeID typeID, StrID methodID,
 }
 
 InvokeResult ReflMngr::Invoke(TypeID typeID, StrID methodID,
-                              void* result_buffer, Span<TypeID> argTypeIDs,
+                              void* result_buffer,
+                              Span<const TypeID> argTypeIDs,
                               void* args_buffer) const {
   auto typetarget = typeinfos.find(typeID);
 
@@ -796,7 +797,8 @@ InvokeResult ReflMngr::Invoke(TypeID typeID, StrID methodID,
 }
 
 InvokeResult ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID,
-                              void* result_buffer, Span<TypeID> argTypeIDs,
+                              void* result_buffer,
+                              Span<const TypeID> argTypeIDs,
                               void* args_buffer) const {
   auto typetarget = typeinfos.find(obj.GetID());
 
@@ -828,7 +830,8 @@ InvokeResult ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID,
 }
 
 InvokeResult ReflMngr::Invoke(ObjectPtr obj, StrID methodID,
-                              void* result_buffer, Span<TypeID> argTypeIDs,
+                              void* result_buffer,
+                              Span<const TypeID> argTypeIDs,
                               void* args_buffer) const {
   auto typetarget = typeinfos.find(obj.GetID());
 
@@ -907,7 +910,7 @@ void ReflMngr::MDeallocate(MemoryResourceType type, void* ptr, size_t size,
 }
 
 SharedObject ReflMngr::MInvoke(TypeID typeID, StrID methodID,
-                               Span<TypeID> argTypeIDs, void* args_buffer,
+                               Span<const TypeID> argTypeIDs, void* args_buffer,
                                MemoryResourceType memory_rsrc_type) {
   auto typetarget = typeinfos.find(typeID);
 
@@ -944,7 +947,7 @@ SharedObject ReflMngr::MInvoke(TypeID typeID, StrID methodID,
 }
 
 SharedObject ReflMngr::MInvoke(ConstObjectPtr obj, StrID methodID,
-                               Span<TypeID> argTypeIDs, void* args_buffer,
+                               Span<const TypeID> argTypeIDs, void* args_buffer,
                                MemoryResourceType memory_rsrc_type) {
   auto typetarget = typeinfos.find(obj.GetID());
 
@@ -982,7 +985,7 @@ SharedObject ReflMngr::MInvoke(ConstObjectPtr obj, StrID methodID,
 }
 
 SharedObject ReflMngr::MInvoke(ObjectPtr obj, StrID methodID,
-                               Span<TypeID> argTypeIDs, void* args_buffer,
+                               Span<const TypeID> argTypeIDs, void* args_buffer,
                                MemoryResourceType memory_rsrc_type) {
   auto typetarget = typeinfos.find(obj.GetID());
 
@@ -1042,7 +1045,7 @@ SharedObject ReflMngr::MInvoke(ObjectPtr obj, StrID methodID,
 }
 
 bool ReflMngr::IsConstructible(TypeID typeID,
-                               Span<TypeID> argTypeIDs) const noexcept {
+                               Span<const TypeID> argTypeIDs) const noexcept {
   auto target = typeinfos.find(typeID);
   if (target == typeinfos.end())
     return false;
@@ -1074,7 +1077,7 @@ bool ReflMngr::IsDestructible(TypeID typeID) const noexcept {
   return false;
 }
 
-bool ReflMngr::Construct(ObjectPtr obj, Span<TypeID> argTypeIDs,
+bool ReflMngr::Construct(ObjectPtr obj, Span<const TypeID> argTypeIDs,
                          void* args_buffer) const {
   assert(obj);
   auto target = typeinfos.find(obj.GetID());

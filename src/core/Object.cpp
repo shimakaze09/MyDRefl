@@ -55,19 +55,19 @@ ConstObjectPtr ConstObjectPtr::DynamicCast(TypeID typeID) const noexcept {
 }
 
 bool ConstObjectPtr::IsInvocable(StrID methodID,
-                                 Span<TypeID> argTypeIDs) const noexcept {
+                                 Span<const TypeID> argTypeIDs) const noexcept {
   return ReflMngr::Instance().IsConstInvocable(ID, methodID, argTypeIDs);
 }
 
 InvokeResult ConstObjectPtr::Invoke(StrID methodID, void* result_buffer,
-                                    Span<TypeID> argTypeIDs,
+                                    Span<const TypeID> argTypeIDs,
                                     void* args_buffer) const {
   return ReflMngr::Instance().Invoke(*this, methodID, result_buffer, argTypeIDs,
                                      args_buffer);
 }
 
 SharedObject ConstObjectPtr::MInvoke(
-    StrID methodID, Span<TypeID> argTypeIDs, void* args_buffer,
+    StrID methodID, Span<const TypeID> argTypeIDs, void* args_buffer,
     MemoryResourceType memory_rsrc_type) const {
   return ReflMngr::Instance().MInvoke(*this, methodID, argTypeIDs, args_buffer,
                                       memory_rsrc_type);
@@ -106,18 +106,18 @@ ObjectPtr ObjectPtr::RWVar(TypeID baseID, StrID fieldID) const noexcept {
 }
 
 bool ObjectPtr::IsInvocable(StrID methodID,
-                            Span<TypeID> argTypeIDs) const noexcept {
+                            Span<const TypeID> argTypeIDs) const noexcept {
   return ReflMngr::Instance().IsInvocable(ID, methodID, argTypeIDs);
 }
 
 InvokeResult ObjectPtr::Invoke(StrID methodID, void* result_buffer,
-                               Span<TypeID> argTypeIDs,
+                               Span<const TypeID> argTypeIDs,
                                void* args_buffer) const {
   return ReflMngr::Instance().Invoke(*this, methodID, result_buffer, argTypeIDs,
                                      args_buffer);
 }
 
-SharedObject ObjectPtr::MInvoke(StrID methodID, Span<TypeID> argTypeIDs,
+SharedObject ObjectPtr::MInvoke(StrID methodID, Span<const TypeID> argTypeIDs,
                                 void* args_buffer,
                                 MemoryResourceType memory_rsrc_type) const {
   return ReflMngr::Instance().MInvoke(*this, methodID, argTypeIDs, args_buffer,
