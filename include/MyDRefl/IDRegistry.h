@@ -189,6 +189,10 @@ class StrIDRegistry : public IDRegistry<StrID> {
     static constexpr StrID operator_comma{Meta::operator_comma};
   };
 
+  using IDRegistry<StrID>::RegisterUnmanaged;
+  using IDRegistry<StrID>::Register;
+  using IDRegistry<StrID>::IsRegistered;
+
   StrIDRegistry();
 
   StrID RegisterUnmanaged(std::string_view name) {
@@ -215,6 +219,10 @@ class TypeIDRegistry : public IDRegistry<TypeID> {
     static constexpr TypeID global = Meta::global;
     static constexpr TypeID t_void = Meta::t_void;
   };
+
+  using IDRegistry<TypeID>::RegisterUnmanaged;
+  using IDRegistry<TypeID>::Register;
+  using IDRegistry<TypeID>::IsRegistered;
 
   TypeIDRegistry() { RegisterUnmanaged(Meta::global); }
 

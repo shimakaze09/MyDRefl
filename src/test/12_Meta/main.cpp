@@ -76,11 +76,6 @@ struct Vec {
   }
 };
 
-void f0(int);
-void f1(int&);
-void f2(int&&);
-void f3(const int&);
-
 int main() {
   ReflMngr::Instance().RegisterTypeAuto<Vec>();
   ReflMngr::Instance().AddConstructor<Vec, float, float>();
