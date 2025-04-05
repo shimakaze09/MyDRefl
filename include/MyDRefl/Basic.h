@@ -92,4 +92,10 @@ struct TypeMethodRef {
   TypeRef type;
   MethodRef method;
 };
+
+enum class DereferenceProperty {
+  NOT_REFERENCE,
+  VARIABLE,
+  CONST,
+};
 }  // namespace My::MyDRefl

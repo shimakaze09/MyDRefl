@@ -116,7 +116,7 @@ class FieldPtr {
   explicit FieldPtr(const SharedObject& obj) noexcept
       : valueID{obj.GetID()},
         data{std::in_place_index_t<6>{}, obj.GetBuffer()} {
-    assert(obj);
+    assert(obj.Valid());
   }
 
   explicit FieldPtr(SharedObject&& obj) noexcept
@@ -128,13 +128,13 @@ class FieldPtr {
   explicit FieldPtr(const SharedConstObject& obj) noexcept
       : valueID{obj.GetID()},
         data{std::in_place_index_t<7>{}, obj.GetBuffer()} {
-    assert(obj);
+    assert(obj.Valid());
   }
 
   explicit FieldPtr(SharedConstObject&& obj) noexcept
       : valueID{obj.GetID()},
         data{std::in_place_index_t<7>{}, obj.GetBuffer()} {
-    assert(obj);
+    assert(obj.Valid());
   }
 
   FieldPtr(TypeID valueID, const Buffer& buffer, bool isConst) noexcept;

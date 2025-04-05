@@ -90,6 +90,14 @@ ConstObjectPtr ObjectPtrBase::FindRVar(
   return ReflMngr::Instance().FindRVar({ID, ptr}, func);
 }
 
+DereferenceProperty ObjectPtrBase::GetDereferenceProperty() const {
+  return ReflMngr::Instance().GetDereferenceProperty(ID);
+}
+
+TypeID ObjectPtrBase::DereferenceID() const {
+  return ReflMngr::Instance().Dereference(ID);
+}
+
 ObjectPtr ObjectPtrBase::Dereference() const {
   return ReflMngr::Instance().Dereference({ID, ptr});
 }
@@ -340,18 +348,6 @@ ObjectPtr ObjectPtr::FindRWVar(
   return ReflMngr::Instance().FindRWVar(*this, func);
 }
 
-SharedObject ObjectPtr::operator+() const {
-  return DMInvoke(StrIDRegistry::MetaID::operator_plus);
-}
-
-SharedObject ObjectPtr::operator-() const {
-  return DMInvoke(StrIDRegistry::MetaID::operator_minus);
-}
-
-SharedObject ObjectPtr::operator~() const {
-  return DMInvoke(StrIDRegistry::MetaID::operator_bnot);
-}
-
 SharedObject ObjectPtr::operator++() const {
   return DMInvoke(StrIDRegistry::MetaID::operator_pre_inc);
 }
@@ -415,6 +411,32 @@ SharedObject ObjectPtr::back() const {
                                        StrIDRegistry::MetaID::container_back);
 }
 
+void ObjectPtr::reserve(std::size_t n) const {
+  ReflMngr::Instance().DMInvoke(*this,
+                                StrIDRegistry::MetaID::container_reserve);
+}
+
+void ObjectPtr::shrink_to_fit() const {
+  ReflMngr::Instance().DMInvoke(*this,
+                                StrIDRegistry::MetaID::container_shrink_to_fit);
+}
+
+// - modifiers
+
+void ObjectPtr::clear() const {
+  ReflMngr::Instance().DMInvoke(*this, StrIDRegistry::MetaID::container_clear);
+}
+
+void ObjectPtr::pop_front() const {
+  ReflMngr::Instance().DMInvoke(*this,
+                                StrIDRegistry::MetaID::container_pop_front);
+}
+
+void ObjectPtr::pop_back() const {
+  ReflMngr::Instance().DMInvoke(*this,
+                                StrIDRegistry::MetaID::container_pop_back);
+}
+
 //
 // SharedObjectBase
 /////////////////////
@@ -443,80 +465,8 @@ SharedObject SharedObjectBase::begin() const {
   return AsObjectPtr().begin();
 }
 
-SharedObject SharedObjectBase::cbegin() const {
-  return AsObjectPtr().cbegin();
-}
-
 SharedObject SharedObjectBase::end() const {
   return AsObjectPtr().end();
-}
-
-SharedObject SharedObjectBase::cend() const {
-  return AsObjectPtr().cend();
-}
-
-SharedObject SharedObjectBase::rbegin() const {
-  return AsObjectPtr().rbegin();
-}
-
-SharedObject SharedObjectBase::crbegin() const {
-  return AsObjectPtr().crbegin();
-}
-
-SharedObject SharedObjectBase::rend() const {
-  return AsObjectPtr().rend();
-}
-
-SharedObject SharedObjectBase::crend() const {
-  return AsObjectPtr().crend();
-}
-
-// - element access
-
-SharedObject SharedObjectBase::data() const {
-  return AsObjectPtr().data();
-}
-
-SharedObject SharedObjectBase::front() const {
-  return AsObjectPtr().front();
-}
-
-SharedObject SharedObjectBase::back() const {
-  return AsObjectPtr().back();
-}
-
-SharedObject SharedObjectBase::empty() const {
-  return AsObjectPtr().empty();
-}
-
-SharedObject SharedObjectBase::size() const {
-  return AsObjectPtr().size();
-}
-
-SharedObject SharedObjectBase::capacity() const {
-  return AsObjectPtr().capacity();
-}
-
-// - observers
-
-SharedObject SharedObjectBase::key_comp() const {
-  return AsObjectPtr().key_comp();
-}
-
-SharedObject SharedObjectBase::value_comp() const {
-  return AsObjectPtr().value_comp();
-}
-
-SharedObject SharedObjectBase::hash_function() const {
-  return AsObjectPtr().hash_function();
-}
-
-SharedObject SharedObjectBase::key_eq() const {
-  return AsObjectPtr().key_eq();
-}
-
-SharedObject SharedObjectBase::get_allocator() const {
-  return AsObjectPtr().get_allocator();
 }
 
 //
@@ -528,39 +478,3 @@ SharedConstObject::SharedConstObject(const SharedObject& obj)
 
 SharedConstObject::SharedConstObject(SharedObject&& obj) noexcept
     : SharedConstObject{obj.GetID(), obj.GetBuffer()} {}
-
-//
-//  SharedObject
-///////////////////////
-
-// - iterator
-
-SharedObject SharedObject::begin() const {
-  return AsObjectPtr().begin();
-}
-
-SharedObject SharedObject::end() const {
-  return AsObjectPtr().end();
-}
-
-SharedObject SharedObject::rbegin() const {
-  return AsObjectPtr().rbegin();
-}
-
-SharedObject SharedObject::rend() const {
-  return AsObjectPtr().rend();
-}
-
-// - element access
-
-SharedObject SharedObject::data() const {
-  return AsObjectPtr().data();
-}
-
-SharedObject SharedObject::front() const {
-  return AsObjectPtr().front();
-}
-
-SharedObject SharedObject::back() const {
-  return AsObjectPtr().back();
-}

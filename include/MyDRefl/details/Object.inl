@@ -84,7 +84,7 @@ SharedObject ObjectPtrBase::AMInvoke(StrID methodID,
   if constexpr (sizeof...(Args) > 0) {
     static_assert(
         !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
-    std::array argTypeIDs = {ArgID(args)...};
+    std::array argTypeIDs = {ArgID<Args>(std::forward<Args>(args))...};
     std::array args_buffer{reinterpret_cast<std::size_t>(ArgPtr(args))...};
     return MInvoke(methodID, Span<const TypeID>{argTypeIDs},
                    static_cast<void*>(args_buffer.data()), rst_rsrc);
@@ -179,7 +179,7 @@ SharedObject ObjectPtr::AMInvoke(StrID methodID,
   if constexpr (sizeof...(Args) > 0) {
     static_assert(
         !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
-    std::array argTypeIDs = {ArgID(args)...};
+    std::array argTypeIDs = {ArgID<Args>(std::forward<Args>(args))...};
     std::array args_buffer{reinterpret_cast<std::size_t>(ArgPtr(args))...};
     return MInvoke(methodID, Span<const TypeID>{argTypeIDs},
                    static_cast<void*>(args_buffer.data()), rst_rsrc);
@@ -236,3 +236,205 @@ inline void swap(My::MyDRefl::SharedConstObject& left,
   left.Swap(right);
 }
 }  // namespace std
+
+template <typename T>
+struct My::MyDRefl::IsObjectOrPtr {
+ private:
+  using U = std::remove_cv_t<T>;
+
+ public:
+  static constexpr bool value =
+      std::is_same_v<T, ObjectPtr> || std::is_same_v<T, ConstObjectPtr> ||
+      std::is_same_v<T, SharedObject> || std::is_same_v<T, SharedConstObject>;
+};
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator==(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) == My::MyDRefl::ConstCast(ptr);
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator!=(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) != My::MyDRefl::ConstCast(ptr);
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator<(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) < My::MyDRefl::ConstCast(ptr);
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator>(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) > My::MyDRefl::ConstCast(ptr);
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator<=(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) <= My::MyDRefl::ConstCast(ptr);
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator>=(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) >= My::MyDRefl::ConstCast(ptr);
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+T& operator<<(T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
+  return ptr >> lhs;
+}
+
+//template<typename T, std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+//My::MyDRefl::SharedObject operator>>(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
+//	return ptr << lhs;
+//}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator==(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) == ptr;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator!=(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) != ptr;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator<(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) < ptr;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator>(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) > ptr;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator<=(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) <= ptr;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator>=(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) >= ptr;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+T& operator<<(T& lhs, My::MyDRefl::ObjectPtr ptr) {
+  return ptr >> lhs;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+My::MyDRefl::SharedObject operator>>(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
+  return ptr << lhs;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator==(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
+  return My::MyDRefl::Ptr(lhs) == My::MyDRefl::ConstCast(ptr);
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator!=(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
+  return My::MyDRefl::Ptr(lhs) != My::MyDRefl::ConstCast(ptr);
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator<(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
+  return My::MyDRefl::Ptr(lhs) < My::MyDRefl::ConstCast(ptr);
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator>(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
+  return My::MyDRefl::Ptr(lhs) > My::MyDRefl::ConstCast(ptr);
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator<=(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
+  return My::MyDRefl::Ptr(lhs) <= My::MyDRefl::ConstCast(ptr);
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator>=(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
+  return My::MyDRefl::Ptr(lhs) >= My::MyDRefl::ConstCast(ptr);
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+T& operator<<(T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
+  return ptr >> lhs;
+}
+
+//template<typename T, std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+//My::MyDRefl::SharedObject operator>>(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
+//	return ptr << lhs;
+//}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator==(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
+  return My::MyDRefl::Ptr(lhs) == ptr;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator!=(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
+  return My::MyDRefl::Ptr(lhs) != ptr;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator<(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
+  return My::MyDRefl::Ptr(lhs) < ptr;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator>(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
+  return My::MyDRefl::Ptr(lhs) > ptr;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator<=(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
+  return My::MyDRefl::Ptr(lhs) <= ptr;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+bool operator>=(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
+  return My::MyDRefl::Ptr(lhs) >= ptr;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+T& operator<<(T& lhs, const My::MyDRefl::SharedObject& ptr) {
+  return ptr >> lhs;
+}
+
+template <typename T,
+          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+My::MyDRefl::SharedObject operator>>(const T& lhs,
+                                     const My::MyDRefl::SharedObject& ptr) {
+  return ptr << lhs;
+}

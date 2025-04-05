@@ -226,14 +226,14 @@ template <typename T, typename U = const T&>
 using operator_bor = decltype(std::declval<const T&>() | std::declval<U>());
 template <typename T, typename U = const T&>
 using operator_bxor = decltype(std::declval<const T&>() ^ std::declval<U>());
-template <typename T, typename U = std::ostream&>
+template <typename T, typename U = std::istream&>
 using operator_lshift =
     std::enable_if_t<!std::is_same_v<T, bool>,
-                     decltype(std::declval<U>() << std::declval<const T&>())>;
-template <typename T, typename U = std::istream&>
+                     decltype(std::declval<U>() >> std::declval<T&>())>;
+template <typename T, typename U = std::ostream&>
 using operator_rshift =
     std::enable_if_t<!std::is_same_v<T, bool>,
-                     decltype(std::declval<U>() >> std::declval<T&>())>;
+                     decltype(std::declval<U>() << std::declval<const T&>())>;
 
 template <typename T>
 using operator_pre_inc = decltype(++std::declval<T&>());
