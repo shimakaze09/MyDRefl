@@ -83,7 +83,7 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
 };
 
 template <typename T>
-struct TypeAutoRegister {
+struct TypeAutoRegister_Default {
   static void run(ReflMngr& mngr) {
     if constexpr (is_valid_v<operator_plus, T>)
       mngr.AddMemberMethod(StrIDRegistry::Meta::operator_plus,
@@ -166,9 +166,13 @@ struct TypeAutoRegister {
       mngr.AddMemberMethod(StrIDRegistry::Meta::operator_post_dec,
                            [](T& lhs, int) -> decltype(auto) { return lhs--; });
 
-    if constexpr (is_valid_v<operator_assign, T>)
+    if constexpr (is_valid_v<operator_assign_copy, T>)
       mngr.AddMemberMethod(StrIDRegistry::Meta::operator_assign,
                            [](T& lhs, const T& rhs) { return lhs = rhs; });
+    if constexpr (is_valid_v<operator_assign_move, T>)
+      mngr.AddMemberMethod(
+          StrIDRegistry::Meta::operator_assign,
+          [](T& lhs, T&& rhs) { return lhs = std::move(rhs); });
     if constexpr (is_valid_v<operator_assign_add, T>)
       mngr.AddMemberMethod(
           StrIDRegistry::Meta::operator_assign_add,
@@ -634,8 +638,15 @@ struct TypeAutoRegister {
       mngr.AddMemberMethod(
           StrIDRegistry::Meta::container_get_allocator,
           [](const T& lhs) -> decltype(auto) { return lhs.get_allocator(); });
+
+    if constexpr (IsVector_v<T>)
+      mngr.AddAttr(TypeID::of<T>, mngr.MakeShared(TypeID::of<ContainerType>,
+                                                  ContainerType::VECTOR));
   }
 };
+
+template <typename T>
+struct TypeAutoRegister : TypeAutoRegister_Default<T> {};
 };  // namespace My::MyDRefl::details
 
 namespace My::MyDRefl {
@@ -885,8 +896,13 @@ void ReflMngr::RegisterTypeAuto(AttrSet attrs_ctor, AttrSet attrs_dtor) {
       if (IsRegistered(TypeID::of<T>))
         return;
       RegisterType(type_name<T>(), sizeof(T), alignof(T));
+
       if constexpr (std::is_default_constructible_v<T>)
         AddConstructor<T>(std::move(attrs_ctor));
+      if constexpr (std::is_copy_constructible_v<T>)
+        AddConstructor<T, const T&>(std::move(attrs_ctor));
+      if constexpr (std::is_move_constructible_v<T>)
+        AddConstructor<T, T&&>(std::move(attrs_ctor));
       if constexpr (std::is_destructible_v<T>)
         AddDestructor<T>(std::move(attrs_dtor));
 

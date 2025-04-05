@@ -98,6 +98,8 @@ class ObjectPtrBase {
   // ReflMngr
   /////////////
 
+  TypeInfo* GetType() const noexcept;
+
   ConstObjectPtr StaticCast_DerivedToBase(TypeID baseID) const noexcept;
   ConstObjectPtr StaticCast_BaseToDerived(TypeID derivedID) const noexcept;
   ConstObjectPtr DynamicCast_BaseToDerived(TypeID derivedID) const noexcept;
@@ -347,8 +349,10 @@ class ObjectPtr : public ObjectPtrBase {
   /////////////
 
   // variable
+  // if &{const&{T}}, return nullptr
   ObjectPtr RWVar(StrID fieldID) const noexcept;
   // variable, for diamond inheritance
+  // if &{const&{T}}, return nullptr
   ObjectPtr RWVar(TypeID baseID, StrID fieldID) const noexcept;
 
   ObjectPtr StaticCast_DerivedToBase(TypeID baseID) const noexcept;
@@ -799,6 +803,8 @@ class SharedObject : public SharedObjectBase {
   ObjectPtr operator->() const noexcept { return AsObjectPtr(); }
 
   operator ObjectPtr() const noexcept { return AsObjectPtr(); }
+
+  operator ConstObjectPtr() const noexcept { return AsConstObjectPtr(); }
 
   operator SharedConstObject() const noexcept { return {ID, buffer}; };
 

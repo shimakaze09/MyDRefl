@@ -205,6 +205,14 @@ SharedObject ObjectPtrBase::get_allocator() const {
       ConstObjectPtr{ID, ptr}, StrIDRegistry::MetaID::container_get_allocator);
 }
 
+TypeInfo* ObjectPtrBase::GetType() const noexcept {
+  auto target = ReflMngr::Instance().typeinfos.find(ID);
+  if (target == ReflMngr::Instance().typeinfos.end())
+    return nullptr;
+
+  return &target->second;
+}
+
 ConstObjectPtr ObjectPtrBase::StaticCast_DerivedToBase(
     TypeID typeID) const noexcept {
   return ReflMngr::Instance().StaticCast_DerivedToBase(ConstObjectPtr{ID, ptr},

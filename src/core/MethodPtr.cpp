@@ -18,12 +18,12 @@ bool ParamList::IsConpatibleWith(Span<const TypeID> typeIDs) const noexcept {
            typeIDs[i] != TypeID::of<ObjectPtr>) &&
           (params[i] != TypeID::of<SharedConstObject> ||
            typeIDs[i] != TypeID::of<SharedObject>)) {
-        //     -     | T | T & | T&& | const T & | const T&& |
-        //       T   | - |  0  |  0  |     1     |     0     |
-        //       T & | 0 |  -  |  0  |     0     |     0     |
-        // const T & | 1 |  1  |  -  |     1     |     1     |
-        //       T&& | 1 |  0  |  0  |     -     |     0     |
-        // const T&& | 1 |  0  |  0  |     1     |     -     |
+        //     -     | T | T & | const T & | T&& | const T&& |
+        //       T   | - |  0  |     0     |  1  |     0     |
+        //       T & | 0 |  -  |     0     |  0  |     0     |
+        // const T & | 1 |  1  |     -     |  1  |     1     |
+        //       T&& | 1 |  0  |     0     |  -  |     0     |
+        // const T&& | 1 |  0  |     0     |  1  |     -     |
 
         // because rhs(arg)'s ID maybe have no name in the registry
         // so we use type_name_add_*_hash(...) to avoid it
