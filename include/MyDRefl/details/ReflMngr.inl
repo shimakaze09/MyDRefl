@@ -199,7 +199,7 @@ FieldPtr ReflMngr::GenerateDynamicFieldPtr(Args&&... args) {
     static_assert(alignof(RawT) <= alignof(max_align_t));
     using MaybeConstSharedObject =
         std::conditional_t<std::is_const_v<T>, SharedConstObject, SharedObject>;
-    MaybeConstSharedObject obj = {
+    MaybeConstSharedObject obj{
         TypeID::of<RawT>, std::make_shared<RawT>(std::forward<Args>(args)...)};
     return FieldPtr{obj};
   }

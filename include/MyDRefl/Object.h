@@ -80,6 +80,91 @@ class ObjectPtrBase {
   // ReflMngr
   /////////////
 
+  ConstObjectPtr StaticCast_DerivedToBase(TypeID baseID) const noexcept;
+  ConstObjectPtr StaticCast_BaseToDerived(TypeID derivedID) const noexcept;
+  ConstObjectPtr DynamicCast_BaseToDerived(TypeID derivedID) const noexcept;
+  ConstObjectPtr StaticCast(TypeID typeID) const noexcept;
+  ConstObjectPtr DynamicCast(TypeID typeID) const noexcept;
+
+  InvocableResult IsInvocable(
+      StrID methodID, Span<const TypeID> argTypeIDs = {}) const noexcept;
+
+  InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
+                      Span<const TypeID> argTypeIDs = {},
+                      void* args_buffer = nullptr) const;
+
+  template <typename... Args>
+  InvocableResult IsInvocable(StrID methodID) const noexcept;
+
+  template <typename T>
+  T InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs = {},
+              void* args_buffer = nullptr) const;
+
+  template <typename... Args>
+  InvokeResult InvokeArgs(StrID methodID, void* result_buffer,
+                          Args... args) const;
+
+  template <typename T, typename... Args>
+  T Invoke(StrID methodID, Args... args) const;
+
+  SharedObject MInvoke(StrID methodID, Span<const TypeID> argTypeIDs = {},
+                       void* args_buffer = nullptr,
+                       std::pmr::memory_resource* rst_rsrc =
+                           std::pmr::get_default_resource()) const;
+
+  template <typename... Args>
+  SharedObject MInvoke(StrID methodID, std::pmr::memory_resource* rst_rsrc,
+                       Args... args) const;
+
+  template <typename... Args>
+  SharedObject DMInvoke(StrID methodID, Args... args) const;
+
+  // A means auto, ObjectPtr/SharedObject will be transform as ID + ptr
+  template <typename... Args>
+  SharedObject AMInvoke(StrID methodID, std::pmr::memory_resource* rst_rsrc,
+                        Args... args) const;
+
+  // A means auto, ObjectPtr/SharedObject will be transform as ID + ptr
+  template <typename... Args>
+  SharedObject ADMInvoke(StrID methodID, Args... args) const;
+
+  //
+  // Meta
+  /////////
+
+  OBJECT_PTR_DEFINE_OPERATOR(+, add)
+  OBJECT_PTR_DEFINE_OPERATOR(-, sub)
+  OBJECT_PTR_DEFINE_OPERATOR(*, mul)
+  OBJECT_PTR_DEFINE_OPERATOR(/, div)
+  OBJECT_PTR_DEFINE_OPERATOR(%, mod)
+  OBJECT_PTR_DEFINE_OPERATOR(&, band)
+  OBJECT_PTR_DEFINE_OPERATOR(|, bor)
+  OBJECT_PTR_DEFINE_OPERATOR(^, bxor)
+  OBJECT_PTR_DEFINE_OPERATOR(<<, lshift)
+  OBJECT_PTR_DEFINE_OPERATOR(>>, rshift)
+
+  OBJECT_PTR_DEFINE_OPERATOR([], subscript)
+  OBJECT_PTR_DEFINE_OPERATOR(->*, member_of_pointer)
+
+  OBJECT_PTR_DEFINE_CMP_OPERATOR(==, eq);
+  OBJECT_PTR_DEFINE_CMP_OPERATOR(!=, ne);
+  OBJECT_PTR_DEFINE_CMP_OPERATOR(<, lt);
+  OBJECT_PTR_DEFINE_CMP_OPERATOR(<=, le);
+  OBJECT_PTR_DEFINE_CMP_OPERATOR(>, gt);
+  OBJECT_PTR_DEFINE_CMP_OPERATOR(>=, ge);
+
+  SharedObject operator+() const;
+  SharedObject operator-() const;
+  SharedObject operator~() const;
+  SharedObject operator[](std::size_t n) const;
+  SharedObject operator*() const;
+
+  template <typename... Args>
+  SharedObject operator()(Args... args) const {
+    return DMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
+                             std::forward<Args>(args)...);
+  }
+
   std::string_view TypeName() const noexcept;
 
   // all
@@ -163,7 +248,7 @@ class ObjectPtrBase {
   template <typename T>
   constexpr decltype(auto) As() const noexcept {
     assert(ptr);
-    const auto* ptr = AsPtr<T>();
+    auto* ptr = AsPtr<T>();
     if constexpr (std::is_reference_v<T>)
       return std::forward<T>(**ptr);
     else
@@ -183,8 +268,8 @@ class ConstObjectPtr : public ObjectPtrBase {
       : ObjectPtrBase{ID, const_cast<void*>(ptr)} {}
 
   template <typename T, std::enable_if_t<!std::is_void_v<T>, int> = 0>
-  constexpr ConstObjectPtr(const volatile T* ptr)
-      : ConstObjectPtr{TypeID::of<T>, ptr} {}
+  constexpr ConstObjectPtr(const T* ptr)
+      : ConstObjectPtr{TypeID::of<std::remove_volatile_t<T>>, ptr} {}
 
   ConstObjectPtr(const SharedConstObject& obj) noexcept;
 
@@ -205,115 +290,6 @@ class ConstObjectPtr : public ObjectPtrBase {
   constexpr ConstObjectPtr* operator->() noexcept { return this; }
 
   constexpr const ConstObjectPtr* operator->() const noexcept { return this; }
-
-  //
-  // ReflMngr
-  /////////////
-
-  ConstObjectPtr StaticCast_DerivedToBase(TypeID baseID) const noexcept;
-  ConstObjectPtr StaticCast_BaseToDerived(TypeID derivedID) const noexcept;
-  ConstObjectPtr DynamicCast_BaseToDerived(TypeID derivedID) const noexcept;
-  ConstObjectPtr StaticCast(TypeID typeID) const noexcept;
-  ConstObjectPtr DynamicCast(TypeID typeID) const noexcept;
-
-  InvocableResult IsInvocable(
-      StrID methodID, Span<const TypeID> argTypeIDs = {}) const noexcept;
-
-  InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
-                      Span<const TypeID> argTypeIDs = {},
-                      void* args_buffer = nullptr) const;
-
-  template <typename... Args>
-  InvocableResult IsInvocable(StrID methodID) const noexcept;
-
-  template <typename T>
-  T InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs = {},
-              void* args_buffer = nullptr) const;
-
-  template <typename... Args>
-  InvokeResult InvokeArgs(StrID methodID, void* result_buffer,
-                          Args... args) const;
-
-  template <typename T, typename... Args>
-  T Invoke(StrID methodID, Args... args) const;
-
-  SharedObject MInvoke(StrID methodID, Span<const TypeID> argTypeIDs = {},
-                       void* args_buffer = nullptr,
-                       std::pmr::memory_resource* rst_rsrc =
-                           std::pmr::get_default_resource()) const;
-
-  template <typename... Args>
-  SharedObject MInvoke(StrID methodID, std::pmr::memory_resource* rst_rsrc,
-                       Args... args) const;
-
-  template <typename... Args>
-  SharedObject DMInvoke(StrID methodID, Args... args) const;
-
-  // A means auto, ObjectPtr/SharedObject will be transform as ID + ptr
-  template <typename... Args>
-  SharedObject AMInvoke(StrID methodID, std::pmr::memory_resource* rst_rsrc,
-                        Args... args) const;
-
-  // A means auto, ObjectPtr/SharedObject will be transform as ID + ptr
-  template <typename... Args>
-  SharedObject ADMInvoke(StrID methodID, Args... args) const;
-
-  //
-  // Meta
-  /////////
-
-  OBJECT_PTR_DEFINE_OPERATOR(+, add)
-  OBJECT_PTR_DEFINE_OPERATOR(-, sub)
-  OBJECT_PTR_DEFINE_OPERATOR(*, mul)
-  OBJECT_PTR_DEFINE_OPERATOR(/, div)
-  OBJECT_PTR_DEFINE_OPERATOR(%, mod)
-  OBJECT_PTR_DEFINE_OPERATOR(&, band)
-  OBJECT_PTR_DEFINE_OPERATOR(|, bor)
-  OBJECT_PTR_DEFINE_OPERATOR(^, bxor)
-  OBJECT_PTR_DEFINE_OPERATOR(<<, lshift)
-  OBJECT_PTR_DEFINE_OPERATOR(>>, rshift)
-  //OBJECT_PTR_DEFINE_OPERATOR(&&, and)
-  //OBJECT_PTR_DEFINE_OPERATOR(||, or)
-
-  //OBJECT_PTR_DEFINE_OPERATOR(+=, assign_add)
-  //OBJECT_PTR_DEFINE_OPERATOR(-=, assign_sub)
-  //OBJECT_PTR_DEFINE_OPERATOR(*=, assign_mul)
-  //OBJECT_PTR_DEFINE_OPERATOR(/=, assign_div)
-  //OBJECT_PTR_DEFINE_OPERATOR(%=, assign_mod)
-  //OBJECT_PTR_DEFINE_OPERATOR(&=, assign_band)
-  //OBJECT_PTR_DEFINE_OPERATOR(|=, assign_bor)
-  //OBJECT_PTR_DEFINE_OPERATOR(^=, assign_bxor)
-  //OBJECT_PTR_DEFINE_OPERATOR(<<=, assign_lshift)
-  //OBJECT_PTR_DEFINE_OPERATOR(>>=, assign_rshift)
-
-  OBJECT_PTR_DEFINE_OPERATOR([], subscript)
-  OBJECT_PTR_DEFINE_OPERATOR(->*, member_of_pointer)
-
-  OBJECT_PTR_DEFINE_CMP_OPERATOR(==, eq);
-  OBJECT_PTR_DEFINE_CMP_OPERATOR(!=, ne);
-  OBJECT_PTR_DEFINE_CMP_OPERATOR(<, lt);
-  OBJECT_PTR_DEFINE_CMP_OPERATOR(<=, le);
-  OBJECT_PTR_DEFINE_CMP_OPERATOR(>, gt);
-  OBJECT_PTR_DEFINE_CMP_OPERATOR(>=, ge);
-
-  SharedObject operator+() const;
-  SharedObject operator-() const;
-  SharedObject operator~() const;
-  //SharedObject operator++() const;
-  //SharedObject operator++(int) const;
-  //SharedObject operator--() const;
-  //SharedObject operator--(int) const;
-  //SharedObject operator!() const;
-  SharedObject operator[](std::size_t n) const;
-  SharedObject operator*() const;
-
-  //SharedObject operator&() const;
-
-  template <typename... Args>
-  SharedObject operator()(Args... args) const {
-    return DMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
-                             std::forward<Args>(args)...);
-  }
 };
 
 class ObjectPtr : public ObjectPtrBase {
@@ -417,8 +393,6 @@ class ObjectPtr : public ObjectPtrBase {
   OBJECT_PTR_DEFINE_OPERATOR(^, bxor)
   OBJECT_PTR_DEFINE_OPERATOR(<<, lshift)
   OBJECT_PTR_DEFINE_OPERATOR(>>, rshift)
-  //OBJECT_PTR_DEFINE_OPERATOR(&&, and)
-  //OBJECT_PTR_DEFINE_OPERATOR(||, or)
 
   OBJECT_PTR_DEFINE_OPERATOR(+=, assign_add)
   OBJECT_PTR_DEFINE_OPERATOR(-=, assign_sub)
@@ -448,11 +422,8 @@ class ObjectPtr : public ObjectPtrBase {
   SharedObject operator++(int) const;
   SharedObject operator--() const;
   SharedObject operator--(int) const;
-  //SharedObject operator!() const;
   SharedObject operator[](std::size_t n) const;
   SharedObject operator*() const;
-
-  //SharedObject operator&() const;
 
   template <typename... Args>
   SharedObject operator()(Args... args) const {
@@ -481,38 +452,208 @@ class ObjectPtr : public ObjectPtrBase {
 static_assert(sizeof(ObjectPtr) == sizeof(ConstObjectPtr) &&
               alignof(ObjectPtr) == alignof(ConstObjectPtr));
 
+constexpr ObjectPtr ConstCast(ConstObjectPtr ptr) noexcept {
+  return {ptr.GetID(), const_cast<void*>(ptr.GetPtr())};
+}
+
 // SharedBuffer + ID
-class SharedConstObject {
+class SharedObjectBase {
  public:
   //
   // Constructor
   ////////////////
 
-  constexpr SharedConstObject() noexcept = default;
+  constexpr SharedObjectBase() noexcept = default;
 
-  SharedConstObject(const SharedConstObject& obj)
-      : ID{obj.ID}, buffer{obj.buffer} {}
+  constexpr SharedObjectBase(std::nullptr_t) noexcept {}
 
-  SharedConstObject(SharedConstObject&& obj) noexcept
-      : ID{obj.ID}, buffer{std::move(obj.buffer)} {}
+  explicit constexpr SharedObjectBase(TypeID ID) noexcept : ID{ID} {}
 
-  constexpr SharedConstObject(std::nullptr_t) noexcept {}
-
-  explicit constexpr SharedConstObject(TypeID ID) noexcept : ID{ID} {}
-
-  SharedConstObject(TypeID ID, const SharedConstBuffer& buffer) noexcept
+  SharedObjectBase(TypeID ID, const SharedBuffer& buffer) noexcept
       : ID{ID}, buffer{buffer} {}
 
-  SharedConstObject(TypeID ID, SharedConstBuffer&& buffer) noexcept
+  SharedObjectBase(TypeID ID, SharedBuffer&& buffer) noexcept
       : ID{ID}, buffer{std::move(buffer)} {}
 
-  template <typename U, typename Deleter>
-  SharedConstObject(ObjectPtr obj, Deleter d) noexcept
+  template <typename T>
+  SharedObjectBase(TypeID ID, const std::shared_ptr<T>& buffer) noexcept
+      : ID{ID}, buffer{buffer} {}
+
+  template <typename T>
+  SharedObjectBase(TypeID ID, std::shared_ptr<T>&& buffer) noexcept
+      : ID{ID}, buffer{std::move(buffer)} {}
+
+  template <typename Deleter>
+  SharedObjectBase(ObjectPtr obj, Deleter d) noexcept
       : ID{obj.GetID()}, buffer{obj.GetPtr(), std::move(d)} {}
 
   template <typename U, typename Deleter, typename Alloc>
-  SharedConstObject(ObjectPtr obj, Deleter d, Alloc alloc) noexcept
+  SharedObjectBase(ObjectPtr obj, Deleter d, Alloc alloc) noexcept
       : ID{obj.GetID()}, buffer{obj.GetPtr(), std::move(d), alloc} {}
+
+  //
+  // Modifiers
+  //////////////
+
+  void Reset() noexcept {
+    buffer.reset();
+    ID.Reset();
+  }
+
+  //
+  // Observers
+  //////////////
+
+  TypeID GetID() const noexcept { return ID; }
+
+  long UseCount() const noexcept { return buffer.use_count(); }
+
+  operator bool() const noexcept { return ID && static_cast<bool>(buffer); }
+
+  //
+  // Meta
+  /////////
+
+  SHARED_OBJECT_DEFINE_OPERATOR(+)
+  SHARED_OBJECT_DEFINE_OPERATOR(-)
+  SHARED_OBJECT_DEFINE_OPERATOR(*)
+  SHARED_OBJECT_DEFINE_OPERATOR(/)
+  SHARED_OBJECT_DEFINE_OPERATOR(%)
+  SHARED_OBJECT_DEFINE_OPERATOR(&)
+  SHARED_OBJECT_DEFINE_OPERATOR(|)
+  SHARED_OBJECT_DEFINE_OPERATOR(^)
+  SHARED_OBJECT_DEFINE_OPERATOR(<<)
+
+  SHARED_OBJECT_DEFINE_CMP_OPERATOR(==)
+  SHARED_OBJECT_DEFINE_CMP_OPERATOR(!=)
+  SHARED_OBJECT_DEFINE_CMP_OPERATOR(>)
+  SHARED_OBJECT_DEFINE_CMP_OPERATOR(>=)
+  SHARED_OBJECT_DEFINE_CMP_OPERATOR(<)
+  SHARED_OBJECT_DEFINE_CMP_OPERATOR(<=)
+
+  SHARED_OBJECT_DEFINE_OPERATOR([])
+  SHARED_OBJECT_DEFINE_OPERATOR(->*)
+
+  SharedObject operator+() const;
+  SharedObject operator-() const;
+  SharedObject operator~() const;
+
+  SharedObject operator[](std::size_t n) const;
+  SharedObject operator*() const;
+
+  template <typename... Args>
+  SharedObject operator()(Args... args) const {
+    return AsObjectPtr()->operator()<Args...>(std::forward<Args>(args)...);
+  }
+
+  //
+  // container
+  //////////////
+
+  // - iterator
+
+  SharedObject begin() const;
+  SharedObject cbegin() const;
+  SharedObject end() const;
+  SharedObject cend() const;
+  SharedObject rbegin() const;
+  SharedObject crbegin() const;
+  SharedObject rend() const;
+  SharedObject crend() const;
+
+  // - element access
+
+  SharedObject data() const;
+  SharedObject front() const;
+  SharedObject back() const;
+  SharedObject empty() const;
+  SharedObject size() const;
+  //SharedObject max_size() const;
+  SharedObject capacity() const;
+
+  // - observers
+
+  SharedObject key_comp() const;
+  SharedObject value_comp() const;
+  SharedObject hash_function() const;
+  SharedObject key_eq() const;
+  SharedObject get_allocator() const;
+
+ protected:
+  void Swap(SharedObjectBase& rhs) noexcept {
+    std::swap(ID, rhs.ID);
+    buffer.swap(rhs.buffer);
+  }
+
+  void* GetPtr() const noexcept { return buffer.get(); }
+
+  template <typename T>
+  auto* AsPtr() const noexcept {
+    static_assert(!std::is_const_v<T> && !std::is_volatile_v<T>);
+    assert(ID.Is<T>());
+    if constexpr (std::is_reference_v<T>)
+      return reinterpret_cast<const std::add_pointer_t<T>*>(GetPtr());
+    else
+      return reinterpret_cast<T*>(GetPtr());
+  }
+
+  template <typename T>
+  decltype(auto) As() const noexcept {
+    assert(GetPtr());
+    auto* ptr = AsPtr<T>();
+    if constexpr (std::is_reference_v<T>)
+      return std::forward<T>(**ptr);
+    else
+      return *ptr;
+  }
+
+  TypeID ID;
+  SharedBuffer buffer;
+
+ private:
+  ConstObjectPtr AsObjectPtr() const noexcept { return {ID, buffer.get()}; }
+};
+
+// SharedBuffer + ID
+class SharedConstObject : public SharedObjectBase {
+ public:
+  //
+  // Constructor
+  ////////////////
+
+  using SharedObjectBase::SharedObjectBase;
+
+  SharedConstObject(const SharedConstObject& obj) noexcept
+      : SharedObjectBase{obj.ID, obj.buffer} {}
+
+  SharedConstObject(SharedConstObject&& obj) noexcept
+      : SharedObjectBase{obj.ID, std::move(obj.buffer)} {}
+
+  SharedConstObject(const SharedObject& obj);
+  SharedConstObject(SharedObject&& obj) noexcept;
+
+  SharedConstObject(TypeID ID, const SharedConstBuffer& buffer) noexcept
+      : SharedObjectBase{ID, std::const_pointer_cast<void>(buffer)} {}
+
+  SharedConstObject(TypeID ID, SharedConstBuffer&& buffer) noexcept
+      : SharedObjectBase{ID, std::const_pointer_cast<void>(std::move(buffer))} {
+  }
+
+  template <typename T>
+  SharedConstObject(TypeID ID, const std::shared_ptr<const T>& buffer) noexcept
+      : SharedObjectBase{ID, std::const_pointer_cast<T>(buffer)} {}
+
+  template <typename T>
+  SharedConstObject(TypeID ID, std::shared_ptr<const T>&& buffer) noexcept
+      : SharedObjectBase{ID, std::const_pointer_cast<T>(std::move(buffer))} {}
+
+  template <typename U, typename Deleter>
+  SharedConstObject(ConstObjectPtr obj, Deleter d) noexcept
+      : SharedObjectBase{ConstCast(obj), std::move(d)} {}
+
+  template <typename U, typename Deleter, typename Alloc>
+  SharedConstObject(ConstObjectPtr obj, Deleter d, Alloc alloc) noexcept
+      : SharedObjectBase{ConstCast(obj), std::move(d), alloc} {}
 
   //
   // Assign
@@ -538,150 +679,49 @@ class SharedConstObject {
   // Modifiers
   //////////////
 
-  void Reset() noexcept {
-    buffer.reset();
-    ID.Reset();
-  }
-
-  void Swap(SharedConstObject& rhs) noexcept {
-    std::swap(ID, rhs.ID);
-    buffer.swap(rhs.buffer);
-  }
+  void Swap(SharedConstObject& rhs) noexcept { SharedObjectBase::Swap(rhs); }
 
   //
   // Observers
   //////////////
 
-  TypeID GetID() const noexcept { return ID; }
-
-  SharedConstBuffer GetBuffer() noexcept { return buffer; }
-
-  const SharedConstBuffer& GetBuffer() const noexcept { return buffer; }
+  const SharedConstBuffer& GetBuffer() const noexcept {
+    return reinterpret_cast<const SharedConstBuffer&>(buffer);
+  }
 
   const void* GetPtr() const noexcept { return buffer.get(); }
 
   template <typename T>
   const auto* AsPtr() const noexcept {
-    static_assert(!std::is_const_v<T> && !std::is_volatile_v<T>);
-    assert(ID.Is<T>());
-    if constexpr (std::is_reference_v<T>)
-      return reinterpret_cast<std::add_pointer_t<T>*>(GetPtr());
-    else
-      return reinterpret_cast<const T*>(GetPtr());
+    return SharedObjectBase::AsPtr<T>();
   }
 
   template <typename T>
   decltype(auto) As() const noexcept {
-    assert(GetPtr());
-    const auto* ptr = AsPtr<T>();
-    if constexpr (std::is_reference_v<T>)
-      return std::forward<T>(**ptr);
-    else
-      return *ptr;
+    return SharedObjectBase::As<T>();
   }
 
   ConstObjectPtr AsObjectPtr() const noexcept { return {ID, buffer.get()}; }
 
   ConstObjectPtr operator->() const noexcept { return AsObjectPtr(); }
 
-  long UseCount() const noexcept { return buffer.use_count(); }
-
-  operator bool() const noexcept { return ID && static_cast<bool>(buffer); }
-
   operator ConstObjectPtr() const noexcept { return AsObjectPtr(); }
-
-  //
-  // Meta
-  /////////
-
-  SHARED_OBJECT_DEFINE_OPERATOR(+)
-  SHARED_OBJECT_DEFINE_OPERATOR(-)
-  SHARED_OBJECT_DEFINE_OPERATOR(*)
-  SHARED_OBJECT_DEFINE_OPERATOR(/)
-  SHARED_OBJECT_DEFINE_OPERATOR(%)
-  SHARED_OBJECT_DEFINE_OPERATOR(&)
-  SHARED_OBJECT_DEFINE_OPERATOR(|)
-  SHARED_OBJECT_DEFINE_OPERATOR(^)
-  SHARED_OBJECT_DEFINE_OPERATOR(<<)
-  SHARED_OBJECT_DEFINE_OPERATOR(>>)
-  //SHARED_OBJECT_DEFINE_OPERATOR(&&, and)
-  //SHARED_OBJECT_DEFINE_OPERATOR(||, or)
-
-  /*SHARED_OBJECT_DEFINE_OPERATOR(+=)
-		SHARED_OBJECT_DEFINE_OPERATOR(-=)
-		SHARED_OBJECT_DEFINE_OPERATOR(*=)
-		SHARED_OBJECT_DEFINE_OPERATOR(/=)
-		SHARED_OBJECT_DEFINE_OPERATOR(%=)
-		SHARED_OBJECT_DEFINE_OPERATOR(&=)
-		SHARED_OBJECT_DEFINE_OPERATOR(|=)
-		SHARED_OBJECT_DEFINE_OPERATOR(^=)
-		SHARED_OBJECT_DEFINE_OPERATOR(<<=)
-		SHARED_OBJECT_DEFINE_OPERATOR(>>=)*/
-
-  SHARED_OBJECT_DEFINE_OPERATOR([])
-  SHARED_OBJECT_DEFINE_OPERATOR(->*)
-
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(==)
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(!=)
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(>)
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(>=)
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(<)
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(<=)
-
-  SharedObject operator+() const;
-  SharedObject operator-() const;
-  SharedObject operator~() const;
-  //SharedObject operator++() const;
-  //SharedObject operator++(int) const;
-  //SharedObject operator--() const;
-  //SharedObject operator--(int) const;
-  //SharedObject operator!() const;
-  SharedObject operator[](std::size_t n) const;
-  SharedObject operator*() const;
-
-  //SharedObject operator&() const;
-
-  template <typename... Args>
-  SharedObject operator()(Args... args) const {
-    return AsObjectPtr()->operator()<Args...>(std::forward<Args>(args)...);
-  }
-
- private:
-  TypeID ID;
-  SharedConstBuffer buffer;
 };
 
 // SharedBuffer + ID
-class SharedObject {
+class SharedObject : public SharedObjectBase {
  public:
   //
   // Constructor
   ////////////////
 
-  constexpr SharedObject() noexcept = default;
+  using SharedObjectBase::SharedObjectBase;
 
-  SharedObject(const SharedObject& obj) : ID{obj.ID}, buffer{obj.buffer} {}
+  SharedObject(const SharedObject& obj)
+      : SharedObjectBase{obj.ID, obj.buffer} {}
 
   SharedObject(SharedObject&& obj) noexcept
-      : ID{obj.ID}, buffer{std::move(obj.buffer)} {}
-
-  constexpr SharedObject(std::nullptr_t) noexcept {}
-
-  explicit constexpr SharedObject(TypeID ID) noexcept : ID{ID} {}
-
-  SharedObject(TypeID ID, const SharedBuffer& buffer) noexcept
-      : ID{ID}, buffer{buffer} {}
-
-  SharedObject(TypeID ID, SharedBuffer&& buffer) noexcept
-      : ID{ID}, buffer{std::move(buffer)} {}
-
-  template <typename Deleter>
-  SharedObject(ObjectPtr obj, Deleter d) noexcept
-      : ID{obj.GetID()}, buffer{obj.GetPtr(), std::move(d)} {}
-
-  template <typename U, typename Deleter, typename Alloc>
-  SharedObject(ObjectPtr obj, Deleter d, Alloc alloc) noexcept
-      : ID{obj.GetID()}, buffer{obj.GetPtr(), std::move(d), alloc} {}
+      : SharedObjectBase{obj.ID, std::move(obj.buffer)} {}
 
   //
   // Assign
@@ -707,75 +747,41 @@ class SharedObject {
   // Modifiers
   //////////////
 
-  void Reset() noexcept {
-    buffer.reset();
-    ID.Reset();
-  }
-
-  void Swap(SharedObject& rhs) noexcept {
-    std::swap(ID, rhs.ID);
-    buffer.swap(rhs.buffer);
-  }
+  void Swap(SharedObject& rhs) noexcept { SharedObjectBase::Swap(rhs); }
 
   //
   // Observers
   //////////////
 
-  TypeID GetID() const noexcept { return ID; }
-
-  SharedBuffer GetBuffer() noexcept { return buffer; }
-
   const SharedBuffer& GetBuffer() const noexcept { return buffer; }
 
   void* GetPtr() const noexcept { return buffer.get(); }
 
-  template <typename T>
-  auto* AsPtr() const noexcept {
-    static_assert(!std::is_const_v<T> && !std::is_volatile_v<T>);
-    assert(ID.Is<T>());
-    if constexpr (std::is_reference_v<T>)
-      return reinterpret_cast<const std::add_pointer_t<T>*>(GetPtr());
-    else
-      return reinterpret_cast<T*>(GetPtr());
-  }
+  using SharedObjectBase::As;
+  using SharedObjectBase::AsPtr;
 
-  template <typename T>
-  decltype(auto) As() const noexcept {
-    assert(GetPtr());
-    auto* ptr = AsPtr<T>();
-    if constexpr (std::is_reference_v<T>)
-      return std::forward<T>(**ptr);
-    else
-      return *ptr;
+  SharedConstObject AsSharedConstObject() const noexcept {
+    return {ID, buffer};
   }
 
   ObjectPtr AsObjectPtr() const noexcept { return {ID, buffer.get()}; }
 
+  ConstObjectPtr AsConstObjectPtr() const noexcept {
+    return {ID, buffer.get()};
+  }
+
   ObjectPtr operator->() const noexcept { return AsObjectPtr(); }
-
-  long UseCount() const noexcept { return buffer.use_count(); }
-
-  operator bool() const noexcept { return ID && static_cast<bool>(buffer); }
 
   operator ObjectPtr() const noexcept { return AsObjectPtr(); }
 
-  operator SharedConstObject() const noexcept {
-    return {ID, SharedConstBuffer{buffer}};
-  };
+  operator SharedConstObject() const noexcept { return {ID, buffer}; };
 
   //
   // Meta
   /////////
 
-  SHARED_OBJECT_DEFINE_OPERATOR(+)
-  SHARED_OBJECT_DEFINE_OPERATOR(-)
-  SHARED_OBJECT_DEFINE_OPERATOR(*)
-  SHARED_OBJECT_DEFINE_OPERATOR(/)
-  SHARED_OBJECT_DEFINE_OPERATOR(%)
-  SHARED_OBJECT_DEFINE_OPERATOR(&)
-  SHARED_OBJECT_DEFINE_OPERATOR(|)
-  SHARED_OBJECT_DEFINE_OPERATOR(^)
-  SHARED_OBJECT_DEFINE_OPERATOR(<<)
+  using SharedObjectBase::operator*;
+
   SHARED_OBJECT_DEFINE_OPERATOR(>>)
 
   SHARED_OBJECT_DEFINE_OPERATOR(+=)
@@ -792,16 +798,6 @@ class SharedObject {
   SHARED_OBJECT_DEFINE_OPERATOR([])
   SHARED_OBJECT_DEFINE_OPERATOR(->*)
 
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(==)
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(!=)
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(>)
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(>=)
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(<)
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(<=)
-
-  SHARED_OBJECT_DEFINE_UNARY_OPERATOR(+)
-  SHARED_OBJECT_DEFINE_UNARY_OPERATOR(-)
-  SHARED_OBJECT_DEFINE_UNARY_OPERATOR(~)
   SHARED_OBJECT_DEFINE_UNARY_OPERATOR(++)
   SHARED_OBJECT_DEFINE_UNARY_OPERATOR(--)
 
@@ -817,9 +813,22 @@ class SharedObject {
     return AsObjectPtr()->operator()<Args...>(std::forward<Args>(args)...);
   }
 
- private:
-  TypeID ID;
-  SharedBuffer buffer;
+  //
+  // container
+  //////////////
+
+  // - iterator
+
+  SharedObject begin() const;
+  SharedObject end() const;
+  SharedObject rbegin() const;
+  SharedObject rend() const;
+
+  // - element access
+
+  SharedObject data() const;
+  SharedObject front() const;
+  SharedObject back() const;
 };
 
 static_assert(sizeof(SharedObject) == sizeof(SharedConstObject) &&

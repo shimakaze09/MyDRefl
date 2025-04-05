@@ -10,9 +10,9 @@ using namespace My::MyDRefl;
 
 int main() {
   ReflMngr::Instance().RegisterTypeAuto<std::array<float, 5>>();
-  SharedObject pArr =
+
+  SharedObject arr =
       ReflMngr::Instance().MakeShared(TypeID::of<std::array<float, 5>>);
-  for (auto ele : pArr.AsObjectPtr())
-    std::cout << ele->TypeName() << ": " << ele->As<const float&>()
-              << std::endl;
+  for (SharedObject ele : arr)
+    std::cout << ele->TypeName() << ": " << ele->As<float&>() << std::endl;
 }

@@ -7,15 +7,19 @@
 #include <array>
 
 namespace My::MyDRefl {
+//
+// ObjectPtrBase
+//////////////////
+
 template <typename... Args>
-InvocableResult ConstObjectPtr::IsInvocable(StrID methodID) const noexcept {
+InvocableResult ObjectPtrBase::IsInvocable(StrID methodID) const noexcept {
   std::array argTypeIDs = {TypeID::of<Args>...};
   return IsInvocable(ID, methodID, Span<const TypeID>{argTypeIDs});
 }
 
 template <typename T>
-T ConstObjectPtr::InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs,
-                            void* args_buffer) const {
+T ObjectPtrBase::InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs,
+                           void* args_buffer) const {
   using U =
       std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
   std::uint8_t result_buffer[sizeof(U)];
@@ -25,8 +29,8 @@ T ConstObjectPtr::InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs,
 }
 
 template <typename... Args>
-InvokeResult ConstObjectPtr::InvokeArgs(StrID methodID, void* result_buffer,
-                                        Args... args) const {
+InvokeResult ObjectPtrBase::InvokeArgs(StrID methodID, void* result_buffer,
+                                       Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
     static_assert(
         !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
@@ -39,7 +43,7 @@ InvokeResult ConstObjectPtr::InvokeArgs(StrID methodID, void* result_buffer,
 }
 
 template <typename T, typename... Args>
-T ConstObjectPtr::Invoke(StrID methodID, Args... args) const {
+T ObjectPtrBase::Invoke(StrID methodID, Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
     static_assert(
         !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
@@ -52,9 +56,9 @@ T ConstObjectPtr::Invoke(StrID methodID, Args... args) const {
 }
 
 template <typename... Args>
-SharedObject ConstObjectPtr::MInvoke(StrID methodID,
-                                     std::pmr::memory_resource* rst_rsrc,
-                                     Args... args) const {
+SharedObject ObjectPtrBase::MInvoke(StrID methodID,
+                                    std::pmr::memory_resource* rst_rsrc,
+                                    Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
     static_assert(
         !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
@@ -68,15 +72,15 @@ SharedObject ConstObjectPtr::MInvoke(StrID methodID,
 }
 
 template <typename... Args>
-SharedObject ConstObjectPtr::DMInvoke(StrID methodID, Args... args) const {
+SharedObject ObjectPtrBase::DMInvoke(StrID methodID, Args... args) const {
   return MInvoke<Args...>(methodID, std::pmr::get_default_resource(),
                           std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-SharedObject ConstObjectPtr::AMInvoke(StrID methodID,
-                                      std::pmr::memory_resource* rst_rsrc,
-                                      Args... args) const {
+SharedObject ObjectPtrBase::AMInvoke(StrID methodID,
+                                     std::pmr::memory_resource* rst_rsrc,
+                                     Args... args) const {
   if constexpr (sizeof...(Args) > 0) {
     static_assert(
         !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
@@ -90,10 +94,14 @@ SharedObject ConstObjectPtr::AMInvoke(StrID methodID,
 }
 
 template <typename... Args>
-SharedObject ConstObjectPtr::ADMInvoke(StrID methodID, Args... args) const {
+SharedObject ObjectPtrBase::ADMInvoke(StrID methodID, Args... args) const {
   return AMInvoke<Args...>(methodID, std::pmr::get_default_resource(),
                            std::forward<Args>(args)...);
 }
+
+//
+// ObjectPtr
+//////////////
 
 template <typename... Args>
 InvocableResult ObjectPtr::IsInvocable(StrID methodID) const noexcept {
@@ -186,6 +194,21 @@ SharedObject ObjectPtr::ADMInvoke(StrID methodID, Args... args) const {
                            std::forward<Args>(args)...);
 }
 }  // namespace My::MyDRefl
+
+template <>
+struct std::hash<My::MyDRefl::ObjectPtr> {
+  std::size_t operator()(const My::MyDRefl::ObjectPtr& obj) const noexcept {
+    return obj.GetID().GetValue() ^ std::hash<const void*>()(obj.GetPtr());
+  }
+};
+
+template <>
+struct std::hash<My::MyDRefl::ConstObjectPtr> {
+  std::size_t operator()(
+      const My::MyDRefl::ConstObjectPtr& obj) const noexcept {
+    return obj.GetID().GetValue() ^ std::hash<const void*>()(obj.GetPtr());
+  }
+};
 
 template <>
 struct std::hash<My::MyDRefl::SharedObject> {

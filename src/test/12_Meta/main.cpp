@@ -13,13 +13,6 @@ struct Vec {
   float x;
   float y;
 
-  Vec operator+(SharedConstObject v) const noexcept {
-    Vec rst;
-    rst.x = x + v.As<Vec>().x;
-    rst.y = y + v.As<Vec>().y;
-    return rst;
-  }
-
   Vec operator+(float k) const noexcept {
     Vec rst;
     rst.x = x + k;
@@ -34,31 +27,24 @@ struct Vec {
     return rst;
   }
 
-  Vec operator+(ConstObjectPtr v) const noexcept {
+  Vec operator-(const Vec& v) const noexcept {
     Vec rst;
-    rst.x = x + v.As<Vec>().x;
-    rst.y = y + v.As<Vec>().y;
+    rst.x = x - v.x;
+    rst.y = y - v.y;
     return rst;
   }
 
-  Vec operator-(ConstObjectPtr v) const noexcept {
+  Vec operator*(const Vec& v) const noexcept {
     Vec rst;
-    rst.x = x - v.As<Vec>().x;
-    rst.y = y - v.As<Vec>().x;
+    rst.x = x * v.x;
+    rst.y = y * v.y;
     return rst;
   }
 
-  Vec operator*(ConstObjectPtr v) const noexcept {
+  Vec operator/(const Vec& v) const noexcept {
     Vec rst;
-    rst.x = x * v.As<Vec>().x;
-    rst.y = y * v.As<Vec>().x;
-    return rst;
-  }
-
-  Vec operator/(ConstObjectPtr v) const noexcept {
-    Vec rst;
-    rst.x = x / v.As<Vec>().x;
-    rst.y = y / v.As<Vec>().x;
+    rst.x = x / v.x;
+    rst.y = y / v.y;
     return rst;
   }
 
@@ -70,10 +56,6 @@ struct Vec {
     else
       return 0.f;
   }
-
-  void operator()(ConstObjectPtr v) const noexcept {
-    std::cout << "call: " << v.As<Vec>().x << std::endl;
-  }
 };
 
 int main() {
@@ -82,22 +64,8 @@ int main() {
   ReflMngr::Instance().AddField<&Vec::x>("x");
   ReflMngr::Instance().AddField<&Vec::y>("y");
   ReflMngr::Instance()
-      .AddMethod<MemFuncOf<Vec(ConstObjectPtr) const noexcept>::get(
-          &Vec::operator+)>(StrIDRegistry::Meta::operator_add);
-  ReflMngr::Instance()
-      .AddMethod<MemFuncOf<Vec(SharedConstObject) const noexcept>::get(
-          &Vec::operator+)>(StrIDRegistry::Meta::operator_add);
-  ReflMngr::Instance()
       .AddMethod<MemFuncOf<Vec(float) const noexcept>::get(&Vec::operator+)>(
           StrIDRegistry::Meta::operator_add);
-  ReflMngr::Instance().AddMethod<&Vec::operator- >(
-      StrIDRegistry::Meta::operator_minus);
-  ReflMngr::Instance().AddMethod<&Vec::operator*>(
-      StrIDRegistry::Meta::operator_mul);
-  ReflMngr::Instance().AddMethod<&Vec::operator/ >(
-      StrIDRegistry::Meta::operator_div);
-  ReflMngr::Instance().AddMethod<&Vec::operator()>(
-      StrIDRegistry::Meta::operator_call);
 
   SharedObject v = ReflMngr::Instance().MakeShared(TypeID::of<Vec>, 3.f, 4.f);
 
