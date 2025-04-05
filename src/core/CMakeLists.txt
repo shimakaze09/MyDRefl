@@ -5,6 +5,7 @@ ENDIF ()
 
 ADD_TARGET(
         MODE STATIC
+        RET_TARGET_NAME tname
         SOURCE
         "${PROJECT_SOURCE_DIR}/include/MyDRefl"
         INC
@@ -15,3 +16,5 @@ ADD_TARGET(
         My::MyContainer_core
         My::MyTemplate_core
 )
+
+TARGET_PRECOMPILE_HEADERS(${tname} PRIVATE "${PROJECT_SOURCE_DIR}/include/MyDRefl/MyDRefl.h")
