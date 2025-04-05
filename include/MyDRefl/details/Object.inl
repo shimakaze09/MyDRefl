@@ -74,6 +74,28 @@ SharedObject ConstObjectPtr::DMInvoke(StrID methodID, Args... args) const {
 }
 
 template <typename... Args>
+SharedObject ConstObjectPtr::AMInvoke(StrID methodID,
+                                      std::pmr::memory_resource* rst_rsrc,
+                                      Args... args) const {
+  if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
+    std::array argTypeIDs = {ArgID(args)...};
+    std::array args_buffer{reinterpret_cast<std::size_t>(ArgPtr(args))...};
+    return MInvoke(methodID, Span<const TypeID>{argTypeIDs},
+                   static_cast<void*>(args_buffer.data()), rst_rsrc);
+  } else
+    return MInvoke(methodID, Span<const TypeID>{}, static_cast<void*>(nullptr),
+                   rst_rsrc);
+}
+
+template <typename... Args>
+SharedObject ConstObjectPtr::ADMInvoke(StrID methodID, Args... args) const {
+  return AMInvoke<Args...>(methodID, std::pmr::get_default_resource(),
+                           std::forward<Args>(args)...);
+}
+
+template <typename... Args>
 InvocableResult ObjectPtr::IsInvocable(StrID methodID) const noexcept {
   std::array argTypeIDs = {TypeID::of<Args>...};
   return IsInvocable(ID, methodID, Span<const TypeID>{argTypeIDs});
@@ -141,6 +163,28 @@ SharedObject ObjectPtr::DMInvoke(StrID methodID, Args... args) const {
   return MInvoke<Args...>(methodID, std::pmr::get_default_resource(),
                           std::forward<Args>(args)...);
 }
+
+template <typename... Args>
+SharedObject ObjectPtr::AMInvoke(StrID methodID,
+                                 std::pmr::memory_resource* rst_rsrc,
+                                 Args... args) const {
+  if constexpr (sizeof...(Args) > 0) {
+    static_assert(
+        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
+    std::array argTypeIDs = {ArgID(args)...};
+    std::array args_buffer{reinterpret_cast<std::size_t>(ArgPtr(args))...};
+    return MInvoke(methodID, Span<const TypeID>{argTypeIDs},
+                   static_cast<void*>(args_buffer.data()), rst_rsrc);
+  } else
+    return MInvoke(methodID, Span<const TypeID>{}, static_cast<void*>(nullptr),
+                   rst_rsrc);
+}
+
+template <typename... Args>
+SharedObject ObjectPtr::ADMInvoke(StrID methodID, Args... args) const {
+  return AMInvoke<Args...>(methodID, std::pmr::get_default_resource(),
+                           std::forward<Args>(args)...);
+}
 }  // namespace My::MyDRefl
 
 template <>
@@ -157,40 +201,6 @@ struct std::hash<My::MyDRefl::SharedConstObject> {
     return obj.GetID().GetValue() ^ std::hash<const void*>()(obj.GetPtr());
   }
 };
-
-inline bool operator==(const My::MyDRefl::SharedConstObject& left,
-                       const My::MyDRefl::SharedConstObject& right) noexcept {
-  return left.GetID() == right.GetID() && left.GetPtr() == right.GetPtr();
-}
-
-inline bool operator!=(const My::MyDRefl::SharedConstObject& left,
-                       const My::MyDRefl::SharedConstObject& right) noexcept {
-  return left.GetID() != right.GetID() || left.GetPtr() != right.GetPtr();
-}
-
-inline bool operator<(const My::MyDRefl::SharedConstObject& left,
-                      const My::MyDRefl::SharedConstObject& right) noexcept {
-  return left.GetID() < right.GetID() ||
-         (left.GetID() == right.GetID() && left.GetPtr() < right.GetPtr());
-}
-
-inline bool operator>=(const My::MyDRefl::SharedConstObject& left,
-                       const My::MyDRefl::SharedConstObject& right) noexcept {
-  return left.GetID() > right.GetID() ||
-         (left.GetID() == right.GetID() && left.GetPtr() >= right.GetPtr());
-}
-
-inline bool operator>(const My::MyDRefl::SharedConstObject& left,
-                      const My::MyDRefl::SharedConstObject& right) noexcept {
-  return left.GetID() > right.GetID() ||
-         (left.GetID() == right.GetID() && left.GetPtr() > right.GetPtr());
-}
-
-inline bool operator<=(const My::MyDRefl::SharedConstObject& left,
-                       const My::MyDRefl::SharedConstObject& right) noexcept {
-  return left.GetID() < right.GetID() ||
-         (left.GetID() == right.GetID() && left.GetPtr() <= right.GetPtr());
-}
 
 namespace std {
 inline void swap(My::MyDRefl::SharedObject& left,

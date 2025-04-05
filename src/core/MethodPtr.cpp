@@ -29,6 +29,10 @@ bool ParamList::IsConpatibleWith(Span<const TypeID> typeIDs) const noexcept {
         // so we use type_name_add_*_hash(...) to avoid it
 
         auto lhs = ReflMngr::Instance().tregistry.Nameof(params[i]);
+#ifndef NDEBUG
+        auto rhs = ReflMngr::Instance().tregistry.Nameof(typeIDs[i]);
+#endif  // !NDEBUG
+
         assert(!type_name_is_const(lhs) && !type_name_is_volatile(lhs));
         if (type_name_is_rvalue_reference(lhs)) {  // &&{T} or &&{const{T}}
           auto unref_lhs = type_name_remove_reference(lhs);  // T or const{T}
@@ -51,9 +55,9 @@ bool ParamList::IsConpatibleWith(Span<const TypeID> typeIDs) const noexcept {
               typeIDs[i].GetValue()) {
             auto raw_lhs = type_name_remove_const(unref_lhs);  // T
 
-            if (TypeID{raw_lhs} != typeIDs[i] ||
+            if (TypeID{raw_lhs} != typeIDs[i] &&
                 type_name_add_lvalue_reference_hash(raw_lhs) !=
-                    typeIDs[i].GetValue() ||
+                    typeIDs[i].GetValue() &&
                 type_name_add_rvalue_reference_hash(raw_lhs) !=
                     typeIDs[i].GetValue())
               return false;
