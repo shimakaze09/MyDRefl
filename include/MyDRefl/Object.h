@@ -768,11 +768,6 @@ class SharedObject : public SharedObjectBase {
     return *this;
   }
 
-  SharedObject& operator=(std::nullptr_t) noexcept {
-    Reset();
-    return *this;
-  }
-
   //
   // Modifiers
   //////////////
