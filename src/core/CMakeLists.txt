@@ -1,6 +1,10 @@
 SET(c_options "")
 IF (MSVC)
-    LIST(APPEND c_options "/wd5030;/wd4251")
+    LIST(APPEND c_options "/wd5030")
+ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    LIST(APPEND c_options "-Wno-attributes")
+ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    LIST(APPEND c_options "-Wno-attributes")
 ENDIF ()
 
 ADD_TARGET(
