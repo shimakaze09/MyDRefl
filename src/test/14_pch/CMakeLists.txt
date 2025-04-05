@@ -1,3 +1,8 @@
+SET(c_options "")
+IF (MSVC)
+    SET(c_options "/bigobj")
+ENDIF ()
+
 ADD_TARGET(
         TEST
         MODE EXE
@@ -5,7 +10,7 @@ ADD_TARGET(
         LIB
         My::MyDRefl_core
         C_OPTION
-        /bigobj
+        ${c_options}
 )
 
 TARGET_PRECOMPILE_HEADERS(${tname} REUSE_FROM MyDRefl_core)

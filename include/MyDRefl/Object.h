@@ -13,14 +13,14 @@
 
 #define OBJECT_PTR_DEFINE_OPERATOR(op, name)                      \
   template <typename Arg>                                         \
-  SharedObject operator##op(Arg rhs) const {                      \
+  SharedObject operator op(Arg rhs) const {                       \
     return ADMInvoke<Arg>(StrIDRegistry::MetaID::operator_##name, \
                           std::forward<Arg>(rhs));                \
   }
 
 #define OBJECT_PTR_DEFINE_CMP_OPERATOR(op, name)                          \
   template <typename Arg>                                                 \
-  bool operator##op(Arg rhs) const {                                      \
+  bool operator op(Arg rhs) const {                                       \
     return static_cast<bool>(ADMInvoke<Arg>(                              \
         StrIDRegistry::MetaID::operator_##name, std::forward<Arg>(rhs))); \
   }
@@ -39,21 +39,21 @@
                               std::forward<Args>(args)...);            \
   }
 
-#define SHARED_OBJECT_DEFINE_OPERATOR(op)                            \
-  template <typename Arg>                                            \
-  SharedObject operator##op(Arg rhs) const {                         \
-    return AsObjectPtr()->operator##op<Arg>(std::forward<Arg>(rhs)); \
+#define SHARED_OBJECT_DEFINE_OPERATOR(op)                           \
+  template <typename Arg>                                           \
+  SharedObject operator op(Arg rhs) const {                         \
+    return AsObjectPtr()->operator op<Arg>(std::forward<Arg>(rhs)); \
   }
 
-#define SHARED_OBJECT_DEFINE_CMP_OPERATOR(op)                        \
-  template <typename Arg>                                            \
-  bool operator##op(Arg rhs) const {                                 \
-    return AsObjectPtr()->operator##op<Arg>(std::forward<Arg>(rhs)); \
+#define SHARED_OBJECT_DEFINE_CMP_OPERATOR(op)                       \
+  template <typename Arg>                                           \
+  bool operator op(Arg rhs) const {                                 \
+    return AsObjectPtr()->operator op<Arg>(std::forward<Arg>(rhs)); \
   }
 
 #define SHARED_OBJECT_DEFINE_UNARY_OPERATOR(op) \
-  SharedObject operator##op() const {           \
-    return AsObjectPtr()->operator##op();       \
+  SharedObject operator op() const {            \
+    return AsObjectPtr()->operator op();        \
   }
 
 namespace My::MyDRefl {

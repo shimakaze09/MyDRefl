@@ -1,5 +1,5 @@
 # TODO
 
 - [ ] TypeIDRegistry Type Computation
-- [ ] cast (reference)
-- [ ] 
+- [ ] cast (reference) more
+- [ ] container traits
