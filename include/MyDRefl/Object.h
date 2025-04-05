@@ -11,12 +11,9 @@
 
 #include <optional>
 
-#define OBJECT_PTR_DEFINE_OPERATOR(op, name)                      \
-  template <typename Arg>                                         \
-  SharedObject operator op(Arg rhs) const {                       \
-    return ADMInvoke<Arg>(StrIDRegistry::MetaID::operator_##name, \
-                          std::forward<Arg>(rhs));                \
-  }
+#define OBJECT_PTR_DECLARE_OPERATOR(op, name) \
+  template <typename Arg>                     \
+  SharedObject operator op(Arg rhs) const
 
 #define OBJECT_PTR_DEFINE_CMP_OPERATOR(op, name)                          \
   template <typename Arg>                                                 \
@@ -25,19 +22,17 @@
         StrIDRegistry::MetaID::operator_##name, std::forward<Arg>(rhs))); \
   }
 
-#define OBJECT_PTR_DEFINE_CONTAINER(name)                          \
-  template <typename Arg>                                          \
-  SharedObject name(Arg rhs) const {                               \
-    return ADMInvoke<Arg>(StrIDRegistry::MetaID::container_##name, \
-                          std::forward<Arg>(rhs));                 \
-  }
+#define OBJECT_PTR_DECLARE_CONTAINER(name) \
+  template <typename Arg>                  \
+  SharedObject name(Arg rhs) const
 
-#define OBJECT_PTR_DEFINE_CONTAINER_VAR(name)                          \
-  template <typename... Args>                                          \
-  SharedObject name(Args... args) const {                              \
-    return ADMInvoke<Args...>(StrIDRegistry::MetaID::container_##name, \
-                              std::forward<Args>(args)...);            \
-  }
+#define OBJECT_PTR_DECLARE_CONTAINER_VARS(name) \
+  template <typename... Args>                   \
+  SharedObject name(Args... args) const
+
+#define SHARED_OBJECT_DECLARE_OPERATOR(op) \
+  template <typename Arg>                  \
+  SharedObject operator op(Arg rhs) const
 
 #define SHARED_OBJECT_DEFINE_OPERATOR(op)                           \
   template <typename Arg>                                           \
@@ -190,17 +185,17 @@ class ObjectPtrBase {
   // Meta
   /////////
 
-  OBJECT_PTR_DEFINE_OPERATOR(+, add)
-  OBJECT_PTR_DEFINE_OPERATOR(-, sub)
-  OBJECT_PTR_DEFINE_OPERATOR(*, mul)
-  OBJECT_PTR_DEFINE_OPERATOR(/, div)
-  OBJECT_PTR_DEFINE_OPERATOR(%, mod)
-  OBJECT_PTR_DEFINE_OPERATOR(&, band)
-  OBJECT_PTR_DEFINE_OPERATOR(|, bor)
-  OBJECT_PTR_DEFINE_OPERATOR(^, bxor)
+  OBJECT_PTR_DECLARE_OPERATOR(+, add);
+  OBJECT_PTR_DECLARE_OPERATOR(-, sub);
+  OBJECT_PTR_DECLARE_OPERATOR(*, mul);
+  OBJECT_PTR_DECLARE_OPERATOR(/, div);
+  OBJECT_PTR_DECLARE_OPERATOR(%, mod);
+  OBJECT_PTR_DECLARE_OPERATOR(&, band);
+  OBJECT_PTR_DECLARE_OPERATOR(|, bor);
+  OBJECT_PTR_DECLARE_OPERATOR(^, bxor);
 
-  OBJECT_PTR_DEFINE_OPERATOR([], subscript)
-  OBJECT_PTR_DEFINE_OPERATOR(->*, member_of_pointer)
+  OBJECT_PTR_DECLARE_OPERATOR([], subscript);
+  OBJECT_PTR_DECLARE_OPERATOR(->*, member_of_pointer);
 
   OBJECT_PTR_DEFINE_CMP_OPERATOR(==, eq);
   OBJECT_PTR_DEFINE_CMP_OPERATOR(!=, ne);
@@ -216,10 +211,7 @@ class ObjectPtrBase {
   SharedObject operator*() const;
 
   template <typename... Args>
-  SharedObject operator()(Args... args) const {
-    return DMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
-                             std::forward<Args>(args)...);
-  }
+  SharedObject operator()(Args... args) const;
 
   template <typename T>
   T& operator>>(T& out) const {
@@ -244,7 +236,7 @@ class ObjectPtrBase {
 
   // - element access
 
-  OBJECT_PTR_DEFINE_CONTAINER(at)
+  OBJECT_PTR_DECLARE_CONTAINER(at);
   SharedObject data() const;
   SharedObject front() const;
   SharedObject back() const;
@@ -255,11 +247,11 @@ class ObjectPtrBase {
 
   // - lookup
 
-  OBJECT_PTR_DEFINE_CONTAINER(count)
-  OBJECT_PTR_DEFINE_CONTAINER(find)
-  OBJECT_PTR_DEFINE_CONTAINER(lower_bound)
-  OBJECT_PTR_DEFINE_CONTAINER(upper_bound)
-  OBJECT_PTR_DEFINE_CONTAINER(equal_range)
+  OBJECT_PTR_DECLARE_CONTAINER(count);
+  OBJECT_PTR_DECLARE_CONTAINER(find);
+  OBJECT_PTR_DECLARE_CONTAINER(lower_bound);
+  OBJECT_PTR_DECLARE_CONTAINER(upper_bound);
+  OBJECT_PTR_DECLARE_CONTAINER(equal_range);
 
   // - observers
 
@@ -416,20 +408,20 @@ class ObjectPtr : public ObjectPtrBase {
   // Meta
   /////////
 
-  OBJECT_PTR_DEFINE_OPERATOR(=, assign)
-  OBJECT_PTR_DEFINE_OPERATOR(+=, assign_add)
-  OBJECT_PTR_DEFINE_OPERATOR(-=, assign_sub)
-  OBJECT_PTR_DEFINE_OPERATOR(*=, assign_mul)
-  OBJECT_PTR_DEFINE_OPERATOR(/=, assign_div)
-  OBJECT_PTR_DEFINE_OPERATOR(%=, assign_mod)
-  OBJECT_PTR_DEFINE_OPERATOR(&=, assign_band)
-  OBJECT_PTR_DEFINE_OPERATOR(|=, assign_bor)
-  OBJECT_PTR_DEFINE_OPERATOR(^=, assign_bxor)
-  OBJECT_PTR_DEFINE_OPERATOR(<<=, assign_lshift)
-  OBJECT_PTR_DEFINE_OPERATOR(>>=, assign_rshift)
+  OBJECT_PTR_DECLARE_OPERATOR(=, assign);
+  OBJECT_PTR_DECLARE_OPERATOR(+=, assign_add);
+  OBJECT_PTR_DECLARE_OPERATOR(-=, assign_sub);
+  OBJECT_PTR_DECLARE_OPERATOR(*=, assign_mul);
+  OBJECT_PTR_DECLARE_OPERATOR(/=, assign_div);
+  OBJECT_PTR_DECLARE_OPERATOR(%=, assign_mod);
+  OBJECT_PTR_DECLARE_OPERATOR(&=, assign_band);
+  OBJECT_PTR_DECLARE_OPERATOR(|=, assign_bor);
+  OBJECT_PTR_DECLARE_OPERATOR(^=, assign_bxor);
+  OBJECT_PTR_DECLARE_OPERATOR(<<=, assign_lshift);
+  OBJECT_PTR_DECLARE_OPERATOR(>>=, assign_rshift);
 
-  OBJECT_PTR_DEFINE_OPERATOR([], subscript)
-  OBJECT_PTR_DEFINE_OPERATOR(->*, member_of_pointer)
+  OBJECT_PTR_DECLARE_OPERATOR([], subscript);
+  OBJECT_PTR_DECLARE_OPERATOR(->*, member_of_pointer);
 
   SharedObject operator++() const;
   SharedObject operator++(int) const;
@@ -439,21 +431,16 @@ class ObjectPtr : public ObjectPtrBase {
   SharedObject operator*() const;
 
   template <typename... Args>
-  SharedObject operator()(Args... args) const {
-    return DMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
-                             std::forward<Args>(args)...);
-  }
+  SharedObject operator()(Args... args) const;
 
   template <typename T>
-  SharedObject operator<<(const T& in) const {
-    return ADMInvoke<const T&>(StrIDRegistry::MetaID::operator_lshift, in);
-  }
+  SharedObject operator<<(const T& in) const;
 
   //
   // container
   //////////////
 
-  OBJECT_PTR_DEFINE_CONTAINER_VAR(assign)
+  OBJECT_PTR_DECLARE_CONTAINER_VARS(assign);
 
   // - iterator
 
@@ -464,37 +451,37 @@ class ObjectPtr : public ObjectPtrBase {
 
   // - element access
 
-  OBJECT_PTR_DEFINE_CONTAINER(at)
+  OBJECT_PTR_DECLARE_CONTAINER(at);
   SharedObject data() const;
   SharedObject front() const;
   SharedObject back() const;
 
   // - capacity
 
-  OBJECT_PTR_DEFINE_CONTAINER(resize)
+  OBJECT_PTR_DECLARE_CONTAINER(resize);
   void reserve(std::size_t n) const;
   void shrink_to_fit() const;
 
   // - modifiers
 
   void clear() const;
-  OBJECT_PTR_DEFINE_CONTAINER_VAR(insert)
-  OBJECT_PTR_DEFINE_CONTAINER_VAR(insert_or_assign)
-  OBJECT_PTR_DEFINE_CONTAINER_VAR(erase)
-  OBJECT_PTR_DEFINE_CONTAINER(push_front)
-  OBJECT_PTR_DEFINE_CONTAINER(push_back)
+  OBJECT_PTR_DECLARE_CONTAINER_VARS(insert);
+  OBJECT_PTR_DECLARE_CONTAINER_VARS(insert_or_assign);
+  OBJECT_PTR_DECLARE_CONTAINER(erase);
+  OBJECT_PTR_DECLARE_CONTAINER(push_front);
+  OBJECT_PTR_DECLARE_CONTAINER(push_back);
   void pop_front() const;
   void pop_back() const;
-  OBJECT_PTR_DEFINE_CONTAINER(swap)
-  OBJECT_PTR_DEFINE_CONTAINER(merge)
-  OBJECT_PTR_DEFINE_CONTAINER(extract)
+  OBJECT_PTR_DECLARE_CONTAINER(swap);
+  OBJECT_PTR_DECLARE_CONTAINER(merge);
+  OBJECT_PTR_DECLARE_CONTAINER(extract);
 
   // - lookup
 
-  OBJECT_PTR_DEFINE_CONTAINER(find)
-  OBJECT_PTR_DEFINE_CONTAINER(lower_bound)
-  OBJECT_PTR_DEFINE_CONTAINER(upper_bound)
-  OBJECT_PTR_DEFINE_CONTAINER(equal_range)
+  OBJECT_PTR_DECLARE_CONTAINER(find);
+  OBJECT_PTR_DECLARE_CONTAINER(lower_bound);
+  OBJECT_PTR_DECLARE_CONTAINER(upper_bound);
+  OBJECT_PTR_DECLARE_CONTAINER(equal_range);
 };
 
 static_assert(sizeof(ObjectPtr) == sizeof(ConstObjectPtr) &&
@@ -566,14 +553,14 @@ class SharedObjectBase {
   // Meta
   /////////
 
-  SHARED_OBJECT_DEFINE_OPERATOR(+)
-  SHARED_OBJECT_DEFINE_OPERATOR(-)
-  SHARED_OBJECT_DEFINE_OPERATOR(*)
-  SHARED_OBJECT_DEFINE_OPERATOR(/)
-  SHARED_OBJECT_DEFINE_OPERATOR(%)
-  SHARED_OBJECT_DEFINE_OPERATOR(&)
-  SHARED_OBJECT_DEFINE_OPERATOR(|)
-  SHARED_OBJECT_DEFINE_OPERATOR(^)
+  SHARED_OBJECT_DECLARE_OPERATOR(+);
+  SHARED_OBJECT_DECLARE_OPERATOR(-);
+  SHARED_OBJECT_DECLARE_OPERATOR(*);
+  SHARED_OBJECT_DECLARE_OPERATOR(/);
+  SHARED_OBJECT_DECLARE_OPERATOR(%);
+  SHARED_OBJECT_DECLARE_OPERATOR(&);
+  SHARED_OBJECT_DECLARE_OPERATOR(|);
+  SHARED_OBJECT_DECLARE_OPERATOR(^);
 
   SHARED_OBJECT_DEFINE_CMP_OPERATOR(==)
   SHARED_OBJECT_DEFINE_CMP_OPERATOR(!=)
@@ -582,8 +569,8 @@ class SharedObjectBase {
   SHARED_OBJECT_DEFINE_CMP_OPERATOR(<)
   SHARED_OBJECT_DEFINE_CMP_OPERATOR(<=)
 
-  SHARED_OBJECT_DEFINE_OPERATOR([])
-  SHARED_OBJECT_DEFINE_OPERATOR(->*)
+  SHARED_OBJECT_DECLARE_OPERATOR([]);
+  SHARED_OBJECT_DECLARE_OPERATOR(->*);
 
   SharedObject operator+() const;
   SharedObject operator-() const;
@@ -593,9 +580,7 @@ class SharedObjectBase {
   SharedObject operator*() const;
 
   template <typename... Args>
-  SharedObject operator()(Args... args) const {
-    return AsObjectPtr()->operator()<Args...>(std::forward<Args>(args)...);
-  }
+  SharedObject operator()(Args... args) const;
 
   template <typename T>
   T& operator>>(T& out) const {
@@ -898,10 +883,11 @@ template <typename T>
 constexpr bool IsObjectOrPtr_v = IsObjectOrPtr<T>::value;
 }  // namespace My::MyDRefl
 
-#undef OBJECT_PTR_DEFINE_OPERATOR
+#undef OBJECT_PTR_DECLARE_OPERATOR
 #undef OBJECT_PTR_DEFINE_CMP_OPERATOR
-#undef OBJECT_PTR_DEFINE_CONTAINER
-#undef OBJECT_PTR_DEFINE_CONTAINER_VAR
+#undef OBJECT_PTR_DECLARE_CONTAINER
+#undef OBJECT_PTR_DECLARE_CONTAINER_VARS
+#undef SHARED_OBJECT_DECLARE_OPERATOR
 #undef SHARED_OBJECT_DEFINE_OPERATOR
 #undef SHARED_OBJECT_DEFINE_CMP_OPERATOR
 #undef SHARED_OBJECT_DEFINE_UNARY_OPERATOR

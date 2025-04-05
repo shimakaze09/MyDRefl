@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cassert>
+#include <cstring>
 
 namespace My::MyDRefl {
 template <typename T>
@@ -49,7 +50,7 @@ void IDRegistry<T>::Register(T ID, std::string_view name) {
 
   auto buffer =
       reinterpret_cast<char*>(resource.allocate(name.size(), alignof(char)));
-  memcpy(buffer, name.data(), name.size());
+  std::memcpy(buffer, name.data(), name.size());
 
   id2name.emplace_hint(target, ID, std::string_view{buffer, name.size()});
 

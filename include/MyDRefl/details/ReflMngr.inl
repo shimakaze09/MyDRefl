@@ -45,7 +45,7 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
       constexpr auto decayed_wrapped_func = DecayLambda(wrapped_func);
       return decayed_wrapped_func;
     } else
-      static_assert(false);
+      static_assert(always_false<FuncPtr>);
   }
 
   template <typename Func, size_t... Ns>
@@ -689,7 +689,7 @@ FieldPtr ReflMngr::GenerateFieldPtr() {
     const auto buffer = FieldPtr::ConvertToBuffer(field_data);
     return {TypeID::of<std::remove_const_t<Value>>, buffer};
   } else
-    static_assert(false);
+    static_assert(always_false<FieldData>);
 }
 
 template <typename T>
@@ -996,7 +996,7 @@ StrID ReflMngr::AddMemberMethod(std::string_view name, Func&& func,
 }
 
 template <typename Derived, typename Base>
-static BaseInfo ReflMngr::GenerateBaseInfo() {
+BaseInfo ReflMngr::GenerateBaseInfo() {
   return {inherit_cast_functions<Derived, Base>(), std::is_polymorphic_v<Base>,
           is_virtual_base_of_v<Base, Derived>};
 }
@@ -1039,7 +1039,7 @@ T ReflMngr::InvokeRet(TypeID typeID, StrID methodID,
   using U =
       std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
   std::uint8_t result_buffer[sizeof(U)];
-  auto result =
+  InvokeResult result =
       Invoke(typeID, methodID, result_buffer, argTypeIDs, args_buffer);
   assert(result.resultID == TypeID::of<T>);
   return result.Move<T>(result_buffer);
@@ -1051,7 +1051,8 @@ T ReflMngr::InvokeRet(ConstObjectPtr obj, StrID methodID,
   using U =
       std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
   std::uint8_t result_buffer[sizeof(U)];
-  auto result = Invoke(obj, methodID, result_buffer, argTypeIDs, args_buffer);
+  InvokeResult result =
+      Invoke(obj, methodID, result_buffer, argTypeIDs, args_buffer);
   assert(result.resultID == TypeID::of<T>);
   return result.Move<T>(result_buffer);
 }
@@ -1062,7 +1063,8 @@ T ReflMngr::InvokeRet(ObjectPtr obj, StrID methodID,
   using U =
       std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
   std::uint8_t result_buffer[sizeof(U)];
-  auto result = Invoke(obj, methodID, result_buffer, argTypeIDs, args_buffer);
+  InvokeResult result =
+      Invoke(obj, methodID, result_buffer, argTypeIDs, args_buffer);
   assert(result.resultID == TypeID::of<T>);
   return result.Move<T>(result_buffer);
 }

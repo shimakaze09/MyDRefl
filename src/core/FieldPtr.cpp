@@ -52,7 +52,7 @@ ConstObjectPtr FieldPtr::RVar() const noexcept {
 			return { valueID, &value };
 		}*/
         else
-          static_assert(false);
+          static_assert(always_false<T>);
       },
       data);
 }
@@ -83,7 +83,7 @@ ObjectPtr FieldPtr::RWVar() noexcept {
           assert(false);
           return nullptr;
         } else
-          static_assert(false);
+          static_assert(always_false<T>);
       },
       data);
 }
@@ -113,7 +113,7 @@ ConstObjectPtr FieldPtr::RVar(const void* obj) const noexcept {
 			return { valueID, &value };
 		}*/
         else
-          static_assert(false);
+          static_assert(always_false<T>);
       },
       data);
 }

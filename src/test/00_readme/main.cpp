@@ -4,6 +4,7 @@
 
 #include <MyDRefl/MyDRefl.h>
 #include <iostream>
+#include <cmath>
 
 using namespace My;
 using namespace My::MyDRefl;
