@@ -34,6 +34,13 @@ void IDRegistry<T>::RegisterUnmanaged(T ID, std::string_view name) {
 }
 
 template <typename T>
+T IDRegistry<T>::RegisterUnmanaged(std::string_view name) {
+  T ID{name};
+  RegisterUnmanaged(ID, name);
+  return ID;
+}
+
+template <typename T>
 void IDRegistry<T>::Register(T ID, std::string_view name) {
   auto target = id2name.find(ID);
   if (target != id2name.end()) {
@@ -60,14 +67,21 @@ void IDRegistry<T>::Register(T ID, std::string_view name) {
 }
 
 template <typename T>
-void IDRegistry<T>::UnregisterUnmanaged(T ID) noexcept {
+T IDRegistry<T>::Register(std::string_view name) {
+  T ID{name};
+  Register(ID, name);
+  return ID;
+}
+
+template <typename T>
+void IDRegistry<T>::UnregisterUnmanaged(T ID) {
   auto target = id2name.find(ID);
   if (target == id2name.end())
     return;
 
   assert(IsUnmanaged(ID));
 
-  id2name.erase(ID);
+  id2name.erase(target);
 }
 
 template <typename T>
@@ -81,7 +95,7 @@ void IDRegistry<T>::Clear() noexcept {
 
 #ifndef NDEBUG
 template <typename T>
-bool IDRegistry<T>::IsUnmanaged(T ID) const noexcept {
+bool IDRegistry<T>::IsUnmanaged(T ID) const {
   return unmanagedIDs.find(ID) != unmanagedIDs.end();
 }
 
@@ -94,12 +108,12 @@ void IDRegistry<T>::ClearUnmanaged() noexcept {
 #endif  // !NDEBUG
 
 template <typename T>
-bool IDRegistry<T>::IsRegistered(T ID) const noexcept {
+bool IDRegistry<T>::IsRegistered(T ID) const {
   return id2name.find(ID) != id2name.end();
 }
 
 template <typename T>
-std::string_view IDRegistry<T>::Nameof(T ID) const noexcept {
+std::string_view IDRegistry<T>::Nameof(T ID) const {
   auto target = id2name.find(ID);
   if (target != id2name.end())
     return target->second;

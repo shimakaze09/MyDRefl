@@ -244,15 +244,18 @@ class ReflMngr {
   void RegisterTypeAuto(AttrSet attrs_ctor = {}, AttrSet attrs_dtor = {});
 
   // get TypeID from field_data
+  // field_data can be
+  // 1. member object pointer
+  // 2. enumerator
   template <auto field_data>
   StrID AddField(std::string_view name, AttrSet attrs = {});
 
   // data can be:
   // 1. member object pointer
-  // 2. pointer to **non-void** and **non-function** type
-  // 3. functor : Value*(Object*)
+  // 2. enumerator
+  // 3. pointer to **non-void** and **non-function** type
+  // 4. functor : Value*(Object*)
   // > - result must be an pointer of **non-void** type
-  // 4. enumerator
   template <
       typename T,
       std::enable_if_t<!std::is_same_v<std::decay_t<T>, FieldInfo>, int> = 0>
@@ -338,35 +341,32 @@ class ReflMngr {
   // Cast
   /////////
 
-  ObjectPtr StaticCast_DerivedToBase(ObjectPtr obj,
-                                     TypeID typeID) const noexcept;
-  ObjectPtr StaticCast_BaseToDerived(ObjectPtr obj,
-                                     TypeID typeID) const noexcept;
-  ObjectPtr DynamicCast_BaseToDerived(ObjectPtr obj,
-                                      TypeID typeID) const noexcept;
-  ObjectPtr StaticCast(ObjectPtr obj, TypeID typeID) const noexcept;
-  ObjectPtr DynamicCast(ObjectPtr obj, TypeID typeID) const noexcept;
+  ObjectPtr StaticCast_DerivedToBase(ObjectPtr obj, TypeID typeID) const;
+  ObjectPtr StaticCast_BaseToDerived(ObjectPtr obj, TypeID typeID) const;
+  ObjectPtr DynamicCast_BaseToDerived(ObjectPtr obj, TypeID typeID) const;
+  ObjectPtr StaticCast(ObjectPtr obj, TypeID typeID) const;
+  ObjectPtr DynamicCast(ObjectPtr obj, TypeID typeID) const;
 
   ConstObjectPtr StaticCast_DerivedToBase(ConstObjectPtr obj,
-                                          TypeID typeID) const noexcept {
+                                          TypeID typeID) const {
     return StaticCast_DerivedToBase(reinterpret_cast<ObjectPtr&>(obj), typeID);
   }
 
   ConstObjectPtr StaticCast_BaseToDerived(ConstObjectPtr obj,
-                                          TypeID typeID) const noexcept {
+                                          TypeID typeID) const {
     return StaticCast_BaseToDerived(reinterpret_cast<ObjectPtr&>(obj), typeID);
   }
 
   ConstObjectPtr DynamicCast_BaseToDerived(ConstObjectPtr obj,
-                                           TypeID typeID) const noexcept {
+                                           TypeID typeID) const {
     return DynamicCast_BaseToDerived(reinterpret_cast<ObjectPtr&>(obj), typeID);
   }
 
-  ConstObjectPtr StaticCast(ConstObjectPtr obj, TypeID typeID) const noexcept {
+  ConstObjectPtr StaticCast(ConstObjectPtr obj, TypeID typeID) const {
     return StaticCast(reinterpret_cast<ObjectPtr&>(obj), typeID);
   }
 
-  ConstObjectPtr DynamicCast(ConstObjectPtr obj, TypeID typeID) const noexcept {
+  ConstObjectPtr DynamicCast(ConstObjectPtr obj, TypeID typeID) const {
     return DynamicCast(reinterpret_cast<ObjectPtr&>(obj), typeID);
   }
 
@@ -375,32 +375,28 @@ class ReflMngr {
   //////////
 
   // variable object
-  ObjectPtr RWVar(TypeID typeID, StrID fieldID) noexcept;
+  ObjectPtr RWVar(TypeID typeID, StrID fieldID);
   // object
-  ConstObjectPtr RVar(TypeID typeID, StrID fieldID) const noexcept;
+  ConstObjectPtr RVar(TypeID typeID, StrID fieldID) const;
   // variable
-  ObjectPtr RWVar(ObjectPtr obj, StrID fieldID) noexcept;
+  ObjectPtr RWVar(ObjectPtr obj, StrID fieldID);
   // all
-  ConstObjectPtr RVar(ConstObjectPtr obj, StrID fieldID) const noexcept;
+  ConstObjectPtr RVar(ConstObjectPtr obj, StrID fieldID) const;
   // variable, for diamond inheritance
-  ObjectPtr RWVar(ObjectPtr obj, TypeID baseID, StrID fieldID) noexcept;
+  ObjectPtr RWVar(ObjectPtr obj, TypeID baseID, StrID fieldID);
   // all, for diamond inheritance
-  ConstObjectPtr RVar(ConstObjectPtr obj, TypeID baseID,
-                      StrID fieldID) const noexcept;
+  ConstObjectPtr RVar(ConstObjectPtr obj, TypeID baseID, StrID fieldID) const;
 
   //
   // Invoke
   ///////////
 
-  InvocableResult IsStaticInvocable(
-      TypeID typeID, StrID methodID,
-      Span<const TypeID> argTypeIDs = {}) const noexcept;
-  InvocableResult IsConstInvocable(
-      TypeID typeID, StrID methodID,
-      Span<const TypeID> argTypeIDs = {}) const noexcept;
-  InvocableResult IsInvocable(
-      TypeID typeID, StrID methodID,
-      Span<const TypeID> argTypeIDs = {}) const noexcept;
+  InvocableResult IsStaticInvocable(TypeID typeID, StrID methodID,
+                                    Span<const TypeID> argTypeIDs = {}) const;
+  InvocableResult IsConstInvocable(TypeID typeID, StrID methodID,
+                                   Span<const TypeID> argTypeIDs = {}) const;
+  InvocableResult IsInvocable(TypeID typeID, StrID methodID,
+                              Span<const TypeID> argTypeIDs = {}) const;
 
   InvokeResult Invoke(TypeID typeID, StrID methodID,
                       void* result_buffer = nullptr,
@@ -420,13 +416,11 @@ class ReflMngr {
   // -- template --
 
   template <typename... Args>
-  InvocableResult IsStaticInvocable(TypeID typeID,
-                                    StrID methodID) const noexcept;
+  InvocableResult IsStaticInvocable(TypeID typeID, StrID methodID) const;
   template <typename... Args>
-  InvocableResult IsConstInvocable(TypeID typeID,
-                                   StrID methodID) const noexcept;
+  InvocableResult IsConstInvocable(TypeID typeID, StrID methodID) const;
   template <typename... Args>
-  InvocableResult IsInvocable(TypeID typeID, StrID methodID) const noexcept;
+  InvocableResult IsInvocable(TypeID typeID, StrID methodID) const;
 
   template <typename T>
   T InvokeRet(TypeID typeID, StrID methodID, Span<const TypeID> argTypeIDs = {},
@@ -460,9 +454,8 @@ class ReflMngr {
   // Meta
   /////////
 
-  bool IsConstructible(TypeID typeID,
-                       Span<const TypeID> argTypeIDs = {}) const noexcept;
-  bool IsDestructible(TypeID typeID) const noexcept;
+  bool IsConstructible(TypeID typeID, Span<const TypeID> argTypeIDs = {}) const;
+  bool IsDestructible(TypeID typeID) const;
 
   bool Construct(ObjectPtr obj, Span<const TypeID> argTypeIDs = {},
                  void* args_buffer = nullptr) const;
@@ -484,7 +477,7 @@ class ReflMngr {
   // -- template --
 
   template <typename... Args>
-  bool IsConstructible(TypeID typeID) const noexcept;
+  bool IsConstructible(TypeID typeID) const;
 
   template <typename... Args>
   bool Construct(ObjectPtr obj, Args... args) const;

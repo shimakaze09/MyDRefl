@@ -29,7 +29,9 @@ struct InvokeResult {
   Destructor destructor;
 
   template <typename T>
-  T Move(void* result_buffer) {
+  T Move(void* result_buffer) noexcept(
+      std::is_reference_v<T> || std::is_nothrow_destructible_v<T> &&
+                                    std::is_nothrow_move_constructible_v<T>) {
     assert(result_buffer);
 
     if constexpr (!std::is_reference_v<T> &&
@@ -94,8 +96,8 @@ struct TypeMethodRef {
 };
 
 enum class DereferenceProperty {
-  NOT_REFERENCE,
-  VARIABLE,
-  CONST,
+  NotReference,
+  Variable,
+  Const,
 };
 }  // namespace My::MyDRefl

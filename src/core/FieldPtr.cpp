@@ -27,7 +27,7 @@ FieldPtr::FieldPtr(TypeID valueID, const Buffer& buffer, bool isConst) noexcept
     data.emplace<8>(buffer);
 }
 
-ConstObjectPtr FieldPtr::RVar() const noexcept {
+ConstObjectPtr FieldPtr::RVar() const {
   return std::visit(
       [this](const auto& value) -> ConstObjectPtr {
         using T = std::decay_t<decltype(value)>;
@@ -57,7 +57,7 @@ ConstObjectPtr FieldPtr::RVar() const noexcept {
       data);
 }
 
-ObjectPtr FieldPtr::RWVar() noexcept {
+ObjectPtr FieldPtr::RWVar() {
   return std::visit(
       [this](auto& value) -> ObjectPtr {
         using T = std::remove_reference_t<decltype(value)>;
@@ -88,7 +88,7 @@ ObjectPtr FieldPtr::RWVar() noexcept {
       data);
 }
 
-ConstObjectPtr FieldPtr::RVar(const void* obj) const noexcept {
+ConstObjectPtr FieldPtr::RVar(const void* obj) const {
   return std::visit(
       [this, obj](const auto& value) -> ConstObjectPtr {
         using T = std::decay_t<decltype(value)>;

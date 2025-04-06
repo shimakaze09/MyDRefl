@@ -17,17 +17,18 @@
 namespace My::MyDRefl {
 template <typename T>
 class IDRegistry {
- protected:
-  void RegisterUnmanaged(T ID, std::string_view name);
-  void Register(T ID, std::string_view name);
-
  public:
   IDRegistry();
 
-  bool IsRegistered(T ID) const noexcept;
-  std::string_view Nameof(T ID) const noexcept;
+  void RegisterUnmanaged(T ID, std::string_view name);
+  T RegisterUnmanaged(std::string_view name);
+  void Register(T ID, std::string_view name);
+  T Register(std::string_view name);
 
-  void UnregisterUnmanaged(T ID) noexcept;
+  bool IsRegistered(T ID) const;
+  std::string_view Nameof(T ID) const;
+
+  void UnregisterUnmanaged(T ID);
   void Clear() noexcept;
 
  private:
@@ -36,7 +37,7 @@ class IDRegistry {
 
 #ifndef NDEBUG
  public:
-  bool IsUnmanaged(T ID) const noexcept;
+  bool IsUnmanaged(T ID) const;
   void ClearUnmanaged() noexcept;
 
  private:
@@ -308,23 +309,7 @@ class StrIDRegistry : public IDRegistry<StrID> {
         Meta::container_get_allocator;
   };
 
-  using IDRegistry<StrID>::RegisterUnmanaged;
-  using IDRegistry<StrID>::Register;
-  using IDRegistry<StrID>::IsRegistered;
-
   StrIDRegistry();
-
-  StrID RegisterUnmanaged(std::string_view name) {
-    StrID ID{name};
-    IDRegistry<StrID>::RegisterUnmanaged(ID, name);
-    return ID;
-  }
-
-  StrID Register(std::string_view name) {
-    StrID ID{name};
-    IDRegistry<StrID>::Register(ID, name);
-    return ID;
-  }
 };
 
 class TypeIDRegistry : public IDRegistry<TypeID> {
@@ -339,25 +324,12 @@ class TypeIDRegistry : public IDRegistry<TypeID> {
     static constexpr TypeID t_void = Meta::t_void;
   };
 
-  using IDRegistry<TypeID>::RegisterUnmanaged;
   using IDRegistry<TypeID>::Register;
   using IDRegistry<TypeID>::IsRegistered;
 
   TypeIDRegistry() {
     RegisterUnmanaged(Meta::global);
     RegisterUnmanaged(Meta::t_void);
-  }
-
-  TypeID RegisterUnmanaged(std::string_view name) {
-    TypeID ID{name};
-    IDRegistry<TypeID>::RegisterUnmanaged(ID, name);
-    return ID;
-  }
-
-  TypeID Register(std::string_view name) {
-    TypeID ID{name};
-    IDRegistry<TypeID>::Register(ID, name);
-    return ID;
   }
 
   // unmanaged
@@ -367,7 +339,7 @@ class TypeIDRegistry : public IDRegistry<TypeID> {
   }
 
   template <typename T>
-  bool IsRegistered() const noexcept {
+  bool IsRegistered() const {
     return IDRegistry<TypeID>::IsRegistered(TypeID_of<T>);
   }
 };

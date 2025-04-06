@@ -12,7 +12,7 @@ namespace My::MyDRefl {
 class BaseInfo {
  public:
   BaseInfo(InheritCastFunctions funcs, bool is_polymorphic = false,
-           bool is_virtual = false) noexcept
+           bool is_virtual = false)
       : is_polymorphic{is_polymorphic},
         is_virtual{is_virtual},
         funcs{std::move(funcs)} {
