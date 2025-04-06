@@ -67,7 +67,7 @@ int main() {
       .AddMethod<MemFuncOf<Vec(float) const noexcept>::get(&Vec::operator+)>(
           StrIDRegistry::Meta::operator_add);
 
-  SharedObject v = ReflMngr::Instance().MakeShared(TypeID::of<Vec>, 3.f, 4.f);
+  SharedObject v = ReflMngr::Instance().MakeShared(TypeID_of<Vec>, 3.f, 4.f);
 
   ObjectPtr pv = v;
   SharedObject w0 = v + v;

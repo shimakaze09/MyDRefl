@@ -16,11 +16,11 @@ using SharedBuffer = std::shared_ptr<void>;
 using SharedConstBuffer = std::shared_ptr<const void>;
 
 struct ResultDesc {
-  TypeID typeID{TypeID::of<void>};
+  TypeID typeID{TypeID_of<void>};
   size_t size{0};
   size_t alignment{1};
 
-  constexpr bool IsVoid() const noexcept { return typeID == TypeID::of<void>; }
+  constexpr bool IsVoid() const noexcept { return typeID == TypeID_of<void>; }
 };
 
 struct InvokeResult {
@@ -39,7 +39,7 @@ struct InvokeResult {
     } else
       assert(success);
 
-    assert(resultID = TypeID::of<T>);
+    assert(resultID = TypeID_of<T>);
 
     if constexpr (std::is_reference_v<T>) {
       assert(!destructor);
@@ -94,8 +94,8 @@ struct TypeMethodRef {
 };
 
 enum class DereferenceProperty {
-  NotReference,
-  Variable,
-  Const,
+  NOT_REFERENCE,
+  VARIABLE,
+  CONST,
 };
 }  // namespace My::MyDRefl

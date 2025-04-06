@@ -80,7 +80,7 @@ constexpr auto dynamic_cast_function() noexcept {
 // polymorphic: dynamic_cast
 // virtual    : no static_cast (Base -> Derived)
 template <typename Derived, typename Base>
-constexpr InheritCastFunctions inherit_cast_functions() noexcept {
+InheritCastFunctions inherit_cast_functions() {
   static_assert(std::is_base_of_v<Base, Derived>);
   if constexpr (std::is_polymorphic_v<Derived>) {
     if constexpr (is_virtual_base_of_v<Base, Derived>) {
@@ -102,7 +102,7 @@ constexpr InheritCastFunctions inherit_cast_functions() noexcept {
 }
 
 template <typename T>
-constexpr Destructor destructor() noexcept {
+Destructor destructor() {
   if constexpr (std::is_fundamental_v<T> || std::is_compound_v<T>)
     return {};
   else {
@@ -236,13 +236,17 @@ using operator_rshift =
                      decltype(std::declval<U>() << std::declval<const T&>())>;
 
 template <typename T>
-using operator_pre_inc = decltype(++std::declval<T&>());
+using operator_pre_inc =
+    std::enable_if_t<!std::is_same_v<T, bool>, decltype(++std::declval<T&>())>;
 template <typename T>
-using operator_post_inc = decltype(std::declval<T&>()++);
+using operator_post_inc =
+    std::enable_if_t<!std::is_same_v<T, bool>, decltype(std::declval<T&>()++)>;
 template <typename T>
-using operator_pre_dec = decltype(--std::declval<T&>());
+using operator_pre_dec =
+    std::enable_if_t<!std::is_same_v<T, bool>, decltype(--std::declval<T&>())>;
 template <typename T>
-using operator_post_dec = decltype(std::declval<T&>()--);
+using operator_post_dec =
+    std::enable_if_t<!std::is_same_v<T, bool>, decltype(std::declval<T&>()--)>;
 
 template <typename T>
 using operator_assign_copy =

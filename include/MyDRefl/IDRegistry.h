@@ -363,12 +363,12 @@ class TypeIDRegistry : public IDRegistry<TypeID> {
   // unmanaged
   template <typename T>
   void Register() {
-    IDRegistry<TypeID>::RegisterUnmanaged(TypeID::of<T>, type_name<T>());
+    IDRegistry<TypeID>::RegisterUnmanaged(TypeID_of<T>, type_name<T>());
   }
 
   template <typename T>
   bool IsRegistered() const noexcept {
-    return IDRegistry<TypeID>::IsRegistered(TypeID::of<T>);
+    return IDRegistry<TypeID>::IsRegistered(TypeID_of<T>);
   }
 };
 }  // namespace My::MyDRefl

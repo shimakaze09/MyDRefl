@@ -4,8 +4,8 @@
 
 #include <MyDRefl/MyDRefl.h>
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
 using namespace My;
 using namespace My::MyDRefl;
@@ -36,10 +36,10 @@ int main() {
       StrIDRegistry::Meta::operator_add);
 
   // [ or ]
-  // ObjectPtr v = ReflMngr::Instance().New(TypeID::of<Vec>);
+  // ObjectPtr v = ReflMngr::Instance().New(TypeID_of<Vec>);
   // // do something
   // ReflMngr::Instance().Delete(v);
-  SharedObject v = ReflMngr::Instance().MakeShared(TypeID::of<Vec>);
+  SharedObject v = ReflMngr::Instance().MakeShared(TypeID_of<Vec>);
 
   v->RWVar(StrID{"x"}).As<float>() = 3.f;
   v->RWVar(StrID{"y"}).As<float>() = 4.f;
@@ -47,14 +47,14 @@ int main() {
   std::cout << "x: " << v->RVar(StrID{"x"}).As<float>() << std::endl;
   std::cout << "norm: " << v->Invoke<float>(StrID{"norm"}) << std::endl;
 
-  ReflMngr::Instance().ForEachField(TypeID::of<Vec>, [](TypeRef type,
-                                                        FieldRef field) {
+  ReflMngr::Instance().ForEachField(TypeID_of<Vec>, [](TypeRef type,
+                                                       FieldRef field) {
     std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << std::endl;
     return true;
   });
 
-  ReflMngr::Instance().ForEachMethod(TypeID::of<Vec>, [](TypeRef type,
-                                                         MethodRef method) {
+  ReflMngr::Instance().ForEachMethod(TypeID_of<Vec>, [](TypeRef type,
+                                                        MethodRef method) {
     std::cout << ReflMngr::Instance().nregistry.Nameof(method.ID) << std::endl;
     return true;
   });
@@ -65,8 +65,8 @@ int main() {
     return true;
   });
 
-  auto w = v->DMInvoke<const Vec&>(StrIDRegistry::MetaID::operator_add,
-                                      v.As<Vec>());
+  auto w =
+      v->DMInvoke<const Vec&>(StrIDRegistry::MetaID::operator_add, v.As<Vec>());
 
   w->ForEachRVar([](TypeRef type, FieldRef field, ConstObjectPtr var) {
     std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "

@@ -42,10 +42,9 @@ int main() {
             StrIDRegistry::Meta::operator_assign_add);
   }
 
-  auto obj = ReflMngr::Instance().MakeShared(TypeID::of<Vec>);
+  auto obj = ReflMngr::Instance().MakeShared(TypeID_of<Vec>);
 
   {
-    Vec{10.f, 10.f};
     auto& v = ReflMngr::Instance().Invoke<Vec&, const Vec&>(
         obj.AsObjectPtr(), StrIDRegistry::MetaID::operator_assign_add,
         Vec{10.f, 10.f});

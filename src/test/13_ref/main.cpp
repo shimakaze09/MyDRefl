@@ -72,7 +72,7 @@ int main() {
 
   Data f = 1.f;
   Data g = 2.f;
-  auto a = ReflMngr::Instance().MakeShared<Data&, Data&&>(TypeID::of<A>, f,
+  auto a = ReflMngr::Instance().MakeShared<Data&, Data&&>(TypeID_of<A>, f,
                                                           std::move(g));
   std::cout << "a.rref: " << a->RVar("rref").As<Data>().value << std::endl;
   std::cout << "a.lref: " << a->RVar("lref").As<Data>().value << std::endl;

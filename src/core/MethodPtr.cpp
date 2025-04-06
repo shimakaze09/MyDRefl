@@ -14,10 +14,10 @@ bool ParamList::IsConpatibleWith(Span<const TypeID> typeIDs) const noexcept {
 
   for (size_t i = 0; i < params.size(); i++) {
     if (params[i] != typeIDs[i]) {
-      if ((params[i] != TypeID::of<ConstObjectPtr> ||
-           typeIDs[i] != TypeID::of<ObjectPtr>) &&
-          (params[i] != TypeID::of<SharedConstObject> ||
-           typeIDs[i] != TypeID::of<SharedObject>)) {
+      if ((params[i] != TypeID_of<ConstObjectPtr> ||
+           typeIDs[i] != TypeID_of<ObjectPtr>) &&
+          (params[i] != TypeID_of<SharedConstObject> ||
+           typeIDs[i] != TypeID_of<SharedObject>))
         //     -     | T | T & | const T & | T&& | const T&& |
         //       T   | - |  0  |     0     |  1  |     0     |
         //       T & | 0 |  -  |     0     |  0  |     0     |
@@ -30,47 +30,47 @@ bool ParamList::IsConpatibleWith(Span<const TypeID> typeIDs) const noexcept {
 
         auto lhs = ReflMngr::Instance().tregistry.Nameof(params[i]);
 #ifndef NDEBUG
-        auto rhs = ReflMngr::Instance().tregistry.Nameof(typeIDs[i]);
+      auto rhs = ReflMngr::Instance().tregistry.Nameof(typeIDs[i]);
 #endif  // !NDEBUG
 
-        assert(!type_name_is_const(lhs) && !type_name_is_volatile(lhs));
-        if (type_name_is_rvalue_reference(lhs)) {  // &&{T} or &&{const{T}}
-          auto unref_lhs = type_name_remove_reference(lhs);  // T or const{T}
-          assert(!type_name_is_volatile(unref_lhs));
-          auto raw_lhs = type_name_remove_const(unref_lhs);  // T
-          if (TypeID{raw_lhs} != typeIDs[i]) {
-            if (!type_name_is_const(unref_lhs))
-              return false;
-
-            if (type_name_add_rvalue_reference_hash(raw_lhs) !=
-                typeIDs[i].GetValue())
-              return false;
-          }
-        } else if (type_name_is_lvalue_reference(lhs)) {  // &{T} or &{const{T}}
-          auto unref_lhs = type_name_remove_reference(lhs);  // T or const{T}
+      assert(!type_name_is_const(lhs) && !type_name_is_volatile(lhs));
+      if (type_name_is_rvalue_reference(lhs)) {  // &&{T} or &&{const{T}}
+        auto unref_lhs = type_name_remove_reference(lhs);  // T or const{T}
+        assert(!type_name_is_volatile(unref_lhs));
+        auto raw_lhs = type_name_remove_const(unref_lhs);  // T
+        if (TypeID{raw_lhs} != typeIDs[i]) {
           if (!type_name_is_const(unref_lhs))
             return false;
 
-          if (type_name_add_rvalue_reference_hash(unref_lhs) !=
-              typeIDs[i].GetValue()) {
-            auto raw_lhs = type_name_remove_const(unref_lhs);  // T
-
-            if (TypeID{raw_lhs} != typeIDs[i] &&
-                type_name_add_lvalue_reference_hash(raw_lhs) !=
-                    typeIDs[i].GetValue() &&
-                type_name_add_rvalue_reference_hash(raw_lhs) !=
-                    typeIDs[i].GetValue())
-              return false;
-          }
-        } else {  // T
-          if (type_name_add_rvalue_reference_hash(lhs) != typeIDs[i].GetValue())
+          if (type_name_add_rvalue_reference_hash(raw_lhs) !=
+              typeIDs[i].GetValue())
             return false;
         }
+      } else if (type_name_is_lvalue_reference(lhs)) {  // &{T} or &{const{T}}
+        auto unref_lhs = type_name_remove_reference(lhs);  // T or const{T}
+        if (!type_name_is_const(unref_lhs))
+          return false;
+
+        if (type_name_add_rvalue_reference_hash(unref_lhs) !=
+            typeIDs[i].GetValue()) {
+          auto raw_lhs = type_name_remove_const(unref_lhs);  // T
+
+          if (TypeID{raw_lhs} != typeIDs[i] &&
+              type_name_add_lvalue_reference_hash(raw_lhs) !=
+                  typeIDs[i].GetValue() &&
+              type_name_add_rvalue_reference_hash(raw_lhs) !=
+                  typeIDs[i].GetValue())
+            return false;
+        }
+      } else {  // T
+        if (type_name_add_rvalue_reference_hash(lhs) != typeIDs[i].GetValue())
+          return false;
       }
     }
   }
+}
 
-  return true;
+return true;
 }
 
 bool ParamList::operator==(const ParamList& rhs) const noexcept {

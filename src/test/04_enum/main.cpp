@@ -18,7 +18,7 @@ int main() {
   ReflMngr::Instance().AddField<Color::BLUE>("BLUE");
 
   ReflMngr::Instance().ForEachRVar(
-      TypeID::of<Color>, [](TypeRef type, FieldRef field, ConstObjectPtr var) {
+      TypeID_of<Color>, [](TypeRef type, FieldRef field, ConstObjectPtr var) {
         std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
                   << static_cast<size_t>(var.As<Color>()) << std::endl;
         return true;
@@ -27,7 +27,7 @@ int main() {
   // enumerator -> name
   Color c = Color::RED;
   auto c_field =
-      ReflMngr::Instance().FindField(TypeID::of<Color>, [c](FieldRef field) {
+      ReflMngr::Instance().FindField(TypeID_of<Color>, [c](FieldRef field) {
         return field.info.fieldptr.RVar().As<Color>() == c;
       });
 
@@ -38,7 +38,7 @@ int main() {
   // name -> enumerator
   std::string_view name = "GREEN";
   auto name_field =
-      ReflMngr::Instance().FindField(TypeID::of<Color>, [name](FieldRef field) {
+      ReflMngr::Instance().FindField(TypeID_of<Color>, [name](FieldRef field) {
         return ReflMngr::Instance().nregistry.Nameof(field.ID) == name;
       });
 

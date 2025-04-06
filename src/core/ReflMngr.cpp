@@ -248,22 +248,22 @@ ReflMngr::ReflMngr() {
   MethodInfo methodinfo_free{GenerateMethodPtr<&free>()};
 
 #if defined(_WIN32) || defined(_WIN64)
-#define UBPA_UDREFL_ALIGN_MALLOC _aligned_malloc
+#define MY_MYDREFL_ALIGN_MALLOC _aligned_malloc
 #else
-#define UBPA_UDREFL_ALIGN_MALLOC aligned_alloc
+#define MY_MYDREFL_ALIGN_MALLOC aligned_alloc
 #endif  // defined(_WIN32) || defined(_WIN64)
   MethodInfo methodinfo_aligned_malloc{
-      GenerateMethodPtr<&UBPA_UDREFL_ALIGN_MALLOC>()};
-#undef UBPA_UDREFL_ALIGN_MALLOC
+      GenerateMethodPtr<&MY_MYDREFL_ALIGN_MALLOC>()};
+#undef MY_MYDREFL_ALIGN_MALLOC
 
 #if defined(_WIN32) || defined(_WIN64)
-#define UBPA_UDREFL_ALIGN_FREE _aligned_free
+#define MY_MYDREFL_ALIGN_FREE _aligned_free
 #else
-#define UBPA_UDREFL_ALIGN_FREE free
+#define MY_MYDREFL_ALIGN_FREE free
 #endif  // defined(_WIN32) || defined(_WIN64)
   MethodInfo methodinfo_aligned_free{
-      GenerateMethodPtr<&UBPA_UDREFL_ALIGN_FREE>()};
-#undef UBPA_UDREFL_ALIGN_FREE
+      GenerateMethodPtr<&MY_MYDREFL_ALIGN_FREE>()};
+#undef MY_MYDREFL_ALIGN_FREE
 
   TypeInfo global{
       0,

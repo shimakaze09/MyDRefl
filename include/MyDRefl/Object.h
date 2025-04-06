@@ -75,7 +75,7 @@ class ObjectPtrBase {
 
   template <typename T>
   constexpr bool Is() const noexcept {
-    return ID == TypeID::of<T>;
+    return ID == TypeID_of<T>;
   }
 
   constexpr void Reset() noexcept { ptr = nullptr; }
@@ -296,7 +296,7 @@ class ConstObjectPtr : public ObjectPtrBase {
 
   template <typename T, std::enable_if_t<!std::is_void_v<T>, int> = 0>
   constexpr ConstObjectPtr(const T* ptr)
-      : ConstObjectPtr{TypeID::of<std::remove_volatile_t<T>>, ptr} {}
+      : ConstObjectPtr{TypeID_of<std::remove_volatile_t<T>>, ptr} {}
 
   ConstObjectPtr(const SharedConstObject& obj) noexcept;
 
@@ -323,7 +323,7 @@ class ObjectPtr : public ObjectPtrBase {
 
   template <typename T, std::enable_if_t<!std::is_void_v<T>, int> = 0>
   constexpr ObjectPtr(std::remove_const_t<T>* ptr)
-      : ObjectPtr{TypeID::of<std::remove_volatile_t<T>>, ptr} {}
+      : ObjectPtr{TypeID_of<std::remove_volatile_t<T>>, ptr} {}
 
   constexpr void* GetPtr() const noexcept { return ptr; }
 
@@ -849,9 +849,9 @@ template <typename T>
 constexpr auto Ptr(T&& p) noexcept {
   using U = std::remove_reference_t<T>;
   if constexpr (std::is_const_v<U>)
-    return ConstObjectPtr{TypeID::of<std::remove_cv_t<U>>, &p};
+    return ConstObjectPtr{TypeID_of<std::remove_cv_t<U>>, &p};
   else
-    return ObjectPtr{TypeID::of<std::remove_volatile_t<U>>, &p};
+    return ObjectPtr{TypeID_of<std::remove_volatile_t<U>>, &p};
 }
 
 template <typename T>
@@ -861,7 +861,7 @@ constexpr TypeID ArgID(T&& arg) noexcept {
   else {
     static_assert(!std::is_same_v<T, ConstObjectPtr> &&
                   !std::is_same_v<T, SharedConstObject>);
-    return TypeID::of<T>;
+    return TypeID_of<T>;
   }
 }
 

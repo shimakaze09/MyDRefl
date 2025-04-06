@@ -3,8 +3,8 @@
 //
 
 #include <MyDRefl/MyDRefl.h>
-#include <iostream>
 #include <cmath>
+#include <iostream>
 
 using namespace My;
 using namespace My::MyDRefl;
@@ -22,7 +22,7 @@ int main() {
   ReflMngr::Instance().AddField<&Vec::y>("y");
   ReflMngr::Instance().AddMethod<&Vec::norm>("norm");
 
-  SharedObject v = ReflMngr::Instance().MakeShared(TypeID::of<Vec>);
+  SharedObject v = ReflMngr::Instance().MakeShared(TypeID_of<Vec>);
   std::cout << v->TypeName() << std::endl;  // prints "Vec"
 
   v->RWVar("x") = 3.f;
@@ -31,14 +31,14 @@ int main() {
   std::cout << "x: " << v->RVar("x") << std::endl;
   std::cout << "norm: " << v->DMInvoke("norm") << std::endl;
 
-  for (auto field : ReflMngr::Instance().GetFields(TypeID::of<Vec>))
+  for (auto field : ReflMngr::Instance().GetFields(TypeID_of<Vec>))
     std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << std::endl;
 
-  for (auto method : ReflMngr::Instance().GetMethods(TypeID::of<Vec>))
+  for (auto method : ReflMngr::Instance().GetMethods(TypeID_of<Vec>))
     std::cout << ReflMngr::Instance().nregistry.Nameof(method.ID) << std::endl;
 
   for (const auto& [type, field, var] : v->GetTypeFieldRVars()) {
-    std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
-              << var << std::endl;
+    std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": " << var
+              << std::endl;
   }
 }
