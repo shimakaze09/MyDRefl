@@ -808,6 +808,7 @@ template <typename T, typename... Args>
 FieldPtr ReflMngr::GenerateDynamicFieldPtr(Args&&... args) {
   static_assert(!std::is_reference_v<T> && !std::is_volatile_v<T>);
   using RawT = std::remove_const_t<T>;
+  RegisterTypeAuto<RawT>();
   if constexpr (FieldPtr::IsBufferable<RawT>()) {
     FieldPtr::Buffer buffer =
         FieldPtr::ConvertToBuffer(T{std::forward<Args>(args)...});

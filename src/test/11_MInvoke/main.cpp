@@ -60,8 +60,8 @@ int main() {
   });
 
   v->ForEachRVar([](TypeRef type, FieldRef field, ConstObjectPtr var) {
-    std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
-              << var.As<float>() << std::endl;
+    std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": " << var
+              << std::endl;
     return true;
   });
 
@@ -69,8 +69,8 @@ int main() {
       v->DMInvoke<const Vec&>(StrIDRegistry::MetaID::operator_add, v.As<Vec>());
 
   w->ForEachRVar([](TypeRef type, FieldRef field, ConstObjectPtr var) {
-    std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
-              << var.As<float>() << std::endl;
+    std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": " << var
+              << std::endl;
     return true;
   });
 }
