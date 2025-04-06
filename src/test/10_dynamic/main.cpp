@@ -9,20 +9,20 @@
 using namespace My;
 using namespace My::MyDRefl;
 
-enum class Color { RED, GREEN, BLUE };
+enum class Color { Red, Green, Blue };
 
 int main() {
   ReflMngr::Instance().AddDynamicField<const std::string>(GlobalID, "author",
                                                           "My");
   ReflMngr::Instance().AddDynamicField<const Color>(GlobalID, "theme",
-                                                    Color::RED);
+                                                    Color::Red);
   ReflMngr::Instance().RegisterTypeAuto<int>();
   ReflMngr::Instance().AddDynamicField<const size_t>(TypeID_of<int>, "bits",
                                                      sizeof(int) * 8);
 
   std::cout << ReflMngr::Instance().RVar(GlobalID, "author") << std::endl;
   std::cout << (ReflMngr::Instance().RVar(GlobalID, "theme").As<Color>() ==
-                Color::RED)
+                Color::Red)
             << std::endl;
 
   std::cout << ReflMngr::Instance().RVar(TypeID_of<int>, "bits") << std::endl;

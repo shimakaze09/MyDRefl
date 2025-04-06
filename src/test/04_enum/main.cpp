@@ -9,13 +9,13 @@
 using namespace My;
 using namespace My::MyDRefl;
 
-enum class Color { RED, GREEN, BLUE };
+enum class Color { Red, Green, Blue };
 
 int main() {
   ReflMngr::Instance().RegisterTypeAuto<Color>();
-  ReflMngr::Instance().AddField<Color::RED>("RED");
-  ReflMngr::Instance().AddField<Color::GREEN>("GREEN");
-  ReflMngr::Instance().AddField<Color::BLUE>("BLUE");
+  ReflMngr::Instance().AddField<Color::Red>("Red");
+  ReflMngr::Instance().AddField<Color::Green>("Green");
+  ReflMngr::Instance().AddField<Color::Blue>("Blue");
 
   ReflMngr::Instance().ForEachRVar(
       TypeID_of<Color>, [](TypeRef type, FieldRef field, ConstObjectPtr var) {
@@ -25,7 +25,7 @@ int main() {
       });
 
   // enumerator -> name
-  Color c = Color::RED;
+  Color c = Color::Red;
   auto c_field = ReflMngr::Instance().FindField(
       TypeID_of<Color>,
       [c](FieldRef field) { return field.info.fieldptr.RVar() == c; });

@@ -5,6 +5,9 @@
 #pragma once
 
 #include <array>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 namespace My::MyDRefl::details {
 template <typename ArgList>
@@ -96,52 +99,49 @@ struct TypeAutoRegister_Default {
                            });
 
     if constexpr (is_valid_v<operator_add, T>)
-      mngr.AddMemberMethod(
-          StrIDRegistry::Meta::operator_add,
-          [](const T& lhs, const T& rhs) { return lhs + rhs; });
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_add,
+                           [](const T& lhs, const T& rhs) -> decltype(auto) {
+                             return lhs + rhs;
+                           });
     if constexpr (is_valid_v<operator_sub, T>)
-      mngr.AddMemberMethod(
-          StrIDRegistry::Meta::operator_sub,
-          [](const T& lhs, const T& rhs) { return lhs - rhs; });
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_sub,
+                           [](const T& lhs, const T& rhs) -> decltype(auto) {
+                             return lhs - rhs;
+                           });
     if constexpr (is_valid_v<operator_mul, T>)
-      mngr.AddMemberMethod(
-          StrIDRegistry::Meta::operator_mul,
-          [](const T& lhs, const T& rhs) { return lhs * rhs; });
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_mul,
+                           [](const T& lhs, const T& rhs) -> decltype(auto) {
+                             return lhs * rhs;
+                           });
     if constexpr (is_valid_v<operator_div, T>)
-      mngr.AddMemberMethod(
-          StrIDRegistry::Meta::operator_div,
-          [](const T& lhs, const T& rhs) { return lhs / rhs; });
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_div,
+                           [](const T& lhs, const T& rhs) -> decltype(auto) {
+                             return lhs / rhs;
+                           });
     if constexpr (is_valid_v<operator_mod, T>)
-      mngr.AddMemberMethod(
-          StrIDRegistry::Meta::operator_mod,
-          [](const T& lhs, const T& rhs) { return lhs % rhs; });
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_mod,
+                           [](const T& lhs, const T& rhs) -> decltype(auto) {
+                             return lhs % rhs;
+                           });
 
     if constexpr (is_valid_v<operator_bnot, T>)
       mngr.AddMemberMethod(StrIDRegistry::Meta::operator_bnot,
-                           [](const T& lhs) { return ~lhs; });
+                           [](const T& lhs) -> decltype(auto) { return ~lhs; });
     if constexpr (is_valid_v<operator_band, T>)
-      mngr.AddMemberMethod(
-          StrIDRegistry::Meta::operator_band,
-          [](const T& lhs, const T& rhs) { return lhs & rhs; });
-    if constexpr (is_valid_v<operator_bor, T>)
-      mngr.AddMemberMethod(
-          StrIDRegistry::Meta::operator_bor,
-          [](const T& lhs, const T& rhs) { return lhs & rhs; });
-    if constexpr (is_valid_v<operator_bxor, T>)
-      mngr.AddMemberMethod(
-          StrIDRegistry::Meta::operator_bxor,
-          [](const T& lhs, const T& rhs) { return lhs & rhs; });
-    if constexpr (is_valid_v<operator_lshift, T>)
-      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_lshift,
-                           [](T& lhs, std::istream& rhs) -> decltype(auto) {
-                             return rhs >> lhs;
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_band,
+                           [](const T& lhs, const T& rhs) -> decltype(auto) {
+                             return lhs & rhs;
                            });
-    if constexpr (is_valid_v<operator_rshift, T>)
-      mngr.AddMemberMethod(
-          StrIDRegistry::Meta::operator_rshift,
-          [](const T& lhs, std::ostream& rhs) -> decltype(auto) {
-            return rhs << lhs;
-          });
+    if constexpr (is_valid_v<operator_bor, T>)
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_bor,
+                           [](const T& lhs, const T& rhs) -> decltype(auto) {
+                             return lhs & rhs;
+                           });
+    if constexpr (is_valid_v<operator_bxor, T>)
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_bxor,
+                           [](const T& lhs, const T& rhs) -> decltype(auto) {
+                             return lhs & rhs;
+                           });
     if constexpr (is_valid_v<operator_lshift, T, std::size_t>)
       mngr.AddMemberMethod(StrIDRegistry::Meta::operator_lshift,
                            [](const T& lhs, std::size_t rhs) -> decltype(auto) {
@@ -152,6 +152,76 @@ struct TypeAutoRegister_Default {
                            [](const T& lhs, std::size_t rhs) -> decltype(auto) {
                              return lhs >> rhs;
                            });
+
+    if constexpr (is_valid_v<operator_lshift, T, std::istream&>)
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_lshift,
+                           [](T& lhs, std::istream& rhs) -> decltype(auto) {
+                             return rhs >> lhs;
+                           });
+    if constexpr (is_valid_v<operator_lshift, T, std::istringstream&>)
+      mngr.AddMemberMethod(
+          StrIDRegistry::Meta::operator_lshift,
+          [](T& lhs, std::istringstream& rhs) -> decltype(auto) {
+            return rhs >> lhs;
+          });
+    if constexpr (is_valid_v<operator_lshift, T, std::ifstream&>)
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_lshift,
+                           [](T& lhs, std::ifstream& rhs) -> decltype(auto) {
+                             return rhs >> lhs;
+                           });
+    if constexpr (is_valid_v<operator_lshift, T, std::iostream&>)
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_lshift,
+                           [](T& lhs, std::iostream& rhs) -> decltype(auto) {
+                             return rhs >> lhs;
+                           });
+    if constexpr (is_valid_v<operator_lshift, T, std::stringstream&>)
+      mngr.AddMemberMethod(
+          StrIDRegistry::Meta::operator_lshift,
+          [](T& lhs, std::stringstream& rhs) -> decltype(auto) {
+            return rhs >> lhs;
+          });
+    if constexpr (is_valid_v<operator_lshift, T, std::fstream&>)
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_lshift,
+                           [](T& lhs, std::fstream& rhs) -> decltype(auto) {
+                             return rhs >> lhs;
+                           });
+
+    if constexpr (is_valid_v<operator_rshift, T, std::ostream&>)
+      mngr.AddMemberMethod(
+          StrIDRegistry::Meta::operator_rshift,
+          [](const T& lhs, std::ostream& rhs) -> decltype(auto) {
+            return rhs << lhs;
+          });
+    if constexpr (is_valid_v<operator_rshift, T, std::ostringstream&>)
+      mngr.AddMemberMethod(
+          StrIDRegistry::Meta::operator_rshift,
+          [](const T& lhs, std::ostringstream& rhs) -> decltype(auto) {
+            return rhs << lhs;
+          });
+    if constexpr (is_valid_v<operator_rshift, T, std::ofstream&>)
+      mngr.AddMemberMethod(
+          StrIDRegistry::Meta::operator_rshift,
+          [](const T& lhs, std::ofstream& rhs) -> decltype(auto) {
+            return rhs << lhs;
+          });
+    if constexpr (is_valid_v<operator_rshift, T, std::iostream&>)
+      mngr.AddMemberMethod(
+          StrIDRegistry::Meta::operator_rshift,
+          [](const T& lhs, std::iostream& rhs) -> decltype(auto) {
+            return rhs << lhs;
+          });
+    if constexpr (is_valid_v<operator_rshift, T, std::stringstream&>)
+      mngr.AddMemberMethod(
+          StrIDRegistry::Meta::operator_rshift,
+          [](const T& lhs, std::stringstream& rhs) -> decltype(auto) {
+            return rhs << lhs;
+          });
+    if constexpr (is_valid_v<operator_rshift, T, std::fstream&>)
+      mngr.AddMemberMethod(
+          StrIDRegistry::Meta::operator_rshift,
+          [](const T& lhs, std::fstream& rhs) -> decltype(auto) {
+            return rhs << lhs;
+          });
 
     if constexpr (is_valid_v<operator_pre_inc, T>)
       mngr.AddMemberMethod(StrIDRegistry::Meta::operator_pre_inc,
@@ -167,12 +237,14 @@ struct TypeAutoRegister_Default {
                            [](T& lhs, int) -> decltype(auto) { return lhs--; });
 
     if constexpr (is_valid_v<operator_assign_copy, T>)
-      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_assign,
-                           [](T& lhs, const T& rhs) { return lhs = rhs; });
-    if constexpr (is_valid_v<operator_assign_move, T>)
       mngr.AddMemberMethod(
           StrIDRegistry::Meta::operator_assign,
-          [](T& lhs, T&& rhs) { return lhs = std::move(rhs); });
+          [](T& lhs, const T& rhs) -> decltype(auto) { return lhs = rhs; });
+    if constexpr (is_valid_v<operator_assign_move, T>)
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_assign,
+                           [](T& lhs, T&& rhs) -> decltype(auto) {
+                             return lhs = std::move(rhs);
+                           });
     if constexpr (is_valid_v<operator_assign_add, T>)
       mngr.AddMemberMethod(
           StrIDRegistry::Meta::operator_assign_add,
@@ -205,14 +277,6 @@ struct TypeAutoRegister_Default {
       mngr.AddMemberMethod(
           StrIDRegistry::Meta::operator_assign_bxor,
           [](T& lhs, const T& rhs) -> decltype(auto) { return lhs ^= rhs; });
-    if constexpr (is_valid_v<operator_assign_lshift, T>)
-      mngr.AddMemberMethod(
-          StrIDRegistry::Meta::operator_assign_lshift,
-          [](T& lhs, const T& rhs) -> decltype(auto) { return lhs <<= rhs; });
-    if constexpr (is_valid_v<operator_assign_rshift, T>)
-      mngr.AddMemberMethod(
-          StrIDRegistry::Meta::operator_assign_rshift,
-          [](T& lhs, const T& rhs) -> decltype(auto) { return lhs >>= rhs; });
     if constexpr (is_valid_v<operator_assign_lshift, T, std::size_t>)
       mngr.AddMemberMethod(StrIDRegistry::Meta::operator_assign_lshift,
                            [](T& lhs, std::size_t rhs) -> decltype(auto) {
@@ -285,11 +349,15 @@ struct TypeAutoRegister_Default {
       if constexpr (is_valid_v<operator_add, T, std::size_t>)
         mngr.AddMemberMethod(
             StrIDRegistry::Meta::operator_add,
-            [](const T& lhs, std::size_t rhs) { return lhs + rhs; });
+            [](const T& lhs, std::size_t rhs) -> decltype(auto) {
+              return lhs + rhs;
+            });
       if constexpr (is_valid_v<operator_sub, T, std::size_t>)
         mngr.AddMemberMethod(
             StrIDRegistry::Meta::operator_sub,
-            [](const T& lhs, std::size_t rhs) { return lhs - rhs; });
+            [](const T& lhs, std::size_t rhs) -> decltype(auto) {
+              return lhs - rhs;
+            });
     }
 
     // container

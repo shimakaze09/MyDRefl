@@ -33,6 +33,17 @@
     return AsObjectPtr()->operator op<Arg>(std::forward<Arg>(rhs)); \
   }
 
+#define DEFINE_OPERATOR_LSHIFT(Lhs, Rhs)             \
+  inline Lhs& operator<<(Lhs& lhs, const Rhs& rhs) { \
+    return rhs >> lhs;                               \
+  }
+
+#define DEFINE_OPERATOR_RSHIFT(Lhs, Rhs)             \
+  inline Lhs& operator>>(Lhs& lhs, const Rhs& rhs) { \
+    rhs << lhs;                                      \
+    return lhs;                                      \
+  }
+
 namespace My::MyDRefl {
 //
 // ObjectPtrBase
@@ -267,8 +278,9 @@ SharedObject ObjectPtr::operator()(Args... args) const {
 }
 
 template <typename T>
-SharedObject ObjectPtr::operator<<(const T& in) const {
-  return ADMInvoke<const T&>(StrIDRegistry::MetaID::operator_lshift, in);
+SharedObject ObjectPtr::operator<<(T&& in) const {
+  return ADMInvoke<T>(StrIDRegistry::MetaID::operator_lshift,
+                      std::forward<T>(in));
 }
 
 //
@@ -378,6 +390,7 @@ struct My::MyDRefl::IsObjectOrPtr {
       std::is_same_v<T, SharedObject> || std::is_same_v<T, SharedConstObject>;
 };
 
+namespace My::MyDRefl {
 template <typename T,
           std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
 bool operator==(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
@@ -416,17 +429,6 @@ bool operator>=(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
 
 template <typename T,
           std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-T& operator<<(T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
-  return ptr >> lhs;
-}
-
-//template<typename T, std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-//My::MyDRefl::SharedObject operator>>(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
-//	return ptr << lhs;
-//}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
 bool operator==(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
   return My::MyDRefl::Ptr(lhs) == ptr;
 }
@@ -459,18 +461,6 @@ template <typename T,
           std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
 bool operator>=(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
   return My::MyDRefl::Ptr(lhs) >= ptr;
-}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-T& operator<<(T& lhs, My::MyDRefl::ObjectPtr ptr) {
-  return ptr >> lhs;
-}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-My::MyDRefl::SharedObject operator>>(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
-  return ptr << lhs;
 }
 
 template <typename T,
@@ -511,17 +501,6 @@ bool operator>=(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
 
 template <typename T,
           std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-T& operator<<(T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
-  return ptr >> lhs;
-}
-
-//template<typename T, std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-//My::MyDRefl::SharedObject operator>>(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
-//	return ptr << lhs;
-//}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
 bool operator==(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
   return My::MyDRefl::Ptr(lhs) == ptr;
 }
@@ -556,20 +535,48 @@ bool operator>=(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
   return My::MyDRefl::Ptr(lhs) >= ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-T& operator<<(T& lhs, const My::MyDRefl::SharedObject& ptr) {
-  return ptr >> lhs;
-}
+DEFINE_OPERATOR_LSHIFT(std::ostream, ConstObjectPtr)
+DEFINE_OPERATOR_LSHIFT(std::ostream, ObjectPtr)
+DEFINE_OPERATOR_LSHIFT(std::ostream, SharedConstObject)
+DEFINE_OPERATOR_LSHIFT(std::ostream, SharedObject)
+DEFINE_OPERATOR_LSHIFT(std::ostringstream, ConstObjectPtr)
+DEFINE_OPERATOR_LSHIFT(std::ostringstream, ObjectPtr)
+DEFINE_OPERATOR_LSHIFT(std::ostringstream, SharedConstObject)
+DEFINE_OPERATOR_LSHIFT(std::ostringstream, SharedObject)
+DEFINE_OPERATOR_LSHIFT(std::ofstream, ConstObjectPtr)
+DEFINE_OPERATOR_LSHIFT(std::ofstream, ObjectPtr)
+DEFINE_OPERATOR_LSHIFT(std::ofstream, SharedConstObject)
+DEFINE_OPERATOR_LSHIFT(std::ofstream, SharedObject)
+DEFINE_OPERATOR_LSHIFT(std::iostream, ConstObjectPtr)
+DEFINE_OPERATOR_LSHIFT(std::iostream, ObjectPtr)
+DEFINE_OPERATOR_LSHIFT(std::iostream, SharedConstObject)
+DEFINE_OPERATOR_LSHIFT(std::iostream, SharedObject)
+DEFINE_OPERATOR_LSHIFT(std::stringstream, ConstObjectPtr)
+DEFINE_OPERATOR_LSHIFT(std::stringstream, ObjectPtr)
+DEFINE_OPERATOR_LSHIFT(std::stringstream, SharedConstObject)
+DEFINE_OPERATOR_LSHIFT(std::stringstream, SharedObject)
+DEFINE_OPERATOR_LSHIFT(std::fstream, ConstObjectPtr)
+DEFINE_OPERATOR_LSHIFT(std::fstream, ObjectPtr)
+DEFINE_OPERATOR_LSHIFT(std::fstream, SharedConstObject)
+DEFINE_OPERATOR_LSHIFT(std::fstream, SharedObject)
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-My::MyDRefl::SharedObject operator>>(const T& lhs,
-                                     const My::MyDRefl::SharedObject& ptr) {
-  return ptr << lhs;
-}
+DEFINE_OPERATOR_RSHIFT(std::istream, ObjectPtr)
+DEFINE_OPERATOR_RSHIFT(std::istream, SharedObject)
+DEFINE_OPERATOR_RSHIFT(std::istringstream, ObjectPtr)
+DEFINE_OPERATOR_RSHIFT(std::istringstream, SharedObject)
+DEFINE_OPERATOR_RSHIFT(std::ifstream, ObjectPtr)
+DEFINE_OPERATOR_RSHIFT(std::ifstream, SharedObject)
+DEFINE_OPERATOR_RSHIFT(std::iostream, ObjectPtr)
+DEFINE_OPERATOR_RSHIFT(std::iostream, SharedObject)
+DEFINE_OPERATOR_RSHIFT(std::stringstream, ObjectPtr)
+DEFINE_OPERATOR_RSHIFT(std::stringstream, SharedObject)
+DEFINE_OPERATOR_RSHIFT(std::fstream, ObjectPtr)
+DEFINE_OPERATOR_RSHIFT(std::fstream, SharedObject)
+}  // namespace My::MyDRefl
 
 #undef OBJECT_PTR_DEFINE_OPERATOR
 #undef OBJECT_PTR_DEFINE_CONTAINER_T
 #undef OBJECT_PTR_DEFINE_CONTAINER_VARS_T
 #undef SHARED_OBJECT_DEFINE_OPERATOR_T
+#undef DEFINE_OPERATOR_LSHIFT
+#undef DEFINE_OPERATOR_RSHIFT

@@ -434,7 +434,7 @@ class ObjectPtr : public ObjectPtrBase {
   SharedObject operator()(Args... args) const;
 
   template <typename T>
-  SharedObject operator<<(const T& in) const;
+  SharedObject operator<<(T&& in) const;
 
   //
   // container
@@ -504,18 +504,11 @@ class SharedObjectBase {
 
   explicit constexpr SharedObjectBase(TypeID ID) noexcept : ID{ID} {}
 
-  SharedObjectBase(TypeID ID, const SharedBuffer& buffer) noexcept
-      : ID{ID}, buffer{buffer} {}
-
-  SharedObjectBase(TypeID ID, SharedBuffer&& buffer) noexcept
+  SharedObjectBase(TypeID ID, SharedBuffer buffer) noexcept
       : ID{ID}, buffer{std::move(buffer)} {}
 
   template <typename T>
-  SharedObjectBase(TypeID ID, const std::shared_ptr<T>& buffer) noexcept
-      : ID{ID}, buffer{buffer} {}
-
-  template <typename T>
-  SharedObjectBase(TypeID ID, std::shared_ptr<T>&& buffer) noexcept
+  SharedObjectBase(TypeID ID, std::shared_ptr<T> buffer) noexcept
       : ID{ID}, buffer{std::move(buffer)} {}
 
   template <typename Deleter>
@@ -644,22 +637,14 @@ class SharedConstObject : public SharedObjectBase {
   SharedConstObject(SharedConstObject&& obj) noexcept
       : SharedObjectBase{obj.ID, std::move(obj.buffer)} {}
 
-  SharedConstObject(const SharedObject& obj);
-  SharedConstObject(SharedObject&& obj) noexcept;
+  SharedConstObject(SharedObject obj) noexcept;
 
-  SharedConstObject(TypeID ID, const SharedConstBuffer& buffer) noexcept
-      : SharedObjectBase{ID, std::const_pointer_cast<void>(buffer)} {}
-
-  SharedConstObject(TypeID ID, SharedConstBuffer&& buffer) noexcept
+  SharedConstObject(TypeID ID, SharedConstBuffer buffer) noexcept
       : SharedObjectBase{ID, std::const_pointer_cast<void>(std::move(buffer))} {
   }
 
   template <typename T>
-  SharedConstObject(TypeID ID, const std::shared_ptr<const T>& buffer) noexcept
-      : SharedObjectBase{ID, std::const_pointer_cast<T>(buffer)} {}
-
-  template <typename T>
-  SharedConstObject(TypeID ID, std::shared_ptr<const T>&& buffer) noexcept
+  SharedConstObject(TypeID ID, std::shared_ptr<const T> buffer) noexcept
       : SharedObjectBase{ID, std::const_pointer_cast<T>(std::move(buffer))} {}
 
   template <typename U, typename Deleter>
@@ -825,8 +810,8 @@ class SharedObject : public SharedObjectBase {
   }
 
   template <typename T>
-  T& operator<<(const T& in) const {
-    return AsObjectPtr() << in;
+  SharedObject operator<<(T&& in) const {
+    return AsObjectPtr() << std::forward<T>(in);
   }
 
   //
