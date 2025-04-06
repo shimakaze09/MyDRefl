@@ -284,6 +284,7 @@ ReflMngr::ReflMngr() {
                     std::move(global));
 
   RegisterTypeAuto<ContainerType>();
+  AddField<ContainerType::UNKNOWN>("UNKNOWN");
   AddField<ContainerType::ARRAY>("ARRAY");
   AddField<ContainerType::VECTOR>("VECTOR");
   AddField<ContainerType::DEQUE>("DEQUE");

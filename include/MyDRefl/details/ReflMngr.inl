@@ -360,6 +360,30 @@ struct TypeAutoRegister_Default {
                                return lhs.at(n);
                              });
 
+      if constexpr (is_valid_v<container_at_key, T>)
+        mngr.AddMemberMethod(
+            StrIDRegistry::Meta::container_at,
+            [](T& lhs, const typename T::key_type& key) -> decltype(auto) {
+              return lhs.at(key);
+            });
+      if constexpr (is_valid_v<container_at_key_const, T>)
+        mngr.AddMemberMethod(StrIDRegistry::Meta::container_at,
+                             [](const T& lhs, const typename T::key_type& key)
+                                 -> decltype(auto) { return lhs.at(key); });
+
+      if constexpr (is_valid_v<container_subscript_key_0, T>)
+        mngr.AddMemberMethod(
+            StrIDRegistry::Meta::operator_subscript,
+            [](T& lhs, const typename T::node_type& key) -> decltype(auto) {
+              return lhs[key];
+            });
+      if constexpr (is_valid_v<container_subscript_key_1, T>)
+        mngr.AddMemberMethod(
+            StrIDRegistry::Meta::operator_subscript,
+            [](T& lhs, typename T::node_type&& key) -> decltype(auto) {
+              return lhs[std::move(key)];
+            });
+
       if constexpr (is_valid_v<container_data, T>)
         mngr.AddMemberMethod(
             StrIDRegistry::Meta::container_data,
@@ -417,8 +441,13 @@ struct TypeAutoRegister_Default {
             StrIDRegistry::Meta::container_capacity,
             [](const T& lhs) -> decltype(auto) { return lhs.capacity(); });
 
+      if constexpr (is_valid_v<container_bucket_count, T>)
+        mngr.AddMemberMethod(
+            StrIDRegistry::Meta::container_bucket_count,
+            [](const T& lhs) -> decltype(auto) { return lhs.bucket_count(); });
+
       if constexpr (is_valid_v<container_reserve, T>)
-        mngr.AddMemberMethod(StrIDRegistry::Meta::container_capacity,
+        mngr.AddMemberMethod(StrIDRegistry::Meta::container_reserve,
                              [](T& lhs, std::size_t n) -> decltype(auto) {
                                return lhs.reserve(n);
                              });
@@ -459,6 +488,21 @@ struct TypeAutoRegister_Default {
               return lhs.insert(iter, n, std::move(value));
             });
 
+      if constexpr (is_valid_v<container_insert_3, T>)
+        mngr.AddMemberMethod(
+            StrIDRegistry::Meta::container_insert,
+            [](T& lhs, typename T::node_type&& value) -> decltype(auto) {
+              return lhs.insert(std::move(value));
+            });
+
+      if constexpr (is_valid_v<container_insert_4, T>)
+        mngr.AddMemberMethod(
+            StrIDRegistry::Meta::container_insert,
+            [](T& lhs, typename T::const_iterator iter,
+               typename T::node_type&& value) -> decltype(auto) {
+              return lhs.insert(iter, std::move(value));
+            });
+
       // assign (TODO)
 
       if constexpr (is_valid_v<container_erase_0, T>)
@@ -488,6 +532,13 @@ struct TypeAutoRegister_Default {
             [](T& lhs, typename T::const_iterator start,
                typename T::const_iterator end) -> decltype(auto) {
               return lhs.erase(start, end);
+            });
+
+      if constexpr (is_valid_v<container_erase_4, T>)
+        mngr.AddMemberMethod(
+            StrIDRegistry::Meta::container_insert,
+            [](T& lhs, const typename T::key_type& rhs) -> decltype(auto) {
+              return lhs.erase(rhs);
             });
 
       if constexpr (is_valid_v<container_push_front_0, T>)

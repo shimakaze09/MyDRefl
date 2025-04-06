@@ -7,6 +7,7 @@
 namespace My::MyDRefl {
 // TODO: tuple, pair
 enum class ContainerType {
+  UNKNOWN,
   ARRAY,
   VECTOR,
   DEQUE,
@@ -44,7 +45,7 @@ struct IsForwardList;
 template <typename T>
 constexpr bool IsForwardList_v = IsForwardList<T>::value;
 template <typename T>
-struct IsList;
+struct IsList;  // TODO
 template <typename T>
 constexpr bool IsList_v = IsList<T>::value;
 template <typename T>
@@ -64,11 +65,11 @@ struct IsUnorderedMap;
 template <typename T>
 constexpr bool IsUnorderedMap_v = IsUnorderedMap<T>::value;
 template <typename T>
-struct IsStack;
+struct IsStack;  // TODO
 template <typename T>
 constexpr bool IsStack_v = IsStack<T>::value;
 template <typename T>
-struct IsQueue;
+struct IsQueue;  // TODO
 template <typename T>
 constexpr bool IsQueue_v = IsQueue<T>::value;
 }  // namespace My::MyDRefl

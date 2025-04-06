@@ -5,12 +5,10 @@
 #include <MyDRefl/MyDRefl.h>
 #include <iostream>
 
+#include "Vector.h"
+
 using namespace My;
 using namespace My::MyDRefl;
-
-struct A {
-  std::vector<std::vector<size_t>> data;
-};
 
 void Serializer(ConstObjectPtr obj) {
   if (type_name_is_arithmetic(obj->TypeName()))
@@ -45,10 +43,10 @@ void Serializer(ConstObjectPtr obj) {
 }
 
 int main() {
-  My::MyDRefl::Mngr->RegisterTypeAuto<A>();
-  My::MyDRefl::Mngr->AddField<&A::data>("data");
+  RegisterVector();
 
-  A a;
+  Vector a;
+
   for (size_t i = 0; i < 10; i++) {
     std::vector<size_t> row;
     for (size_t j = 0; j < 10; j++)

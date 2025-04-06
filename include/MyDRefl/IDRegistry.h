@@ -139,6 +139,8 @@ class StrIDRegistry : public IDRegistry<StrID> {
     static constexpr char container_max_size[] = "MyDRefl::container_max_size";
     static constexpr char container_resize[] = "MyDRefl::container_resize";
     static constexpr char container_capacity[] = "MyDRefl::container_capacity";
+    static constexpr char container_bucket_count[] =
+        "MyDRefl::container_bucket_count";
     static constexpr char container_reserve[] = "MyDRefl::container_reserve";
     static constexpr char container_shrink_to_fit[] =
         "MyDRefl::container_shrink_to_fit";
@@ -272,6 +274,8 @@ class StrIDRegistry : public IDRegistry<StrID> {
     static constexpr StrID container_max_size = Meta::container_max_size;
     static constexpr StrID container_resize = Meta::container_resize;
     static constexpr StrID container_capacity = Meta::container_capacity;
+    static constexpr StrID container_bucket_count =
+        Meta::container_bucket_count;
     static constexpr StrID container_reserve = Meta::container_reserve;
     static constexpr StrID container_shrink_to_fit =
         Meta::container_shrink_to_fit;
