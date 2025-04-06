@@ -7,18 +7,18 @@
 namespace My::MyDRefl {
 // TODO: tuple, pair
 enum class ContainerType {
-  UNKNOWN,
-  ARRAY,
-  VECTOR,
-  DEQUE,
-  FORWARD_LIST,
-  LIST,
-  SET,
-  MAP,
-  UNORDERED_SET,
-  UNORDERED_MAP,
-  STACK,
-  QUEUE
+  Unknown,
+  Array,
+  Vector,
+  Deque,
+  ForwardList,
+  List,
+  Set,
+  Map,
+  UnorderedSet,
+  UnorderedMap,
+  Stack,
+  Queue
 };
 
 // traits

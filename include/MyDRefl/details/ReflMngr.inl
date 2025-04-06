@@ -692,7 +692,7 @@ struct TypeAutoRegister_Default {
 
       if constexpr (IsVector_v<T>)
         mngr.AddAttr(TypeID_of<T>, mngr.MakeShared(TypeID_of<ContainerType>,
-                                                   ContainerType::VECTOR));
+                                                   ContainerType::Vector));
     }
   }
 };
