@@ -94,8 +94,8 @@ struct TypeMethodRef {
 };
 
 enum class DereferenceProperty {
-  NOT_REFERENCE,
-  VARIABLE,
-  CONST,
+  NotReference,
+  Variable,
+  Const,
 };
 }  // namespace My::MyDRefl

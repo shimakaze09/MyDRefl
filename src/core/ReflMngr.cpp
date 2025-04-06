@@ -248,22 +248,22 @@ ReflMngr::ReflMngr() {
   MethodInfo methodinfo_free{GenerateMethodPtr<&free>()};
 
 #if defined(_WIN32) || defined(_WIN64)
-#define MY_MYDREFL_ALIGN_MALLOC _aligned_malloc
+#define UBPA_UDREFL_ALIGN_MALLOC _aligned_malloc
 #else
-#define MY_MYDREFL_ALIGN_MALLOC aligned_alloc
+#define UBPA_UDREFL_ALIGN_MALLOC aligned_alloc
 #endif  // defined(_WIN32) || defined(_WIN64)
   MethodInfo methodinfo_aligned_malloc{
-      GenerateMethodPtr<&MY_MYDREFL_ALIGN_MALLOC>()};
-#undef MY_MYDREFL_ALIGN_MALLOC
+      GenerateMethodPtr<&UBPA_UDREFL_ALIGN_MALLOC>()};
+#undef UBPA_UDREFL_ALIGN_MALLOC
 
 #if defined(_WIN32) || defined(_WIN64)
-#define MY_MYDREFL_ALIGN_FREE _aligned_free
+#define UBPA_UDREFL_ALIGN_FREE _aligned_free
 #else
-#define MY_MYDREFL_ALIGN_FREE free
+#define UBPA_UDREFL_ALIGN_FREE free
 #endif  // defined(_WIN32) || defined(_WIN64)
   MethodInfo methodinfo_aligned_free{
-      GenerateMethodPtr<&MY_MYDREFL_ALIGN_FREE>()};
-#undef MY_MYDREFL_ALIGN_FREE
+      GenerateMethodPtr<&UBPA_UDREFL_ALIGN_FREE>()};
+#undef UBPA_UDREFL_ALIGN_FREE
 
   TypeInfo global{
       0,
@@ -682,7 +682,7 @@ ConstObjectPtr ReflMngr::RVar(ConstObjectPtr obj, TypeID baseID,
 InvocableResult ReflMngr::IsStaticInvocable(
     TypeID typeID, StrID methodID,
     Span<const TypeID> argTypeIDs) const noexcept {
-  if (GetDereferenceProperty(typeID) != DereferenceProperty::NOT_REFERENCE)
+  if (GetDereferenceProperty(typeID) != DereferenceProperty::NotReference)
     return IsStaticInvocable(Dereference(typeID), methodID, argTypeIDs);
 
   auto typetarget = typeinfos.find(typeID);
@@ -712,7 +712,7 @@ InvocableResult ReflMngr::IsStaticInvocable(
 InvocableResult ReflMngr::IsConstInvocable(
     TypeID typeID, StrID methodID,
     Span<const TypeID> argTypeIDs) const noexcept {
-  if (GetDereferenceProperty(typeID) != DereferenceProperty::NOT_REFERENCE)
+  if (GetDereferenceProperty(typeID) != DereferenceProperty::NotReference)
     return IsConstInvocable(Dereference(typeID), methodID, argTypeIDs);
 
   auto typetarget = typeinfos.find(typeID);
@@ -742,7 +742,7 @@ InvocableResult ReflMngr::IsConstInvocable(
 InvocableResult ReflMngr::IsInvocable(
     TypeID typeID, StrID methodID,
     Span<const TypeID> argTypeIDs) const noexcept {
-  if (GetDereferenceProperty(typeID) != DereferenceProperty::NOT_REFERENCE)
+  if (GetDereferenceProperty(typeID) != DereferenceProperty::NotReference)
     return IsInvocable(Dereference(typeID), methodID, argTypeIDs);
 
   auto typetarget = typeinfos.find(typeID);
@@ -772,7 +772,7 @@ InvokeResult ReflMngr::Invoke(TypeID typeID, StrID methodID,
                               void* result_buffer,
                               Span<const TypeID> argTypeIDs,
                               void* args_buffer) const {
-  if (GetDereferenceProperty(typeID) != DereferenceProperty::NOT_REFERENCE)
+  if (GetDereferenceProperty(typeID) != DereferenceProperty::NotReference)
     return Invoke(Dereference(typeID), methodID, result_buffer, argTypeIDs,
                   args_buffer);
 
@@ -809,10 +809,10 @@ InvokeResult ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID,
                               void* args_buffer) const {
   auto deref_prop = GetDereferenceProperty(obj.GetID());
   switch (deref_prop) {
-    case My::MyDRefl::DereferenceProperty::VARIABLE:
+    case My::MyDRefl::DereferenceProperty::Variable:
       return Invoke(Dereference(obj), methodID, result_buffer, argTypeIDs,
                     args_buffer);
-    case My::MyDRefl::DereferenceProperty::CONST:
+    case My::MyDRefl::DereferenceProperty::Const:
       return Invoke(DereferenceAsConst(obj), methodID, result_buffer,
                     argTypeIDs, args_buffer);
     default:
@@ -854,10 +854,10 @@ InvokeResult ReflMngr::Invoke(ObjectPtr obj, StrID methodID,
                               void* args_buffer) const {
   auto deref_prop = GetDereferenceProperty(obj.GetID());
   switch (deref_prop) {
-    case My::MyDRefl::DereferenceProperty::VARIABLE:
+    case My::MyDRefl::DereferenceProperty::Variable:
       return Invoke(Dereference(obj), methodID, result_buffer, argTypeIDs,
                     args_buffer);
-    case My::MyDRefl::DereferenceProperty::CONST:
+    case My::MyDRefl::DereferenceProperty::Const:
       return Invoke(DereferenceAsConst(obj), methodID, result_buffer,
                     argTypeIDs, args_buffer);
     default:
@@ -913,7 +913,7 @@ SharedObject ReflMngr::MInvoke(TypeID typeID, StrID methodID,
                                Span<const TypeID> argTypeIDs, void* args_buffer,
                                std::pmr::memory_resource* rst_rsrc) {
   assert(rst_rsrc);
-  if (GetDereferenceProperty(typeID) != DereferenceProperty::NOT_REFERENCE)
+  if (GetDereferenceProperty(typeID) != DereferenceProperty::NotReference)
     return MInvoke(Dereference(typeID), methodID, argTypeIDs, args_buffer,
                    rst_rsrc);
 
@@ -964,10 +964,10 @@ SharedObject ReflMngr::MInvoke(ConstObjectPtr obj, StrID methodID,
   assert(rst_rsrc);
   auto deref_prop = GetDereferenceProperty(obj.GetID());
   switch (deref_prop) {
-    case My::MyDRefl::DereferenceProperty::VARIABLE:
+    case My::MyDRefl::DereferenceProperty::Variable:
       return MInvoke(Dereference(obj), methodID, argTypeIDs, args_buffer,
                      rst_rsrc);
-    case My::MyDRefl::DereferenceProperty::CONST:
+    case My::MyDRefl::DereferenceProperty::Const:
       return MInvoke(DereferenceAsConst(obj), methodID, argTypeIDs, args_buffer,
                      rst_rsrc);
     default:
@@ -1022,10 +1022,10 @@ SharedObject ReflMngr::MInvoke(ObjectPtr obj, StrID methodID,
   assert(rst_rsrc);
   auto deref_prop = GetDereferenceProperty(obj.GetID());
   switch (deref_prop) {
-    case My::MyDRefl::DereferenceProperty::VARIABLE:
+    case My::MyDRefl::DereferenceProperty::Variable:
       return MInvoke(Dereference(obj), methodID, argTypeIDs, args_buffer,
                      rst_rsrc);
-    case My::MyDRefl::DereferenceProperty::CONST:
+    case My::MyDRefl::DereferenceProperty::Const:
       return MInvoke(DereferenceAsConst(obj), methodID, argTypeIDs, args_buffer,
                      rst_rsrc);
     default:
@@ -1236,13 +1236,13 @@ void ReflMngr::ForEachRWVar(
     const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const {
   std::set<TypeID> visitedVBs;
   switch (GetDereferenceProperty(obj.GetID())) {
-    case My::MyDRefl::DereferenceProperty::NOT_REFERENCE:
+    case My::MyDRefl::DereferenceProperty::NotReference:
       details::ForEachRWVar(obj, func, visitedVBs);
       break;
-    case My::MyDRefl::DereferenceProperty::VARIABLE:
+    case My::MyDRefl::DereferenceProperty::Variable:
       details::ForEachRWVar(Dereference(obj), func, visitedVBs);
       break;
-    case My::MyDRefl::DereferenceProperty::CONST:
+    case My::MyDRefl::DereferenceProperty::Const:
     default:
       break;
   }
@@ -1253,11 +1253,11 @@ void ReflMngr::ForEachRVar(
     const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const {
   std::set<TypeID> visitedVBs;
   switch (GetDereferenceProperty(obj.GetID())) {
-    case My::MyDRefl::DereferenceProperty::NOT_REFERENCE:
+    case My::MyDRefl::DereferenceProperty::NotReference:
       details::ForEachRVar(obj, func, visitedVBs);
       break;
-    case My::MyDRefl::DereferenceProperty::CONST:
-    case My::MyDRefl::DereferenceProperty::VARIABLE:
+    case My::MyDRefl::DereferenceProperty::Const:
+    case My::MyDRefl::DereferenceProperty::Variable:
       details::ForEachRVar(DereferenceAsConst(obj), func, visitedVBs);
       break;
     default:
@@ -1506,12 +1506,12 @@ DereferenceProperty ReflMngr::GetDereferenceProperty(TypeID ID) const {
   auto name = tregistry.Nameof(ID);
 
   if (!type_name_is_reference(name))
-    return DereferenceProperty::NOT_REFERENCE;
+    return DereferenceProperty::NotReference;
 
   auto unref_name = type_name_remove_reference(name);
 
-  return type_name_is_const(unref_name) ? DereferenceProperty::CONST
-                                        : DereferenceProperty::VARIABLE;
+  return type_name_is_const(unref_name) ? DereferenceProperty::Const
+                                        : DereferenceProperty::Variable;
 }
 
 TypeID ReflMngr::Dereference(TypeID ID) const {
