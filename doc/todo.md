@@ -2,4 +2,8 @@
 
 - [ ] TypeIDRegistry Type Computation
 - [ ] cast (reference) more
-- [ ] container traits
+- [ ] traits
+    - [ ] simplify
+    - [ ] container
+        - [ ] list
+        - [ ] multi set/map
