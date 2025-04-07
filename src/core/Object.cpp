@@ -33,10 +33,14 @@ ConstObjectPtr ObjectPtrBase::RVar(TypeID baseID, StrID fieldID) const {
   return ReflMngr::Instance().RVar({ID, ptr}, baseID, fieldID);
 }
 
-// self [r] vars and all bases' [r] vars
 void ObjectPtrBase::ForEachRVar(
     const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const {
   return ReflMngr::Instance().ForEachRVar({ID, ptr}, func);
+}
+
+void ObjectPtrBase::ForEachROwnedVar(
+    const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const {
+  return ReflMngr::Instance().ForEachROwnedVar({ID, ptr}, func);
 }
 
 std::vector<TypeID> ObjectPtrBase::GetTypeIDs() {
@@ -72,6 +76,15 @@ std::vector<ConstObjectPtr> ObjectPtrBase::GetRVars() {
   return ReflMngr::Instance().GetRVars({ID, ptr});
 }
 
+std::vector<std::tuple<TypeRef, FieldRef, ConstObjectPtr>>
+ObjectPtrBase::GetTypeFieldROwnedVars() {
+  return ReflMngr::Instance().GetTypeFieldROwnedVars({ID, ptr});
+}
+
+std::vector<ConstObjectPtr> ObjectPtrBase::GetROwnedVars() {
+  return ReflMngr::Instance().GetROwnedVars({ID, ptr});
+}
+
 std::optional<TypeID> ObjectPtrBase::FindTypeID(
     const std::function<bool(TypeID)>& func) const {
   return ReflMngr::Instance().FindTypeID(ID, func);
@@ -95,6 +108,11 @@ std::optional<MethodRef> ObjectPtrBase::FindMethod(
 ConstObjectPtr ObjectPtrBase::FindRVar(
     const std::function<bool(ConstObjectPtr)>& func) const {
   return ReflMngr::Instance().FindRVar({ID, ptr}, func);
+}
+
+ConstObjectPtr ObjectPtrBase::FindROwnedVar(
+    const std::function<bool(ConstObjectPtr)>& func) const {
+  return ReflMngr::Instance().FindROwnedVar({ID, ptr}, func);
 }
 
 DereferenceProperty ObjectPtrBase::GetDereferenceProperty() const {
@@ -348,6 +366,11 @@ void ObjectPtr::ForEachRWVar(
   return ReflMngr::Instance().ForEachRWVar(*this, func);
 }
 
+void ObjectPtr::ForEachRWOwnedVar(
+    const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const {
+  return ReflMngr::Instance().ForEachRWOwnedVar(*this, func);
+}
+
 std::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>>
 ObjectPtr::GetTypeFieldRWVars() {
   return ReflMngr::Instance().GetTypeFieldRWVars(*this);
@@ -357,9 +380,23 @@ std::vector<ObjectPtr> ObjectPtr::GetRWVars() {
   return ReflMngr::Instance().GetRWVars(*this);
 }
 
+std::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>>
+ObjectPtr::GetTypeFieldRWOwnedVars() {
+  return ReflMngr::Instance().GetTypeFieldRWOwnedVars(*this);
+}
+
+std::vector<ObjectPtr> ObjectPtr::GetRWOwnedVars() {
+  return ReflMngr::Instance().GetRWOwnedVars(*this);
+}
+
 ObjectPtr ObjectPtr::FindRWVar(
     const std::function<bool(ObjectPtr)>& func) const {
   return ReflMngr::Instance().FindRWVar(*this, func);
+}
+
+ObjectPtr ObjectPtr::FindRWOwnedVar(
+    const std::function<bool(ObjectPtr)>& func) const {
+  return ReflMngr::Instance().FindRWOwnedVar(*this, func);
 }
 
 SharedObject ObjectPtr::operator++() const {

@@ -1552,6 +1552,28 @@ void ReflMngr::ForEachRVar(
   }
 }
 
+void ReflMngr::ForEachRWOwnedVar(
+    ObjectPtr obj,
+    const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const {
+  ForEachRWVar(obj, [func](TypeRef type, FieldRef field, ObjectPtr obj) {
+    if (field.info.fieldptr.IsUnowned())
+      return true;
+
+    return func(type, field, obj);
+  });
+}
+
+void ReflMngr::ForEachROwnedVar(
+    ConstObjectPtr obj,
+    const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const {
+  ForEachRVar(obj, [func](TypeRef type, FieldRef field, ConstObjectPtr obj) {
+    if (field.info.fieldptr.IsUnowned())
+      return true;
+
+    return func(type, field, obj);
+  });
+}
+
 std::vector<TypeID> ReflMngr::GetTypeIDs(TypeID typeID) {
   std::vector<TypeID> rst;
   ForEachTypeID(typeID, [&rst](TypeID typeID) {
@@ -1682,6 +1704,49 @@ std::vector<ConstObjectPtr> ReflMngr::GetRVars(ConstObjectPtr obj) {
   return rst;
 }
 
+std::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>>
+ReflMngr::GetTypeFieldRWOwnedVars(ObjectPtr obj) {
+  std::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>> rst;
+  ForEachRWVar(obj, [&rst](TypeRef type, FieldRef field, ObjectPtr var) {
+    if (field.info.fieldptr.IsOwned())
+      rst.emplace_back(std::tuple{type, field, var});
+
+    return true;
+  });
+  return rst;
+}
+
+std::vector<ObjectPtr> ReflMngr::GetRWOwnedVars(ObjectPtr obj) {
+  std::vector<ObjectPtr> rst;
+  ForEachRWVar(obj, [&rst](TypeRef type, FieldRef field, ObjectPtr var) {
+    if (field.info.fieldptr.IsOwned())
+      rst.push_back(var);
+    return true;
+  });
+  return rst;
+}
+
+std::vector<std::tuple<TypeRef, FieldRef, ConstObjectPtr>>
+ReflMngr::GetTypeFieldROwnedVars(ConstObjectPtr obj) {
+  std::vector<std::tuple<TypeRef, FieldRef, ConstObjectPtr>> rst;
+  ForEachRVar(obj, [&rst](TypeRef type, FieldRef field, ConstObjectPtr var) {
+    if (field.info.fieldptr.IsOwned())
+      rst.emplace_back(std::tuple{type, field, var});
+    return true;
+  });
+  return rst;
+}
+
+std::vector<ConstObjectPtr> ReflMngr::GetROwnedVars(ConstObjectPtr obj) {
+  std::vector<ConstObjectPtr> rst;
+  ForEachRVar(obj, [&rst](TypeRef type, FieldRef field, ConstObjectPtr var) {
+    if (field.info.fieldptr.IsOwned())
+      rst.emplace_back(var);
+    return true;
+  });
+  return rst;
+}
+
 std::optional<TypeID> ReflMngr::FindTypeID(
     TypeID typeID, const std::function<bool(TypeID)>& func) const {
   std::optional<TypeID> rst;
@@ -1738,7 +1803,7 @@ ObjectPtr ReflMngr::FindRWVar(
     TypeID typeID, const std::function<bool(ObjectPtr)>& func) const {
   ObjectPtr rst;
   ForEachRWVar(typeID,
-               [&rst, func](TypeRef type, FieldRef method, ObjectPtr obj) {
+               [&rst, func](TypeRef type, FieldRef field, ObjectPtr obj) {
                  if (!func(obj))
                    return true;
 
@@ -1752,7 +1817,7 @@ ConstObjectPtr ReflMngr::FindRVar(
     TypeID typeID, const std::function<bool(ConstObjectPtr)>& func) const {
   ConstObjectPtr rst;
   ForEachRVar(typeID,
-              [&rst, func](TypeRef type, FieldRef method, ConstObjectPtr obj) {
+              [&rst, func](TypeRef type, FieldRef field, ConstObjectPtr obj) {
                 if (!func(obj))
                   return true;
 
@@ -1765,7 +1830,7 @@ ConstObjectPtr ReflMngr::FindRVar(
 ObjectPtr ReflMngr::FindRWVar(
     ObjectPtr obj, const std::function<bool(ObjectPtr)>& func) const {
   ObjectPtr rst;
-  ForEachRWVar(obj, [&rst, func](TypeRef type, FieldRef method, ObjectPtr obj) {
+  ForEachRWVar(obj, [&rst, func](TypeRef type, FieldRef field, ObjectPtr obj) {
     if (!func(obj))
       return true;
 
@@ -1779,8 +1844,35 @@ ConstObjectPtr ReflMngr::FindRVar(
     ConstObjectPtr obj, const std::function<bool(ConstObjectPtr)>& func) const {
   ConstObjectPtr rst;
   ForEachRVar(obj,
-              [&rst, func](TypeRef type, FieldRef method, ConstObjectPtr obj) {
+              [&rst, func](TypeRef type, FieldRef field, ConstObjectPtr obj) {
                 if (!func(obj))
+                  return true;
+
+                rst = obj;
+                return false;  // stop
+              });
+  return rst;
+}
+
+ObjectPtr ReflMngr::FindRWOwnedVar(
+    ObjectPtr obj, const std::function<bool(ObjectPtr)>& func) const {
+  ObjectPtr rst;
+  ForEachRWVar(obj, [&rst, func](TypeRef type, FieldRef field, ObjectPtr obj) {
+    if (field.info.fieldptr.IsUnowned() || !func(obj))
+      return true;
+
+    rst = obj;
+    return false;  // stop
+  });
+  return rst;
+}
+
+ConstObjectPtr ReflMngr::FindROwnedVar(
+    ConstObjectPtr obj, const std::function<bool(ConstObjectPtr)>& func) const {
+  ConstObjectPtr rst;
+  ForEachRVar(obj,
+              [&rst, func](TypeRef type, FieldRef field, ConstObjectPtr obj) {
+                if (field.info.fieldptr.IsUnowned() || !func(obj))
                   return true;
 
                 rst = obj;

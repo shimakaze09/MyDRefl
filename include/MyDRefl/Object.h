@@ -166,6 +166,10 @@ class ObjectPtrBase {
   void ForEachRVar(
       const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const;
 
+  // self [r] owned vars and all bases' [r] owned vars
+  void ForEachROwnedVar(
+      const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const;
+
   //
   // Algorithm
   //////////////
@@ -179,6 +183,9 @@ class ObjectPtrBase {
   std::vector<std::tuple<TypeRef, FieldRef, ConstObjectPtr>>
   GetTypeFieldRVars();
   std::vector<ConstObjectPtr> GetRVars();
+  std::vector<std::tuple<TypeRef, FieldRef, ConstObjectPtr>>
+  GetTypeFieldROwnedVars();
+  std::vector<ConstObjectPtr> GetROwnedVars();
 
   std::optional<TypeID> FindTypeID(
       const std::function<bool(TypeID)>& func) const;
@@ -189,6 +196,8 @@ class ObjectPtrBase {
   std::optional<MethodRef> FindMethod(
       const std::function<bool(MethodRef)>& func) const;
   ConstObjectPtr FindRVar(
+      const std::function<bool(ConstObjectPtr)>& func) const;
+  ConstObjectPtr FindROwnedVar(
       const std::function<bool(ConstObjectPtr)>& func) const;
 
   DereferenceProperty GetDereferenceProperty() const;
@@ -453,10 +462,19 @@ class ObjectPtr : public ObjectPtrBase {
   void ForEachRWVar(
       const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const;
 
+  // self [r/w] owned vars and all bases' [r/w] owned vars
+  // if obj is &{const{T}}, then return directly
+  void ForEachRWOwnedVar(
+      const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const;
+
   std::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>> GetTypeFieldRWVars();
   std::vector<ObjectPtr> GetRWVars();
+  std::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>>
+  GetTypeFieldRWOwnedVars();
+  std::vector<ObjectPtr> GetRWOwnedVars();
 
   ObjectPtr FindRWVar(const std::function<bool(ObjectPtr)>& func) const;
+  ObjectPtr FindRWOwnedVar(const std::function<bool(ObjectPtr)>& func) const;
 
   //
   // Meta

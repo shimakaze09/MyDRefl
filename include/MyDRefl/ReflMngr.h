@@ -22,8 +22,8 @@ class ReflMngr {
   // Data
   /////////
   //
-  // <typeinfos> does not contain references, pointers, const, or volatile types
-  // Enums are special types (all members are static).
+  // <typeinfos> does't contain reference/pointer/const/volatile type
+  // enum is a special type (all member is static)
   //
 
   StrIDRegistry nregistry;
@@ -31,11 +31,11 @@ class ReflMngr {
 
   std::unordered_map<TypeID, TypeInfo> typeinfos;
 
-  // Clearing order:
-  // - field attributes
-  // - type attributes
-  // - dynamic shared fields for this type
-  // - type information
+  // clear order
+  // - field attrs
+  // - type attrs
+  // - type dynamic shared field
+  // - typeinfos
   void Clear() noexcept;
 
   //
@@ -51,27 +51,29 @@ class ReflMngr {
   ////////////
 
   // field_data can be:
-  // - static field: pointer to a non-void type
-  // - member object pointer: pointer to a non-void type
+  // - static field: pointer to **non-void** type
+  // - member object pointer: pointer to **non-void** type
   // - enumerator
   template <auto field_data>
   FieldPtr GenerateFieldPtr();
 
   // data can be:
-  // 1. Member object pointer
-  // 2. Pointer to a non-void, non-function type
-  // 3. Functor: Value*(Object*)
-  // 4. Enumerator
-  // > - The result must be a pointer to a non-void type.
+  // 1. member object pointer
+  // 2. pointer to **non-void** and **non-function** type
+  // 3. functor : Value*(Object*)
+  // > - result must be an pointer of **non-void** type
+  // 4. enumerator
   template <typename T>
   FieldPtr GenerateFieldPtr(T&& data);
 
-  // If T can be stored in a buffer, it will be stored there; otherwise, std::make_shared is used.
+  // if T is bufferable, T will be stored as buffer,
+  // else we will use std::make_shared to store it
   // require alignof(T) <= alignof(std::max_align_t)
   template <typename T, typename... Args>
   FieldPtr GenerateDynamicFieldPtr(Args&&... args);
 
-  // If T can be stored in a buffer, it is stored there; otherwise, std::alloc_shared is used.
+  // if T is bufferable, T will be stored as buffer,
+  // else we will use std::alloc_shared to store it
   template <typename T, typename Alloc, typename... Args>
   FieldPtr GenerateDynamicFieldPtrByAlloc(const Alloc& alloc, Args&&... args);
 
@@ -82,8 +84,8 @@ class ReflMngr {
   }
 
   // field_data can be:
-  // - static field: pointer to a non-void type
-  // - member object pointer: pointer to a non-void type
+  // - static field: pointer to **non-void** type
+  // - member object pointer: pointer to **non-void** type
   // - enumerator
   template <auto field_data>
   std::pair<StrID, FieldInfo> GenerateField(std::string_view name,
@@ -381,36 +383,45 @@ class ReflMngr {
   // Field
   //////////
   //
-  // - RWVar does not support const references
+  // - RWVar is not support const reference
   //
 
-  // A variable object
+  // variable object
   ObjectPtr RWVar(TypeID typeID, StrID fieldID);
-  // A read-only object
+  // object
   ConstObjectPtr RVar(TypeID typeID, StrID fieldID) const;
-  // A variable object
+  // variable
   ObjectPtr RWVar(ObjectPtr obj, StrID fieldID);
-  // A read-only object
+  // all
   ConstObjectPtr RVar(ConstObjectPtr obj, StrID fieldID) const;
-  // A variable object, for diamond inheritance scenarios
+  // variable, for diamond inheritance
   ObjectPtr RWVar(ObjectPtr obj, TypeID baseID, StrID fieldID);
-  // Read-only object, for diamond inheritance scenarios
+  // all, for diamond inheritance
   ConstObjectPtr RVar(ConstObjectPtr obj, TypeID baseID, StrID fieldID) const;
 
   //
   // Invoke
   ///////////
   //
-  // - Automatically search methods in base classes
-  // - Supports overloading
-  // - Requires IsCompatible()
-  // - If the parameter type is T and the argument type is T&, const T&, or const T&&, call Construct(...) to copy.
+  // - auto search methods in bases
+  // - support overload
+  // - require IsCompatible()
+  // - if parameter type is T, and argument type is T&/const T&/const T&&, call Construct(...) for copy
   //
 
-  // Parameter <- Argument
-  // - Same
-  // - Reference
-  // > - 0 = invalid, 1 = convertible, 2 = copy
+  // parameter <- argument
+  // - same
+  // - ConstObjectPtr <- ObjectPtr
+  // - SharedConstObject <- SharedObject
+  // - reference
+  // > - 0 (invalid), 1 (convertible), 2 (copy)
+  // > - table
+  //     |    -     | T | T & | const T & | T&& | const T&& |
+  //     |      T   | - |  2  |     2     |  1  |     2     |
+  //     |      T & | 0 |  -  |     0     |  0  |     0     |
+  //     |const T & | 1 |  1  |     -     |  1  |     1     |
+  //     |      T&& | 1 |  0  |     0     |  -  |     0     |
+  //     |const T&& | 1 |  0  |     0     |  1  |     -     |
   bool IsCompatible(Span<const TypeID> paramTypeIDs,
                     Span<const TypeID> argTypeIDs) const;
 
@@ -513,13 +524,13 @@ class ReflMngr {
   template <typename... Args>
   SharedObject MakeShared(TypeID typeID, Args&&... args) const;
 
-  // - If T is not registered, call RegisterTypeAuto<T>()
-  // - Then call AddConstructor<T, Args...>()
+  // - if T is not register, call RegisterTypeAuto<T>()
+  // - call AddConstructor<T, Args...>()
   template <typename T, typename... Args>
   ObjectPtr NewAuto(Args... args);
 
-  // If T is not registered, call RegisterTypeAuto
-  // Else add ctor
+  // if T is not register, call RegisterTypeAuto
+  // else add ctor
   template <typename T, typename... Args>
   SharedObject MakeSharedAuto(Args... args);
 
@@ -566,6 +577,17 @@ class ReflMngr {
       ConstObjectPtr obj,
       const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const;
 
+  // self [r/w] owned vars and all bases' [r/w] owned vars
+  // if obj is &{const{T}}, then return directly
+  void ForEachRWOwnedVar(
+      ObjectPtr obj,
+      const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const;
+
+  // self [r] owned vars and all bases' [r] owned vars
+  void ForEachROwnedVar(
+      ConstObjectPtr obj,
+      const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func) const;
+
   // Gather (DFS)
 
   std::vector<TypeID> GetTypeIDs(TypeID typeID);
@@ -586,6 +608,12 @@ class ReflMngr {
   std::vector<std::tuple<TypeRef, FieldRef, ConstObjectPtr>> GetTypeFieldRVars(
       ConstObjectPtr obj);
   std::vector<ConstObjectPtr> GetRVars(ConstObjectPtr obj);
+  std::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>> GetTypeFieldRWOwnedVars(
+      ObjectPtr obj);
+  std::vector<ObjectPtr> GetRWOwnedVars(ObjectPtr obj);
+  std::vector<std::tuple<TypeRef, FieldRef, ConstObjectPtr>>
+  GetTypeFieldROwnedVars(ConstObjectPtr obj);
+  std::vector<ConstObjectPtr> GetROwnedVars(ConstObjectPtr obj);
 
   // Find (DFS)
 
@@ -604,6 +632,11 @@ class ReflMngr {
   ObjectPtr FindRWVar(ObjectPtr obj,
                       const std::function<bool(ObjectPtr)>& func) const;
   ConstObjectPtr FindRVar(
+      ConstObjectPtr obj,
+      const std::function<bool(ConstObjectPtr)>& func) const;
+  ObjectPtr FindRWOwnedVar(ObjectPtr obj,
+                           const std::function<bool(ObjectPtr)>& func) const;
+  ConstObjectPtr FindROwnedVar(
       ConstObjectPtr obj,
       const std::function<bool(ConstObjectPtr)>& func) const;
 
