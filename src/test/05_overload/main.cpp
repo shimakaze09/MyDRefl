@@ -31,7 +31,7 @@ struct Vec {
 
 int main() {
   {  // register Vec
-    ReflMngr::Instance().RegisterTypeAuto<Vec>();
+    ReflMngr::Instance().RegisterType<Vec>();
     ReflMngr::Instance().AddField<&Vec::x>("x");
     ReflMngr::Instance().AddField<&Vec::y>("y");
     ReflMngr::Instance()

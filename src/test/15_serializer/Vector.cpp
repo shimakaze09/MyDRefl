@@ -3,10 +3,10 @@
 //
 
 #include "Vector.h"
- 
- #include <MyDRefl/MyDRefl.h>
- 
- void RegisterVector() {
-   My::MyDRefl::Mngr->RegisterTypeAuto<Vector>();
-   My::MyDRefl::Mngr->AddField<&Vector::data>("data");
- }
+
+#include <MyDRefl/MyDRefl.h>
+
+void RegisterVector() {
+  My::MyDRefl::Mngr->RegisterType<Vector>();
+  My::MyDRefl::Mngr->AddField<&Vector::data>("data");
+}

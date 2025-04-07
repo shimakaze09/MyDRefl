@@ -238,16 +238,13 @@ class ReflMngr {
 
   // -- template --
 
-  template <typename T>
-  void RegisterType();
-
   // RegisterType(type_name<T>(), sizeof(T), alignof(T))
   // AddConstructor<T>()
   // AddConstructor<T, const T&>()
   // AddConstructor<T, T&&>()
   // AddDestructor<T>()
   template <typename T>
-  void RegisterTypeAuto();
+  void RegisterType();
 
   // get TypeID from field_data
   // field_data can be
@@ -528,12 +525,12 @@ class ReflMngr {
   template <typename... Args>
   SharedObject MakeShared(TypeID typeID, Args&&... args) const;
 
-  // - if T is not register, call RegisterTypeAuto<T>()
+  // - if T is not register, call RegisterType<T>()
   // - call AddConstructor<T, Args...>()
   template <typename T, typename... Args>
   ObjectPtr NewAuto(Args... args);
 
-  // if T is not register, call RegisterTypeAuto
+  // if T is not register, call RegisterType
   // else add ctor
   template <typename T, typename... Args>
   SharedObject MakeSharedAuto(Args... args);

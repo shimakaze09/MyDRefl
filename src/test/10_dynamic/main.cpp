@@ -16,7 +16,7 @@ int main() {
                                                           "My");
   ReflMngr::Instance().AddDynamicField<const Color>(GlobalID, "theme",
                                                     Color::Red);
-  ReflMngr::Instance().RegisterTypeAuto<int>();
+  ReflMngr::Instance().RegisterType<int>();
   ReflMngr::Instance().AddDynamicField<const size_t>(TypeID_of<int>, "bits",
                                                      sizeof(int) * 8);
 

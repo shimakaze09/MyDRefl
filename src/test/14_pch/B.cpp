@@ -7,7 +7,7 @@
 #include <MyDRefl/MyDRefl.h>
 
 void RegisterB() {
-  My::MyDRefl::Mngr->RegisterTypeAuto<B>();
+  My::MyDRefl::Mngr->RegisterType<B>();
   My::MyDRefl::Mngr->AddField<&B::v0>("v0");
   My::MyDRefl::Mngr->AddField<&B::v1>("v1");
   My::MyDRefl::Mngr->AddField<&B::v2>("v2");

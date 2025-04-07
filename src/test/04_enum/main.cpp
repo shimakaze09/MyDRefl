@@ -12,7 +12,7 @@ using namespace My::MyDRefl;
 enum class Color { Red, Green, Blue };
 
 int main() {
-  ReflMngr::Instance().RegisterTypeAuto<Color>();
+  ReflMngr::Instance().RegisterType<Color>();
   ReflMngr::Instance().AddField<Color::Red>("Red");
   ReflMngr::Instance().AddField<Color::Green>("Green");
   ReflMngr::Instance().AddField<Color::Blue>("Blue");

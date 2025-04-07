@@ -363,7 +363,7 @@ ReflMngr::ReflMngr() {
   typeinfos.emplace(tregistry.Register(TypeIDRegistry::Meta::global),
                     std::move(global));
 
-  RegisterTypeAuto<ContainerType>();
+  RegisterType<ContainerType>();
   AddField<ContainerType::Unknown>("Unknown");
   AddField<ContainerType::Array>("Array");
   AddField<ContainerType::Vector>("Vector");
@@ -376,6 +376,18 @@ ReflMngr::ReflMngr() {
   AddField<ContainerType::UnorderedMap>("UnorderedMap");
   AddField<ContainerType::Stack>("Stack");
   AddField<ContainerType::Queue>("Queue");
+
+  RegisterType<bool>();
+  RegisterType<std::int8_t>();
+  RegisterType<std::int16_t>();
+  RegisterType<std::int32_t>();
+  RegisterType<std::int64_t>();
+  RegisterType<std::uint8_t>();
+  RegisterType<std::uint16_t>();
+  RegisterType<std::uint32_t>();
+  RegisterType<std::uint64_t>();
+  RegisterType<float>();
+  RegisterType<double>();
 }
 
 void ReflMngr::Clear() noexcept {
