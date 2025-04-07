@@ -153,6 +153,7 @@ OBJECT_PTR_DEFINE_CONTAINER_T(ObjectPtrBase, count)
 // ConstObjectPtr
 ///////////////////
 
+OBJECT_PTR_DEFINE_OPERATOR_T(ConstObjectPtr, [], subscript)
 OBJECT_PTR_DEFINE_OPERATOR_T(ConstObjectPtr, ->*, member_of_pointer)
 
 template <typename... Args>
