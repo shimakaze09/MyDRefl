@@ -381,7 +381,7 @@ class ReflMngr {
   // Field
   //////////
   //
-  // - RWVar does not support references
+  // - RWVar does not support const references
   //
 
   // A variable object

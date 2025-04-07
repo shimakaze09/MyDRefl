@@ -210,9 +210,9 @@ class FieldPtr {
 
   constexpr bool IsVariable() const noexcept { return !IsConst(); }
 
-  constexpr bool IsOffsetor() const noexcept { return data.index() < 4; }
+  constexpr bool IsOwned() const noexcept { return data.index() < 4; }
 
-  constexpr bool IsObject() const noexcept { return data.index() >= 4; }
+  constexpr bool IsUnowned() const noexcept { return data.index() >= 4; }
 
   // { variable | const } object
   ConstObjectPtr RVar() const;

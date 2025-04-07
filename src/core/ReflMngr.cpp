@@ -39,6 +39,10 @@ class CopyArgumentsGuard {
       if (type_name_is_reference(lhs))
         continue;
 
+      if (paramTypeIDs[i] == TypeID_of<ConstObjectPtr> ||
+          paramTypeIDs[i] == TypeID_of<SharedConstObject>)
+        continue;
+
       const std::size_t rhs_hash = argTypeIDs[i].GetValue();
       if (type_name_add_rvalue_reference_hash(lhs) == rhs_hash)
         continue;
@@ -51,9 +55,6 @@ class CopyArgumentsGuard {
           copied_args_buffer[j] = orig_args_buffer[j];
       }
 
-      std::array<TypeID, 1> tmp_argTypeIDs = {
-          TypeID{type_name_add_const_lvalue_reference_hash(lhs)}};
-      std::array<void*, 1> tmp_args_buffer = {orig_args_buffer[i]};
       std::string_view name = Mngr->tregistry.Nameof(paramTypeIDs[i]);
       if (type_name_is_pointer(name)) {
         void** ptr_buffer =
@@ -62,6 +63,9 @@ class CopyArgumentsGuard {
         copied_args_buffer[i] = ptr_buffer;
         infos.push_back({i, true});
       } else {
+        std::array<TypeID, 1> tmp_argTypeIDs = {
+            TypeID{type_name_add_const_lvalue_reference_hash(lhs)}};
+        std::array<void*, 1> tmp_args_buffer = {orig_args_buffer[i]};
         ObjectPtr copiedArg = Mngr->MNew(
             paramTypeIDs[i], rsrc, Span<const TypeID>{tmp_argTypeIDs},
             static_cast<ArgsBuffer>(tmp_args_buffer.data()));
@@ -245,7 +249,7 @@ static bool ForEachRWVar(
   auto& typeinfo = target->second;
 
   for (auto& [fieldID, fieldInfo] : typeinfo.fieldinfos) {
-    if (fieldInfo.fieldptr.IsObject() && !fieldInfo.fieldptr.IsConst()) {
+    if (fieldInfo.fieldptr.IsUnowned() && !fieldInfo.fieldptr.IsConst()) {
       if (!func({typeID, typeinfo}, {fieldID, fieldInfo},
                 fieldInfo.fieldptr.RWVar()))
         return false;
@@ -281,7 +285,7 @@ static bool ForEachRVar(
   auto& typeinfo = target->second;
 
   for (auto& [fieldID, fieldInfo] : typeinfo.fieldinfos) {
-    if (fieldInfo.fieldptr.IsObject()) {
+    if (fieldInfo.fieldptr.IsUnowned()) {
       if (!func({typeID, typeinfo}, {fieldID, fieldInfo},
                 fieldInfo.fieldptr.RVar()))
         return false;
@@ -478,21 +482,23 @@ bool ReflMngr::AddAttr(TypeID typeID, const Attr& attr) {
 }
 
 void* ReflMngr::Malloc(size_t size) const {
-  return Invoke<void*>(GlobalID, StrIDRegistry::MetaID::malloc, size);
+  return Invoke<void*>(GlobalID, StrIDRegistry::MetaID::malloc,
+                       std::move(size));
 }
 
 bool ReflMngr::Free(void* ptr) const {
-  return InvokeArgs(GlobalID, StrIDRegistry::MetaID::free, nullptr, ptr);
+  return InvokeArgs(GlobalID, StrIDRegistry::MetaID::free, nullptr,
+                    std::move(ptr));
 }
 
 void* ReflMngr::AlignedMalloc(size_t size, size_t alignment) const {
-  return Invoke<void*>(GlobalID, StrIDRegistry::MetaID::aligned_malloc, size,
-                       alignment);
+  return Invoke<void*>(GlobalID, StrIDRegistry::MetaID::aligned_malloc,
+                       std::move(size), std::move(alignment));
 }
 
 bool ReflMngr::AlignedFree(void* ptr) const {
   return InvokeArgs(GlobalID, StrIDRegistry::MetaID::aligned_free, nullptr,
-                    ptr);
+                    std::move(ptr));
 }
 
 ObjectPtr ReflMngr::New(TypeID typeID, Span<const TypeID> argTypeIDs,
@@ -657,7 +663,13 @@ ObjectPtr ReflMngr::DynamicCast(ObjectPtr obj, TypeID typeID) const {
 }
 
 ObjectPtr ReflMngr::RWVar(TypeID typeID, StrID fieldID) {
-  assert(GetDereferenceProperty(typeID) == DereferenceProperty::NotReference);
+  if (auto prop = GetDereferenceProperty(typeID);
+      prop != DereferenceProperty::NotReference) {
+    if (prop == DereferenceProperty::Const)
+      return nullptr;
+
+    return RWVar(Dereference(typeID), fieldID);
+  }
 
   auto ttarget = typeinfos.find(typeID);
   if (ttarget == typeinfos.end())
@@ -667,7 +679,7 @@ ObjectPtr ReflMngr::RWVar(TypeID typeID, StrID fieldID) {
 
   auto ftarget = typeinfo.fieldinfos.find(fieldID);
   if (ftarget != typeinfo.fieldinfos.end() &&
-      ftarget->second.fieldptr.IsObject())
+      ftarget->second.fieldptr.IsUnowned())
     return ftarget->second.fieldptr.RWVar();
 
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
@@ -691,7 +703,7 @@ ConstObjectPtr ReflMngr::RVar(TypeID typeID, StrID fieldID) const {
 
   auto ftarget = typeinfo.fieldinfos.find(fieldID);
   if (ftarget != typeinfo.fieldinfos.end() &&
-      ftarget->second.fieldptr.IsObject())
+      ftarget->second.fieldptr.IsUnowned())
     return ftarget->second.fieldptr.RVar();
 
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
@@ -704,8 +716,13 @@ ConstObjectPtr ReflMngr::RVar(TypeID typeID, StrID fieldID) const {
 }
 
 ObjectPtr ReflMngr::RWVar(ObjectPtr obj, StrID fieldID) {
-  assert(GetDereferenceProperty(obj.GetID()) ==
-         DereferenceProperty::NotReference);
+  if (auto prop = GetDereferenceProperty(obj.GetID());
+      prop != DereferenceProperty::NotReference) {
+    if (prop == DereferenceProperty::Const)
+      return nullptr;
+
+    return RWVar(Dereference(obj), fieldID);
+  }
 
   auto ttarget = typeinfos.find(obj.GetID());
   if (ttarget == typeinfos.end())
@@ -777,9 +794,11 @@ bool ReflMngr::IsCompatible(Span<const TypeID> params,
   for (size_t i = 0; i < params.size(); i++) {
     if (params[i] != argTypeIDs[i]) {
       if ((params[i] != TypeID_of<ConstObjectPtr> ||
-           argTypeIDs[i] != TypeID_of<ObjectPtr>) &&
+           argTypeIDs[i] != TypeID_of<ObjectPtr> &&
+               argTypeIDs[i] != TypeID_of<ObjectPtr&&>) &&
           (params[i] != TypeID_of<SharedConstObject> ||
-           argTypeIDs[i] != TypeID_of<SharedObject>)) {
+           argTypeIDs[i] != TypeID_of<SharedObject> &&
+               argTypeIDs[i] != TypeID_of<SharedObject&&>)) {
         // because rhs(arg)'s ID maybe have no name in the registry
         // so we use type_name_add_*_hash(...) to avoid it
 
@@ -941,7 +960,7 @@ InvokeResult ReflMngr::Invoke(TypeID typeID, StrID methodID,
           &temporary_resource, mtarget->second.methodptr.GetParamList(),
           argTypeIDs, args_buffer};
       return {true, mtarget->second.methodptr.GetResultDesc().typeID,
-              std::move(mtarget->second.methodptr.Invoke_Static(
+              std::move(mtarget->second.methodptr.Invoke(
                   result_buffer, guard.GetArgsBuffer()))};
     }
   }
@@ -1098,21 +1117,21 @@ SharedObject ReflMngr::MInvoke(TypeID typeID, StrID methodID,
           argTypeIDs, args_buffer};
 
       if (rst_desc.IsVoid()) {
-        mtarget->second.methodptr.Invoke_Static(nullptr, guard.GetArgsBuffer());
+        mtarget->second.methodptr.Invoke(nullptr, guard.GetArgsBuffer());
         return {{rst_desc.typeID, nullptr}, [](void* ptr) {
                   assert(ptr);
                 }};
       } else if (type_name_is_reference(tregistry.Nameof(rst_desc.typeID))) {
         std::uint8_t buffer[sizeof(void*)];
-        mtarget->second.methodptr.Invoke_Static(buffer, guard.GetArgsBuffer());
+        mtarget->second.methodptr.Invoke(buffer, guard.GetArgsBuffer());
         return {{rst_desc.typeID, buffer_as<void*>(buffer)}, [](void* ptr) {
                   assert(ptr);
                 }};
       } else {
         void* result_buffer =
             rst_rsrc->allocate(rst_desc.size, rst_desc.alignment);
-        auto dtor = mtarget->second.methodptr.Invoke_Static(
-            result_buffer, guard.GetArgsBuffer());
+        auto dtor = mtarget->second.methodptr.Invoke(result_buffer,
+                                                     guard.GetArgsBuffer());
         return {{rst_desc.typeID, result_buffer},
                 details::GenerateDeleteFunc(std::move(dtor), rst_rsrc,
                                             rst_desc.size, rst_desc.alignment)};

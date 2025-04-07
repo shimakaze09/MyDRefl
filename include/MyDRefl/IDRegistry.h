@@ -329,8 +329,10 @@ class TypeIDRegistry : public IDRegistry<TypeID> {
 
   TypeIDRegistry();
 
-  using IDRegistry<TypeID>::Register;
-  using IDRegistry<TypeID>::IsRegistered;
+  void RegisterUnmanaged(TypeID ID, std::string_view name);
+  TypeID RegisterUnmanaged(std::string_view name);
+  void Register(TypeID ID, std::string_view name);
+  TypeID Register(std::string_view name);
 
   // unmanaged
   // non-const, non-volatile
@@ -348,6 +350,10 @@ class TypeIDRegistry : public IDRegistry<TypeID> {
   TypeID RegisterAddConstLValueReference(TypeID ID);
   TypeID RegisterAddRValueReference(TypeID ID);
   TypeID RegisterAddConstRValueReference(TypeID ID);
+
+ private:
+  using IDRegistry<TypeID>::Register;
+  using IDRegistry<TypeID>::IsRegistered;
 };
 }  // namespace My::MyDRefl
 

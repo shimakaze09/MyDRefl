@@ -278,6 +278,18 @@ SharedObject ObjectPtr::DMInvoke(StrID methodID, Args&&... args) const {
                  std::forward<Args>(args)...);
 }
 
+// A means auto, ObjectPtr/SharedObject will be transform as ID + ptr
+template <typename T, typename... Args>
+T ObjectPtr::AInvoke(StrID methodID, Args&&... args) const {
+  if constexpr (sizeof...(Args) > 0) {
+    std::array argTypeIDs = {details::ArgID<Args>(args)...};
+    const std::array args_buffer{details::ArgPtr(args)...};
+    return InvokeRet<T>(methodID, Span<const TypeID>{argTypeIDs},
+                        static_cast<ArgsBuffer>(args_buffer.data()));
+  } else
+    return InvokeRet<T>(methodID);
+}
+
 template <typename... Args>
 SharedObject ObjectPtr::AMInvoke(StrID methodID,
                                  std::pmr::memory_resource* rst_rsrc,
@@ -307,17 +319,6 @@ SharedObject ObjectPtr::operator=(Arg&& rhs) const {
   return ADMInvoke(StrIDRegistry::MetaID::operator_assign,
                    std::forward<Arg>(rhs));
 }
-
-OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, +=, assign_add)
-OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, -=, assign_sub)
-OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, *=, assign_mul)
-OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, /=, assign_div)
-OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, %=, assign_mod)
-OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, &=, assign_band)
-OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, |=, assign_bor)
-OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, ^=, assign_bxor)
-OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, <<=, assign_lshift)
-OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, >>=, assign_rshift)
 
 OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, [], subscript)
 OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, ->*, member_of_pointer)

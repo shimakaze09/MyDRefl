@@ -22,6 +22,14 @@
                                        std::forward<Arg>(rhs)));               \
   }
 
+#define OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(op, name)    \
+  template <typename Arg>                                 \
+  ObjectPtr operator op(Arg&& rhs) const {                \
+    AInvoke<void>(StrIDRegistry::MetaID::operator_##name, \
+                  std::forward<Arg>(rhs));                \
+    return *this;                                         \
+  }
+
 #define OBJECT_PTR_DECLARE_CONTAINER(name) \
   template <typename Arg>                  \
   SharedObject name(Arg&& rhs) const
@@ -34,10 +42,11 @@
   template <typename Arg>                  \
   SharedObject operator op(Arg&& rhs) const
 
-#define SHARED_OBJECT_DEFINE_OPERATOR(op)                      \
-  template <typename Arg>                                      \
-  SharedObject operator op(Arg&& rhs) const {                  \
-    return AsObjectPtr()->operator op(std::forward<Arg>(rhs)); \
+#define SHARED_OBJECT_DEFINE_OPERATOR(op)               \
+  template <typename Arg>                               \
+  SharedObject operator op(Arg&& rhs) const {           \
+    AsObjectPtr()->operator op(std::forward<Arg>(rhs)); \
+    return *this;                                       \
   }
 
 #define SHARED_OBJECT_DEFINE_CMP_OPERATOR(op)                  \
@@ -428,6 +437,10 @@ class ObjectPtr : public ObjectPtrBase {
   SharedObject DMInvoke(StrID methodID, Args&&... args) const;
 
   // A means auto, ObjectPtr/SharedObject will be transform as ID + ptr
+  template <typename T, typename... Args>
+  T AInvoke(StrID methodID, Args&&... args) const;
+
+  // A means auto, ObjectPtr/SharedObject will be transform as ID + ptr
   template <typename... Args>
   SharedObject AMInvoke(StrID methodID, std::pmr::memory_resource* rst_rsrc,
                         Args&&... args) const;
@@ -458,16 +471,16 @@ class ObjectPtr : public ObjectPtrBase {
                 int> = 0>
   SharedObject operator=(Arg&& rhs) const;
 
-  OBJECT_PTR_DECLARE_OPERATOR(+=, assign_add);
-  OBJECT_PTR_DECLARE_OPERATOR(-=, assign_sub);
-  OBJECT_PTR_DECLARE_OPERATOR(*=, assign_mul);
-  OBJECT_PTR_DECLARE_OPERATOR(/=, assign_div);
-  OBJECT_PTR_DECLARE_OPERATOR(%=, assign_mod);
-  OBJECT_PTR_DECLARE_OPERATOR(&=, assign_band);
-  OBJECT_PTR_DECLARE_OPERATOR(|=, assign_bor);
-  OBJECT_PTR_DECLARE_OPERATOR(^=, assign_bxor);
-  OBJECT_PTR_DECLARE_OPERATOR(<<=, assign_lshift);
-  OBJECT_PTR_DECLARE_OPERATOR(>>=, assign_rshift);
+  OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(+=, assign_add);
+  OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(-=, assign_sub);
+  OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(*=, assign_mul);
+  OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(/=, assign_div);
+  OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(%=, assign_mod);
+  OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(&=, assign_band);
+  OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(|=, assign_bor);
+  OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(^=, assign_bxor);
+  OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(<<=, assign_lshift);
+  OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(>>=, assign_rshift);
 
   OBJECT_PTR_DECLARE_OPERATOR([], subscript);
   OBJECT_PTR_DECLARE_OPERATOR(->*, member_of_pointer);
@@ -889,6 +902,7 @@ constexpr bool IsObjectOrPtr_v = IsObjectOrPtr<T>::value;
 
 #undef OBJECT_PTR_DECLARE_OPERATOR
 #undef OBJECT_PTR_DEFINE_CMP_OPERATOR
+#undef OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR
 #undef OBJECT_PTR_DECLARE_CONTAINER
 #undef OBJECT_PTR_DECLARE_CONTAINER_VARS
 #undef SHARED_OBJECT_DECLARE_OPERATOR
