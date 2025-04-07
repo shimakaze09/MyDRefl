@@ -2,7 +2,7 @@
 // Created by Admin on 5/04/2025.
 //
 
-#include <MyDRefl/MyDRefl.h>
+#include <MyDRefl_pch.h>
 #include <iostream>
 
 #include "A.h"
@@ -14,8 +14,6 @@ using namespace My::MyDRefl;
 int main() {
   RegisterA();
   RegisterB();
-
-  ReflMngr::Instance().RegisterTypeAuto<std::array<size_t, 5>>();
 
   for (const auto& [ID, info] : ReflMngr::Instance().typeinfos) {
     ReflMngr::Instance().ForEachMethod(ID, [](TypeRef type, MethodRef method) {
