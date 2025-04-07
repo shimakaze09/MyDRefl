@@ -1,6 +1,6 @@
-SET(c_options "")
-IF (MSVC)
-    SET(c_options "/bigobj")
+IF (NOT MYDREFL_BUILD_BIG_OBJ)
+    MESSAGE(WARNING "Skip a target because the current environment doesn't support building a big obj")
+    RETURN()
 ENDIF ()
 
 ADD_TARGET(
@@ -10,8 +10,6 @@ ADD_TARGET(
         "${PROJECT_SOURCE_DIR}/include/MyDRefl_pch.h"
         LIB
         My::MyDRefl_core
-        C_OPTION
-        ${c_options}
 )
 
 TARGET_PRECOMPILE_HEADERS(${tname} PRIVATE "${PROJECT_SOURCE_DIR}/include/MyDRefl_pch.h")

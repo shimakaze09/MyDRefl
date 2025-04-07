@@ -1,3 +1,8 @@
+IF (NOT MYDREFL_BUILD_BIG_OBJ)
+    MESSAGE(WARNING "Skip a target because the current environment doesn't support building a big obj")
+    RETURN()
+ENDIF ()
+
 ADD_TARGET(
         TEST
         MODE EXE
@@ -8,4 +13,4 @@ ADD_TARGET(
         ${c_options}
 )
 
-TARGET_PRECOMPILE_HEADERS(${tname} REUSE_FROM MyDRefl_pch)
+TARGET_PRECOMPILE_HEADERS(${tname} REUSE_FROM ${MYDREFL_PCH_TARGET_NAME})

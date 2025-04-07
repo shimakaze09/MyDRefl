@@ -4,7 +4,7 @@
 
 #include "B.h"
 
-#include <MyDRefl_pch.h>
+#include <MyDRefl/MyDRefl.h>
 
 void RegisterB() {
   My::MyDRefl::Mngr->RegisterTypeAuto<B>();
