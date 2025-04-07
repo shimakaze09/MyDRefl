@@ -342,6 +342,9 @@ class ReflMngr {
   //
   // Cast
   /////////
+  //
+  // - non reference
+  //
 
   ObjectPtr StaticCast_DerivedToBase(ObjectPtr obj, TypeID typeID) const;
   ObjectPtr StaticCast_BaseToDerived(ObjectPtr obj, TypeID typeID) const;
@@ -375,6 +378,9 @@ class ReflMngr {
   //
   // Field
   //////////
+  //
+  // - RWVar is not support reference
+  //
 
   // variable object
   ObjectPtr RWVar(TypeID typeID, StrID fieldID);
@@ -393,8 +399,24 @@ class ReflMngr {
   // Invoke
   ///////////
   //
-  // - you should provide T, Args... explicitly (without any template argument deduction)
+  // - args_buffer maybe change for copy
   //
+
+  // parameter <- argument
+  // - same
+  // - ConstObjectPtr <- ObjectPtr
+  // - SharedConstObject <- SharedObject
+  // - reference
+  // > - 0 (invalid), 1 (convertible), 2 (copy)
+  // > - table
+  //     |    -     | T | T & | const T & | T&& | const T&& |
+  //     |      T   | - |  2  |     2     |  1  |     2     |
+  //     |      T & | 0 |  -  |     0     |  0  |     0     |
+  //     |const T & | 1 |  1  |     -     |  1  |     1     |
+  //     |      T&& | 1 |  0  |     0     |  -  |     0     |
+  //     |const T&& | 1 |  0  |     0     |  1  |     -     |
+  bool IsCompatible(Span<const TypeID> paramTypeIDs,
+                    Span<const TypeID> argTypeIDs) const;
 
   InvocableResult IsStaticInvocable(TypeID typeID, StrID methodID,
                                     Span<const TypeID> argTypeIDs = {}) const;
@@ -406,17 +428,17 @@ class ReflMngr {
   InvokeResult Invoke(TypeID typeID, StrID methodID,
                       void* result_buffer = nullptr,
                       Span<const TypeID> argTypeIDs = {},
-                      void* args_buffer = nullptr) const;
+                      ArgsBuffer args_buffer = nullptr) const;
 
   InvokeResult Invoke(ConstObjectPtr obj, StrID methodID,
                       void* result_buffer = nullptr,
                       Span<const TypeID> argTypeIDs = {},
-                      void* args_buffer = nullptr) const;
+                      ArgsBuffer args_buffer = nullptr) const;
 
   InvokeResult Invoke(ObjectPtr obj, StrID methodID,
                       void* result_buffer = nullptr,
                       Span<const TypeID> argTypeIDs = {},
-                      void* args_buffer = nullptr) const;
+                      ArgsBuffer args_buffer = nullptr) const;
 
   // -- template --
 
@@ -429,41 +451,43 @@ class ReflMngr {
 
   template <typename T>
   T InvokeRet(TypeID typeID, StrID methodID, Span<const TypeID> argTypeIDs = {},
-              void* args_buffer = nullptr) const;
+              ArgsBuffer args_buffer = nullptr) const;
   template <typename T>
   T InvokeRet(ConstObjectPtr obj, StrID methodID,
               Span<const TypeID> argTypeIDs = {},
-              void* args_buffer = nullptr) const;
+              ArgsBuffer args_buffer = nullptr) const;
   template <typename T>
   T InvokeRet(ObjectPtr obj, StrID methodID, Span<const TypeID> argTypeIDs = {},
-              void* args_buffer = nullptr) const;
+              ArgsBuffer args_buffer = nullptr) const;
 
   template <typename... Args>
   InvokeResult InvokeArgs(TypeID typeID, StrID methodID, void* result_buffer,
-                          Args... args) const;
+                          Args&&... args) const;
   template <typename... Args>
   InvokeResult InvokeArgs(ConstObjectPtr obj, StrID methodID,
-                          void* result_buffer, Args... args) const;
+                          void* result_buffer, Args&&... args) const;
   template <typename... Args>
   InvokeResult InvokeArgs(ObjectPtr obj, StrID methodID, void* result_buffer,
-                          Args... args) const;
+                          Args&&... args) const;
 
   template <typename T, typename... Args>
-  T Invoke(TypeID typeID, StrID methodID, Args... args) const;
+  T Invoke(TypeID typeID, StrID methodID, Args&&... args) const;
   template <typename T, typename... Args>
-  T Invoke(ConstObjectPtr obj, StrID methodID, Args... args) const;
+  T Invoke(ConstObjectPtr obj, StrID methodID, Args&&... args) const;
   template <typename T, typename... Args>
-  T Invoke(ObjectPtr obj, StrID methodID, Args... args) const;
+  T Invoke(ObjectPtr obj, StrID methodID, Args&&... args) const;
 
   //
   // Meta
   /////////
 
-  bool IsConstructible(TypeID typeID, Span<const TypeID> argTypeIDs = {}) const;
+  bool IsConstructible(TypeID typeID, Span<const TypeID> argTypeIDs) const;
   bool IsDestructible(TypeID typeID) const;
+  bool IsCopyConstructible(TypeID typeID) const;
+  bool IsMoveConstructible(TypeID typeID) const;
 
-  bool Construct(ObjectPtr obj, Span<const TypeID> argTypeIDs = {},
-                 void* args_buffer = nullptr) const;
+  bool Construct(ObjectPtr obj, Span<const TypeID> argTypeIDs,
+                 ArgsBuffer args_buffer) const;
   bool Destruct(ConstObjectPtr obj) const;
 
   void* Malloc(size_t size) const;
@@ -472,12 +496,12 @@ class ReflMngr {
   void* AlignedMalloc(size_t size, size_t alignment) const;
   bool AlignedFree(void* ptr) const;
 
-  ObjectPtr New(TypeID typeID, Span<const TypeID> argTypeIDs = {},
-                void* args_buffer = nullptr) const;
+  ObjectPtr New(TypeID typeID, Span<const TypeID> argTypeIDs,
+                ArgsBuffer args_buffer) const;
   bool Delete(ConstObjectPtr obj) const;
 
-  SharedObject MakeShared(TypeID typeID, Span<const TypeID> argTypeIDs = {},
-                          void* args_buffer = nullptr) const;
+  SharedObject MakeShared(TypeID typeID, Span<const TypeID> argTypeIDs,
+                          ArgsBuffer args_buffer) const;
 
   // -- template --
 
@@ -485,13 +509,13 @@ class ReflMngr {
   bool IsConstructible(TypeID typeID) const;
 
   template <typename... Args>
-  bool Construct(ObjectPtr obj, Args... args) const;
+  bool Construct(ObjectPtr obj, Args&&... args) const;
 
   template <typename... Args>
-  ObjectPtr New(TypeID typeID, Args... args) const;
+  ObjectPtr New(TypeID typeID, Args&&... args) const;
 
   template <typename... Args>
-  SharedObject MakeShared(TypeID typeID, Args... args) const;
+  SharedObject MakeShared(TypeID typeID, Args&&... args) const;
 
   // - if T is not register, call RegisterTypeAuto<T>()
   // - call AddConstructor<T, Args...>()
@@ -597,42 +621,54 @@ class ReflMngr {
 
   SharedObject MInvoke(TypeID typeID, StrID methodID,
                        Span<const TypeID> argTypeIDs = {},
-                       void* args_buffer = nullptr,
+                       ArgsBuffer args_buffer = nullptr,
                        std::pmr::memory_resource* result_rsrc =
-                           std::pmr::get_default_resource());
+                           std::pmr::get_default_resource()) const;
 
   SharedObject MInvoke(ConstObjectPtr obj, StrID methodID,
                        Span<const TypeID> argTypeIDs = {},
-                       void* args_buffer = nullptr,
+                       ArgsBuffer args_buffer = nullptr,
                        std::pmr::memory_resource* result_rsrc =
-                           std::pmr::get_default_resource());
+                           std::pmr::get_default_resource()) const;
 
   SharedObject MInvoke(ObjectPtr obj, StrID methodID,
                        Span<const TypeID> argTypeIDs = {},
-                       void* args_buffer = nullptr,
+                       ArgsBuffer args_buffer = nullptr,
                        std::pmr::memory_resource* result_rsrc =
-                           std::pmr::get_default_resource());
+                           std::pmr::get_default_resource()) const;
 
   template <typename... Args>
   SharedObject MInvoke(TypeID typeID, StrID methodID,
-                       std::pmr::memory_resource* result_rsrc, Args... args);
+                       std::pmr::memory_resource* result_rsrc,
+                       Args&&... args) const;
 
   template <typename... Args>
   SharedObject MInvoke(ConstObjectPtr obj, StrID methodID,
-                       std::pmr::memory_resource* result_rsrc, Args... args);
+                       std::pmr::memory_resource* result_rsrc,
+                       Args&&... args) const;
 
   template <typename... Args>
   SharedObject MInvoke(ObjectPtr obj, StrID methodID,
-                       std::pmr::memory_resource* result_rsrc, Args... args);
+                       std::pmr::memory_resource* result_rsrc,
+                       Args&&... args) const;
 
   template <typename... Args>
-  SharedObject DMInvoke(TypeID typeID, StrID methodID, Args... args);
+  SharedObject DMInvoke(TypeID typeID, StrID methodID, Args&&... args) const;
 
   template <typename... Args>
-  SharedObject DMInvoke(ConstObjectPtr obj, StrID methodID, Args... args);
+  SharedObject DMInvoke(ConstObjectPtr obj, StrID methodID,
+                        Args&&... args) const;
 
   template <typename... Args>
-  SharedObject DMInvoke(ObjectPtr obj, StrID methodID, Args... args);
+  SharedObject DMInvoke(ObjectPtr obj, StrID methodID, Args&&... args) const;
+
+  ObjectPtr MNew(TypeID typeID, std::pmr::memory_resource* rsrc,
+                 Span<const TypeID> argTypeIDs, ArgsBuffer args_buffer) const;
+  bool MDelete(ConstObjectPtr obj, std::pmr::memory_resource* rsrc) const;
+
+  template <typename... Args>
+  ObjectPtr MNew(TypeID typeID, std::pmr::memory_resource* rsrc,
+                 Args&&... args) const;
 
   //
   // Type
@@ -651,6 +687,10 @@ class ReflMngr {
  private:
   ReflMngr();
   ~ReflMngr();
+
+  // for
+  // - argument copy
+  mutable std::pmr::synchronized_pool_resource temporary_resource;
 };
 
 inline static std::add_const_t<ReflMngr*> Mngr = &ReflMngr::Instance();

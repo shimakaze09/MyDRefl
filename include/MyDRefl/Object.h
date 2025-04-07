@@ -13,37 +13,37 @@
 
 #define OBJECT_PTR_DECLARE_OPERATOR(op, name) \
   template <typename Arg>                     \
-  SharedObject operator op(Arg rhs) const
+  SharedObject operator op(Arg&& rhs) const
 
-#define OBJECT_PTR_DEFINE_CMP_OPERATOR(op, name)                          \
-  template <typename Arg>                                                 \
-  bool operator op(Arg rhs) const {                                       \
-    return static_cast<bool>(ADMInvoke<Arg>(                              \
-        StrIDRegistry::MetaID::operator_##name, std::forward<Arg>(rhs))); \
+#define OBJECT_PTR_DEFINE_CMP_OPERATOR(op, name)                               \
+  template <typename Arg>                                                      \
+  bool operator op(Arg&& rhs) const {                                          \
+    return static_cast<bool>(ADMInvoke(StrIDRegistry::MetaID::operator_##name, \
+                                       std::forward<Arg>(rhs)));               \
   }
 
 #define OBJECT_PTR_DECLARE_CONTAINER(name) \
   template <typename Arg>                  \
-  SharedObject name(Arg rhs) const
+  SharedObject name(Arg&& rhs) const
 
 #define OBJECT_PTR_DECLARE_CONTAINER_VARS(name) \
   template <typename... Args>                   \
-  SharedObject name(Args... args) const
+  SharedObject name(Args&&... args) const
 
 #define SHARED_OBJECT_DECLARE_OPERATOR(op) \
   template <typename Arg>                  \
-  SharedObject operator op(Arg rhs) const
+  SharedObject operator op(Arg&& rhs) const
 
-#define SHARED_OBJECT_DEFINE_OPERATOR(op)                           \
-  template <typename Arg>                                           \
-  SharedObject operator op(Arg rhs) const {                         \
-    return AsObjectPtr()->operator op<Arg>(std::forward<Arg>(rhs)); \
+#define SHARED_OBJECT_DEFINE_OPERATOR(op)                      \
+  template <typename Arg>                                      \
+  SharedObject operator op(Arg&& rhs) const {                  \
+    return AsObjectPtr()->operator op(std::forward<Arg>(rhs)); \
   }
 
-#define SHARED_OBJECT_DEFINE_CMP_OPERATOR(op)                       \
-  template <typename Arg>                                           \
-  bool operator op(Arg rhs) const {                                 \
-    return AsObjectPtr()->operator op<Arg>(std::forward<Arg>(rhs)); \
+#define SHARED_OBJECT_DEFINE_CMP_OPERATOR(op)                  \
+  template <typename Arg>                                      \
+  bool operator op(Arg&& rhs) const {                          \
+    return AsObjectPtr()->operator op(std::forward<Arg>(rhs)); \
   }
 
 #define SHARED_OBJECT_DEFINE_UNARY_OPERATOR(op) \
@@ -106,42 +106,42 @@ class ObjectPtrBase {
 
   InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
                       Span<const TypeID> argTypeIDs = {},
-                      void* args_buffer = nullptr) const;
+                      ArgsBuffer args_buffer = nullptr) const;
 
   template <typename... Args>
   InvocableResult IsInvocable(StrID methodID) const;
 
   template <typename T>
   T InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs = {},
-              void* args_buffer = nullptr) const;
+              ArgsBuffer args_buffer = nullptr) const;
 
   template <typename... Args>
   InvokeResult InvokeArgs(StrID methodID, void* result_buffer,
-                          Args... args) const;
+                          Args&&... args) const;
 
   template <typename T, typename... Args>
-  T Invoke(StrID methodID, Args... args) const;
+  T Invoke(StrID methodID, Args&&... args) const;
 
   SharedObject MInvoke(StrID methodID, Span<const TypeID> argTypeIDs = {},
-                       void* args_buffer = nullptr,
+                       ArgsBuffer args_buffer = nullptr,
                        std::pmr::memory_resource* rst_rsrc =
                            std::pmr::get_default_resource()) const;
 
   template <typename... Args>
   SharedObject MInvoke(StrID methodID, std::pmr::memory_resource* rst_rsrc,
-                       Args... args) const;
+                       Args&&... args) const;
 
   template <typename... Args>
-  SharedObject DMInvoke(StrID methodID, Args... args) const;
+  SharedObject DMInvoke(StrID methodID, Args&&... args) const;
 
-  // A means auto, ObjectPtr/SharedObject will be transform as ID + ptr
+  // 'A' means auto, ObjectPtr/SharedObject will be transformed as ID + ptr
   template <typename... Args>
   SharedObject AMInvoke(StrID methodID, std::pmr::memory_resource* rst_rsrc,
-                        Args... args) const;
+                        Args&&... args) const;
 
-  // A means auto, ObjectPtr/SharedObject will be transform as ID + ptr
+  // 'A' means auto, ObjectPtr/SharedObject will be transformed as ID + ptr
   template <typename... Args>
-  SharedObject ADMInvoke(StrID methodID, Args... args) const;
+  SharedObject ADMInvoke(StrID methodID, Args&&... args) const;
 
   //
   // Fields
@@ -214,7 +214,7 @@ class ObjectPtrBase {
 
   template <typename T>
   T& operator>>(T& out) const {
-    ADMInvoke<T&>(StrIDRegistry::MetaID::operator_rshift, out);
+    ADMInvoke(StrIDRegistry::MetaID::operator_rshift, out);
     return out;
   }
 
@@ -329,7 +329,7 @@ class ConstObjectPtr : public ObjectPtrBase {
   SharedObject operator*() const;
 
   template <typename... Args>
-  SharedObject operator()(Args... args) const;
+  SharedObject operator()(Args&&... args) const;
 
   //
   // container
@@ -399,10 +399,10 @@ class ObjectPtr : public ObjectPtrBase {
 
   InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
                       Span<const TypeID> argTypeIDs = {},
-                      void* args_buffer = nullptr) const;
+                      ArgsBuffer args_buffer = nullptr) const;
 
   SharedObject MInvoke(StrID methodID, Span<const TypeID> argTypeIDs = {},
-                       void* args_buffer = nullptr,
+                       ArgsBuffer args_buffer = nullptr,
                        std::pmr::memory_resource* rst_rsrc =
                            std::pmr::get_default_resource()) const;
 
@@ -411,30 +411,30 @@ class ObjectPtr : public ObjectPtrBase {
 
   template <typename T>
   T InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs = {},
-              void* args_buffer = nullptr) const;
+              ArgsBuffer args_buffer = nullptr) const;
 
   template <typename... Args>
   InvokeResult InvokeArgs(StrID methodID, void* result_buffer,
-                          Args... args) const;
+                          Args&&... args) const;
 
   template <typename T, typename... Args>
-  T Invoke(StrID methodID, Args... args) const;
+  T Invoke(StrID methodID, Args&&... args) const;
 
   template <typename... Args>
   SharedObject MInvoke(StrID methodID, std::pmr::memory_resource* rst_rsrc,
-                       Args... args) const;
+                       Args&&... args) const;
 
   template <typename... Args>
-  SharedObject DMInvoke(StrID methodID, Args... args) const;
+  SharedObject DMInvoke(StrID methodID, Args&&... args) const;
 
   // A means auto, ObjectPtr/SharedObject will be transform as ID + ptr
   template <typename... Args>
   SharedObject AMInvoke(StrID methodID, std::pmr::memory_resource* rst_rsrc,
-                        Args... args) const;
+                        Args&&... args) const;
 
   // A means auto, ObjectPtr/SharedObject will be transform as ID + ptr
   template <typename... Args>
-  SharedObject ADMInvoke(StrID methodID, Args... args) const;
+  SharedObject ADMInvoke(StrID methodID, Args&&... args) const;
 
   // self [r/w] vars and all bases' [r/w] vars
   void ForEachRWVar(
@@ -451,7 +451,13 @@ class ObjectPtr : public ObjectPtrBase {
 
   using ObjectPtrBase::operator*;
 
-  OBJECT_PTR_DECLARE_OPERATOR(=, assign);
+  template <typename Arg,
+            std::enable_if_t<
+                !std::is_same_v<std::remove_cv_t<std::remove_reference_t<Arg>>,
+                                ObjectPtr>,
+                int> = 0>
+  SharedObject operator=(Arg&& rhs) const;
+
   OBJECT_PTR_DECLARE_OPERATOR(+=, assign_add);
   OBJECT_PTR_DECLARE_OPERATOR(-=, assign_sub);
   OBJECT_PTR_DECLARE_OPERATOR(*=, assign_mul);
@@ -474,7 +480,7 @@ class ObjectPtr : public ObjectPtrBase {
   SharedObject operator*() const;
 
   template <typename... Args>
-  SharedObject operator()(Args... args) const;
+  SharedObject operator()(Args&&... args) const;
 
   template <typename T>
   SharedObject operator<<(T&& in) const;
@@ -738,7 +744,7 @@ class SharedConstObject : public SharedObjectBase {
   SharedObject operator*() const;
 
   template <typename... Args>
-  SharedObject operator()(Args... args) const;
+  SharedObject operator()(Args&&... args) const;
 };
 
 // SharedBuffer + ID
@@ -812,7 +818,15 @@ class SharedObject : public SharedObjectBase {
 
   using SharedObjectBase::operator*;
 
-  SHARED_OBJECT_DEFINE_OPERATOR(=)
+  template <typename Arg,
+            std::enable_if_t<
+                !std::is_same_v<std::remove_cv_t<std::remove_reference_t<Arg>>,
+                                ObjectPtr>,
+                int> = 0>
+  SharedObject operator=(Arg&& rhs) const {
+    return AsObjectPtr()->operator=(std::forward<Arg>(rhs));
+  }
+
   SHARED_OBJECT_DEFINE_OPERATOR(+=)
   SHARED_OBJECT_DEFINE_OPERATOR(-=)
   SHARED_OBJECT_DEFINE_OPERATOR(*=)
@@ -838,8 +852,8 @@ class SharedObject : public SharedObjectBase {
   SHARED_OBJECT_DEFINE_UNARY_OPERATOR(*)
 
   template <typename... Args>
-  SharedObject operator()(Args... args) const {
-    return AsObjectPtr()->operator()<Args...>(std::forward<Args>(args)...);
+  SharedObject operator()(Args&&... args) const {
+    return AsObjectPtr()->operator()<Args&&...>(std::forward<Args>(args)...);
   }
 
   template <typename T>

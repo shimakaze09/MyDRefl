@@ -6,31 +6,31 @@
 
 #include <array>
 
-#define OBJECT_PTR_DEFINE_OPERATOR_T(type, op, name)              \
-  template <typename Arg>                                         \
-  SharedObject type::operator op(Arg rhs) const {                 \
-    return ADMInvoke<Arg>(StrIDRegistry::MetaID::operator_##name, \
-                          std::forward<Arg>(rhs));                \
+#define OBJECT_PTR_DEFINE_OPERATOR_T(type, op, name)         \
+  template <typename Arg>                                    \
+  SharedObject type::operator op(Arg && rhs) const {         \
+    return ADMInvoke(StrIDRegistry::MetaID::operator_##name, \
+                     std::forward<Arg>(rhs));                \
   }
 
-#define OBJECT_PTR_DEFINE_CONTAINER_T(type, name)                  \
-  template <typename Arg>                                          \
-  SharedObject type::name(Arg rhs) const {                         \
-    return ADMInvoke<Arg>(StrIDRegistry::MetaID::container_##name, \
-                          std::forward<Arg>(rhs));                 \
+#define OBJECT_PTR_DEFINE_CONTAINER_T(type, name)             \
+  template <typename Arg>                                     \
+  SharedObject type::name(Arg&& rhs) const {                  \
+    return ADMInvoke(StrIDRegistry::MetaID::container_##name, \
+                     std::forward<Arg>(rhs));                 \
   }
 
-#define OBJECT_PTR_DEFINE_CONTAINER_VARS_T(type, name)                 \
-  template <typename... Args>                                          \
-  SharedObject type::name(Args... args) const {                        \
-    return ADMInvoke<Args...>(StrIDRegistry::MetaID::container_##name, \
-                              std::forward<Args>(args)...);            \
+#define OBJECT_PTR_DEFINE_CONTAINER_VARS_T(type, name)        \
+  template <typename... Args>                                 \
+  SharedObject type::name(Args&&... args) const {             \
+    return ADMInvoke(StrIDRegistry::MetaID::container_##name, \
+                     std::forward<Args>(args)...);            \
   }
 
-#define SHARED_OBJECT_DEFINE_OPERATOR_T(type, op)                   \
-  template <typename Arg>                                           \
-  SharedObject type::operator op(Arg rhs) const {                   \
-    return AsObjectPtr()->operator op<Arg>(std::forward<Arg>(rhs)); \
+#define SHARED_OBJECT_DEFINE_OPERATOR_T(type, op)              \
+  template <typename Arg>                                      \
+  SharedObject type::operator op(Arg && rhs) const {           \
+    return AsObjectPtr()->operator op(std::forward<Arg>(rhs)); \
   }
 
 #define DEFINE_OPERATOR_LSHIFT(Lhs, Rhs)             \
@@ -46,28 +46,31 @@
 
 namespace My::MyDRefl::details {
 template <typename T>
-constexpr TypeID ArgID(T&& arg) noexcept {
-  if constexpr (std::is_same_v<T, ObjectPtr> || std::is_same_v<T, SharedObject>)
+constexpr TypeID ArgID(
+    const std::remove_const_t<std::remove_reference_t<T>>& arg) noexcept {
+  using U = std::remove_const_t<std::remove_reference_t<T>>;
+  static_assert(!std::is_volatile_v<U>);
+  if constexpr (std::is_same_v<U, ObjectPtr> || std::is_same_v<U, SharedObject>)
     return arg.GetID();
-  else if constexpr (std::is_same_v<T, ConstObjectPtr> ||
-                     std::is_same_v<T, SharedConstObject>)
+  else if constexpr (std::is_same_v<U, ConstObjectPtr> ||
+                     std::is_same_v<U, SharedConstObject>)
     return ConstObjectPtr{arg}.AddConstLValueReferenceID();
   else
     return TypeID_of<T>;
 }
 
 template <typename T>
-constexpr void* ArgPtr(T&& arg) noexcept {
-  using U = std::remove_reference_t<T>;
-  if constexpr (std::is_same_v<U, ObjectPtr> || std::is_same_v<U, SharedObject>)
+constexpr void* ArgPtr(const T& arg) noexcept {
+  static_assert(!std::is_volatile_v<T>);
+  if constexpr (std::is_same_v<T, ObjectPtr> || std::is_same_v<T, SharedObject>)
     return arg.GetPtr();
-  else if constexpr (std::is_same_v<U, ConstObjectPtr> ||
-                     std::is_same_v<U, SharedConstObject>)
+  else if constexpr (std::is_same_v<T, ConstObjectPtr> ||
+                     std::is_same_v<T, SharedConstObject>)
     return const_cast<void*>(arg.GetPtr());
   else {
-    static_assert(!std::is_same_v<U, ConstObjectPtr> &&
-                  !std::is_same_v<U, SharedConstObject>);
-    return &arg;
+    static_assert(!std::is_same_v<T, ConstObjectPtr> &&
+                  !std::is_same_v<T, SharedConstObject>);
+    return const_cast<void*>(static_cast<const void*>(&arg));
   }
 }
 }  // namespace My::MyDRefl::details
@@ -98,7 +101,7 @@ InvocableResult ObjectPtrBase::IsInvocable(StrID methodID) const {
 
 template <typename T>
 T ObjectPtrBase::InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs,
-                           void* args_buffer) const {
+                           ArgsBuffer args_buffer) const {
   using U =
       std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
   std::uint8_t result_buffer[sizeof(U)];
@@ -110,27 +113,25 @@ T ObjectPtrBase::InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs,
 
 template <typename... Args>
 InvokeResult ObjectPtrBase::InvokeArgs(StrID methodID, void* result_buffer,
-                                       Args... args) const {
+                                       Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    static_assert(
-        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     constexpr std::array argTypeIDs = {TypeID_of<Args>...};
-    std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
+    const std::array args_buffer{
+        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return Invoke(methodID, result_buffer, Span<const TypeID>{argTypeIDs},
-                  static_cast<void*>(args_buffer.data()));
+                  static_cast<ArgsBuffer>(args_buffer.data()));
   } else
     return Invoke(methodID, result_buffer);
 }
 
 template <typename T, typename... Args>
-T ObjectPtrBase::Invoke(StrID methodID, Args... args) const {
+T ObjectPtrBase::Invoke(StrID methodID, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    static_assert(
-        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     constexpr std::array argTypeIDs = {TypeID_of<Args>...};
-    std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
+    const std::array args_buffer{
+        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return InvokeRet<T>(methodID, Span<const TypeID>{argTypeIDs},
-                        static_cast<void*>(args_buffer.data()));
+                        static_cast<ArgsBuffer>(args_buffer.data()));
   } else
     return InvokeRet<T>(methodID);
 }
@@ -138,46 +139,42 @@ T ObjectPtrBase::Invoke(StrID methodID, Args... args) const {
 template <typename... Args>
 SharedObject ObjectPtrBase::MInvoke(StrID methodID,
                                     std::pmr::memory_resource* rst_rsrc,
-                                    Args... args) const {
+                                    Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    static_assert(
-        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     constexpr std::array argTypeIDs = {TypeID_of<Args>...};
-    std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
+    const std::array args_buffer{
+        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return MInvoke(methodID, Span<const TypeID>{argTypeIDs},
-                   static_cast<void*>(args_buffer.data()), rst_rsrc);
+                   static_cast<ArgsBuffer>(args_buffer.data()), rst_rsrc);
   } else
-    return MInvoke(methodID, Span<const TypeID>{}, static_cast<void*>(nullptr),
-                   rst_rsrc);
+    return MInvoke(methodID, Span<const TypeID>{},
+                   static_cast<ArgsBuffer>(nullptr), rst_rsrc);
 }
 
 template <typename... Args>
-SharedObject ObjectPtrBase::DMInvoke(StrID methodID, Args... args) const {
-  return MInvoke<Args...>(methodID, std::pmr::get_default_resource(),
-                          std::forward<Args>(args)...);
+SharedObject ObjectPtrBase::DMInvoke(StrID methodID, Args&&... args) const {
+  return MInvoke(methodID, std::pmr::get_default_resource(),
+                 std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 SharedObject ObjectPtrBase::AMInvoke(StrID methodID,
                                      std::pmr::memory_resource* rst_rsrc,
-                                     Args... args) const {
+                                     Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    static_assert(
-        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
-    std::array argTypeIDs = {details::ArgID<Args>(std::forward<Args>(args))...};
-    std::array args_buffer{
-        reinterpret_cast<std::size_t>(details::ArgPtr(args))...};
+    std::array argTypeIDs = {details::ArgID<Args>(args)...};
+    const std::array args_buffer{details::ArgPtr(args)...};
     return MInvoke(methodID, Span<const TypeID>{argTypeIDs},
-                   static_cast<void*>(args_buffer.data()), rst_rsrc);
+                   static_cast<ArgsBuffer>(args_buffer.data()), rst_rsrc);
   } else
-    return MInvoke(methodID, Span<const TypeID>{}, static_cast<void*>(nullptr),
-                   rst_rsrc);
+    return MInvoke(methodID, Span<const TypeID>{},
+                   static_cast<ArgsBuffer>(nullptr), rst_rsrc);
 }
 
 template <typename... Args>
-SharedObject ObjectPtrBase::ADMInvoke(StrID methodID, Args... args) const {
-  return AMInvoke<Args...>(methodID, std::pmr::get_default_resource(),
-                           std::forward<Args>(args)...);
+SharedObject ObjectPtrBase::ADMInvoke(StrID methodID, Args&&... args) const {
+  return AMInvoke(methodID, std::pmr::get_default_resource(),
+                  std::forward<Args>(args)...);
 }
 
 OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtrBase, +, add)
@@ -199,9 +196,9 @@ OBJECT_PTR_DEFINE_OPERATOR_T(ConstObjectPtr, [], subscript)
 OBJECT_PTR_DEFINE_OPERATOR_T(ConstObjectPtr, ->*, member_of_pointer)
 
 template <typename... Args>
-SharedObject ConstObjectPtr::operator()(Args... args) const {
-  return DMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
-                           std::forward<Args>(args)...);
+SharedObject ConstObjectPtr::operator()(Args&&... args) const {
+  return DMInvoke(StrIDRegistry::MetaID::operator_call,
+                  std::forward<Args>(args)...);
 }
 
 OBJECT_PTR_DEFINE_CONTAINER_T(ConstObjectPtr, at)
@@ -222,7 +219,7 @@ InvocableResult ObjectPtr::IsInvocable(StrID methodID) const {
 
 template <typename T>
 T ObjectPtr::InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs,
-                       void* args_buffer) const {
+                       ArgsBuffer args_buffer) const {
   if constexpr (!std::is_void_v<T>) {
     using U =
         std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
@@ -237,27 +234,25 @@ T ObjectPtr::InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs,
 
 template <typename... Args>
 InvokeResult ObjectPtr::InvokeArgs(StrID methodID, void* result_buffer,
-                                   Args... args) const {
+                                   Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    static_assert(
-        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     constexpr std::array argTypeIDs = {TypeID_of<Args>...};
-    std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
+    const std::array args_buffer{
+        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return Invoke(methodID, result_buffer, Span<const TypeID>{argTypeIDs},
-                  static_cast<void*>(args_buffer.data()));
+                  static_cast<ArgsBuffer>(args_buffer.data()));
   } else
     return Invoke(methodID, result_buffer);
 }
 
 template <typename T, typename... Args>
-T ObjectPtr::Invoke(StrID methodID, Args... args) const {
+T ObjectPtr::Invoke(StrID methodID, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    static_assert(
-        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     constexpr std::array argTypeIDs = {TypeID_of<Args>...};
-    std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
+    const std::array args_buffer{
+        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return InvokeRet<T>(methodID, Span<const TypeID>{argTypeIDs},
-                        static_cast<void*>(args_buffer.data()));
+                        static_cast<ArgsBuffer>(args_buffer.data()));
   } else
     return InvokeRet<T>(methodID);
 }
@@ -265,49 +260,54 @@ T ObjectPtr::Invoke(StrID methodID, Args... args) const {
 template <typename... Args>
 SharedObject ObjectPtr::MInvoke(StrID methodID,
                                 std::pmr::memory_resource* rst_rsrc,
-                                Args... args) const {
+                                Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    static_assert(
-        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
     constexpr std::array argTypeIDs = {TypeID_of<Args>...};
-    std::array args_buffer{reinterpret_cast<std::size_t>(&args)...};
+    const std::array args_buffer{
+        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return MInvoke(methodID, Span<const TypeID>{argTypeIDs},
-                   static_cast<void*>(args_buffer.data()), rst_rsrc);
+                   static_cast<ArgsBuffer>(args_buffer.data()), rst_rsrc);
   } else
-    return MInvoke(methodID, Span<const TypeID>{}, static_cast<void*>(nullptr),
-                   rst_rsrc);
+    return MInvoke(methodID, Span<const TypeID>{},
+                   static_cast<ArgsBuffer>(nullptr), rst_rsrc);
 }
 
 template <typename... Args>
-SharedObject ObjectPtr::DMInvoke(StrID methodID, Args... args) const {
-  return MInvoke<Args...>(methodID, std::pmr::get_default_resource(),
-                          std::forward<Args>(args)...);
+SharedObject ObjectPtr::DMInvoke(StrID methodID, Args&&... args) const {
+  return MInvoke(methodID, std::pmr::get_default_resource(),
+                 std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 SharedObject ObjectPtr::AMInvoke(StrID methodID,
                                  std::pmr::memory_resource* rst_rsrc,
-                                 Args... args) const {
+                                 Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    static_assert(
-        !((std::is_const_v<Args> || std::is_volatile_v<Args>) || ...));
-    std::array argTypeIDs = {details::ArgID<Args>(std::forward<Args>(args))...};
-    std::array args_buffer{
-        reinterpret_cast<std::size_t>(details::ArgPtr(args))...};
+    std::array argTypeIDs = {details::ArgID<Args>(args)...};
+    const std::array args_buffer{details::ArgPtr(args)...};
     return MInvoke(methodID, Span<const TypeID>{argTypeIDs},
-                   static_cast<void*>(args_buffer.data()), rst_rsrc);
+                   static_cast<ArgsBuffer>(args_buffer.data()), rst_rsrc);
   } else
-    return MInvoke(methodID, Span<const TypeID>{}, static_cast<void*>(nullptr),
-                   rst_rsrc);
+    return MInvoke(methodID, Span<const TypeID>{},
+                   static_cast<ArgsBuffer>(nullptr), rst_rsrc);
 }
 
 template <typename... Args>
-SharedObject ObjectPtr::ADMInvoke(StrID methodID, Args... args) const {
-  return AMInvoke<Args...>(methodID, std::pmr::get_default_resource(),
-                           std::forward<Args>(args)...);
+SharedObject ObjectPtr::ADMInvoke(StrID methodID, Args&&... args) const {
+  return AMInvoke(methodID, std::pmr::get_default_resource(),
+                  std::forward<Args>(args)...);
 }
 
-OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, =, assign)
+template <typename Arg,
+          std::enable_if_t<
+              !std::is_same_v<std::remove_cv_t<std::remove_reference_t<Arg>>,
+                              ObjectPtr>,
+              int>>
+SharedObject ObjectPtr::operator=(Arg&& rhs) const {
+  return ADMInvoke(StrIDRegistry::MetaID::operator_assign,
+                   std::forward<Arg>(rhs));
+}
+
 OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, +=, assign_add)
 OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, -=, assign_sub)
 OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, *=, assign_mul)
@@ -323,15 +323,14 @@ OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, [], subscript)
 OBJECT_PTR_DEFINE_OPERATOR_T(ObjectPtr, ->*, member_of_pointer)
 
 template <typename... Args>
-SharedObject ObjectPtr::operator()(Args... args) const {
-  return DMInvoke<Args...>(StrIDRegistry::MetaID::operator_call,
-                           std::forward<Args>(args)...);
+SharedObject ObjectPtr::operator()(Args&&... args) const {
+  return DMInvoke(StrIDRegistry::MetaID::operator_call,
+                  std::forward<Args>(args)...);
 }
 
 template <typename T>
 SharedObject ObjectPtr::operator<<(T&& in) const {
-  return ADMInvoke<T>(StrIDRegistry::MetaID::operator_lshift,
-                      std::forward<T>(in));
+  return ADMInvoke(StrIDRegistry::MetaID::operator_lshift, std::forward<T>(in));
 }
 
 //
@@ -387,8 +386,8 @@ SHARED_OBJECT_DEFINE_OPERATOR_T(SharedConstObject, [])
 SHARED_OBJECT_DEFINE_OPERATOR_T(SharedConstObject, ->*)
 
 template <typename... Args>
-SharedObject SharedConstObject::operator()(Args... args) const {
-  return AsObjectPtr()->operator()<Args...>(std::forward<Args>(args)...);
+SharedObject SharedConstObject::operator()(Args&&... args) const {
+  return AsObjectPtr()(std::forward<Args>(args)...);
 }
 }  // namespace My::MyDRefl
 

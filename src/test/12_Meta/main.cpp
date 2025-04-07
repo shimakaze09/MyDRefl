@@ -85,11 +85,10 @@ int main() {
   SharedObject w6 = v + Vec{1.f, 2.f};
 
   for (const auto& w : std::array{w0, w1, w2, w3, w4, w5, w6}) {
-    w->ForEachRVar([](TypeRef type, FieldRef field, ConstObjectPtr var) {
+    for (const auto& [type, field, var] : w->GetTypeFieldRVars()) {
       std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": "
-                << var.As<float>() << std::endl;
-      return true;
-    });
+                << var << std::endl;
+    }
   }
 
   SharedObject ele_1 = (v += Vec{10.f, 10.f})[static_cast<std::size_t>(1)];

@@ -197,14 +197,14 @@ InvocableResult ObjectPtrBase::IsInvocable(
 
 InvokeResult ObjectPtrBase::Invoke(StrID methodID, void* result_buffer,
                                    Span<const TypeID> argTypeIDs,
-                                   void* args_buffer) const {
+                                   ArgsBuffer args_buffer) const {
   return ReflMngr::Instance().Invoke(ConstObjectPtr{ID, ptr}, methodID,
                                      result_buffer, argTypeIDs, args_buffer);
 }
 
 SharedObject ObjectPtrBase::MInvoke(StrID methodID,
                                     Span<const TypeID> argTypeIDs,
-                                    void* args_buffer,
+                                    ArgsBuffer args_buffer,
                                     std::pmr::memory_resource* rst_rsrc) const {
   return ReflMngr::Instance().MInvoke(ConstObjectPtr{ID, ptr}, methodID,
                                       argTypeIDs, args_buffer, rst_rsrc);
@@ -250,7 +250,7 @@ SharedObject ConstObjectPtr::operator~() const {
 }
 
 SharedObject ConstObjectPtr::operator[](std::size_t n) const {
-  return DMInvoke<std::size_t>(StrIDRegistry::MetaID::operator_subscript, n);
+  return DMInvoke(StrIDRegistry::MetaID::operator_subscript, n);
 }
 
 SharedObject ConstObjectPtr::operator*() const {
@@ -331,13 +331,13 @@ InvocableResult ObjectPtr::IsInvocable(StrID methodID,
 
 InvokeResult ObjectPtr::Invoke(StrID methodID, void* result_buffer,
                                Span<const TypeID> argTypeIDs,
-                               void* args_buffer) const {
+                               ArgsBuffer args_buffer) const {
   return ReflMngr::Instance().Invoke(*this, methodID, result_buffer, argTypeIDs,
                                      args_buffer);
 }
 
 SharedObject ObjectPtr::MInvoke(StrID methodID, Span<const TypeID> argTypeIDs,
-                                void* args_buffer,
+                                ArgsBuffer args_buffer,
                                 std::pmr::memory_resource* rst_rsrc) const {
   return ReflMngr::Instance().MInvoke(*this, methodID, argTypeIDs, args_buffer,
                                       rst_rsrc);
@@ -379,7 +379,7 @@ SharedObject ObjectPtr::operator--(int) const {
 }
 
 SharedObject ObjectPtr::operator[](std::size_t n) const {
-  return DMInvoke<std::size_t>(StrIDRegistry::MetaID::operator_subscript, n);
+  return DMInvoke(StrIDRegistry::MetaID::operator_subscript, n);
 }
 
 SharedObject ObjectPtr::operator*() const {
