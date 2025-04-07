@@ -237,11 +237,13 @@ class ReflMngr {
   template <typename T>
   void RegisterType();
 
-  // RegisterType<T>
-  // AddConstructor<T>
-  // AddDestructor<T>
+  // RegisterType(type_name<T>(), sizeof(T), alignof(T))
+  // AddConstructor<T>()
+  // AddConstructor<T, const T&>()
+  // AddConstructor<T, T&&>()
+  // AddDestructor<T>()
   template <typename T>
-  void RegisterTypeAuto(AttrSet attrs_ctor = {}, AttrSet attrs_dtor = {});
+  void RegisterTypeAuto();
 
   // get TypeID from field_data
   // field_data can be
@@ -390,6 +392,9 @@ class ReflMngr {
   //
   // Invoke
   ///////////
+  //
+  // - you should provide T, Args... explicitly (without any template argument deduction)
+  //
 
   InvocableResult IsStaticInvocable(TypeID typeID, StrID methodID,
                                     Span<const TypeID> argTypeIDs = {}) const;
@@ -488,8 +493,8 @@ class ReflMngr {
   template <typename... Args>
   SharedObject MakeShared(TypeID typeID, Args... args) const;
 
-  // if T is not register, call RegisterTypeAuto
-  // else add ctor
+  // - if T is not register, call RegisterTypeAuto<T>()
+  // - call AddConstructor<T, Args...>()
   template <typename T, typename... Args>
   ObjectPtr NewAuto(Args... args);
 
