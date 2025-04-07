@@ -113,6 +113,14 @@ ConstObjectPtr ObjectPtrBase::ObjectPtrBase::DereferenceAsConst() const {
   return ReflMngr::Instance().DereferenceAsConst({ID, ptr});
 }
 
+TypeID ObjectPtrBase::AddConstLValueReferenceID() const {
+  return ReflMngr::Instance().AddConstLValueReference(ID);
+}
+
+ConstObjectPtr ObjectPtrBase::AddConstLValueReference() const {
+  return ReflMngr::Instance().AddConstLValueReference({ID, ptr});
+}
+
 SharedObject ObjectPtrBase::cbegin() const {
   return ReflMngr::Instance().DMInvoke(ConstObjectPtr{ID, ptr},
                                        StrIDRegistry::MetaID::container_cbegin);

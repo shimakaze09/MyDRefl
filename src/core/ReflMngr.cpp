@@ -927,9 +927,14 @@ SharedObject ReflMngr::MInvoke(TypeID typeID, StrID methodID,
       const auto& methodptr = mtarget->second.methodptr;
       const auto& rst_desc = methodptr.GetResultDesc();
       if (rst_desc.IsVoid()) {
-        auto dtor =
-            mtarget->second.methodptr.Invoke_Static(nullptr, args_buffer);
+        mtarget->second.methodptr.Invoke_Static(nullptr, args_buffer);
         return {{rst_desc.typeID, nullptr}, [](void* ptr) {
+                  assert(ptr);
+                }};
+      } else if (type_name_is_reference(tregistry.Nameof(rst_desc.typeID))) {
+        std::uint8_t buffer[sizeof(void*)];
+        mtarget->second.methodptr.Invoke_Static(buffer, args_buffer);
+        return {{rst_desc.typeID, buffer_as<void*>(buffer)}, [](void* ptr) {
                   assert(ptr);
                 }};
       } else {
@@ -987,6 +992,12 @@ SharedObject ReflMngr::MInvoke(ConstObjectPtr obj, StrID methodID,
                                                      args_buffer);
         return {{rst_desc.typeID, nullptr}, [](void* ptr) {
                   assert(!ptr);
+                }};
+      } else if (type_name_is_reference(tregistry.Nameof(rst_desc.typeID))) {
+        std::uint8_t buffer[sizeof(void*)];
+        mtarget->second.methodptr.Invoke(obj.GetPtr(), buffer, args_buffer);
+        return {{rst_desc.typeID, buffer_as<void*>(buffer)}, [](void* ptr) {
+                  assert(ptr);
                 }};
       } else {
         void* result_buffer =
@@ -1050,6 +1061,12 @@ SharedObject ReflMngr::MInvoke(ObjectPtr obj, StrID methodID,
           return {{rst_desc.typeID, nullptr}, [](void* ptr) {
                     assert(!ptr);
                   }};
+        } else if (type_name_is_reference(tregistry.Nameof(rst_desc.typeID))) {
+          std::uint8_t buffer[sizeof(void*)];
+          iter->second.methodptr.Invoke(obj.GetPtr(), buffer, args_buffer);
+          return {{rst_desc.typeID, buffer_as<void*>(buffer)}, [](void* ptr) {
+                    assert(ptr);
+                  }};
         } else {
           void* result_buffer =
               rst_rsrc->allocate(rst_desc.size, rst_desc.alignment);
@@ -1076,6 +1093,12 @@ SharedObject ReflMngr::MInvoke(ObjectPtr obj, StrID methodID,
               iter->second.methodptr.Invoke(obj.GetPtr(), nullptr, args_buffer);
           return {{rst_desc.typeID, nullptr}, [](void* ptr) {
                     assert(!ptr);
+                  }};
+        } else if (type_name_is_reference(tregistry.Nameof(rst_desc.typeID))) {
+          std::uint8_t buffer[sizeof(void*)];
+          iter->second.methodptr.Invoke(obj.GetPtr(), buffer, args_buffer);
+          return {{rst_desc.typeID, buffer_as<void*>(buffer)}, [](void* ptr) {
+                    assert(ptr);
                   }};
         } else {
           void* result_buffer =
@@ -1522,37 +1545,50 @@ TypeID ReflMngr::Dereference(TypeID ID) const {
   return rst_name;
 }
 
-ObjectPtr ReflMngr::Dereference(ConstObjectPtr pointer_obj) const {
-  if (!pointer_obj.GetPtr())
+ObjectPtr ReflMngr::Dereference(ConstObjectPtr ref_obj) const {
+  if (!ref_obj.GetPtr())
     return nullptr;
 
-  auto name = tregistry.Nameof(pointer_obj.GetID());
+  auto name = tregistry.Nameof(ref_obj.GetID());
 
   if (!type_name_is_reference(name))
     return nullptr;
 
-  std::string_view ele_name = type_name_remove_reference(name);
+  std::string_view rst_name = type_name_remove_reference(name);
 
-  if (type_name_is_const(ele_name))
+  if (type_name_is_const(rst_name))
     return nullptr;
 
-  auto rst_name = type_name_remove_topmost_volatile(ele_name);
+  assert(!type_name_is_volatile(rst_name));
 
-  return {TypeID{rst_name}, buffer_as<void*>(pointer_obj.GetPtr())};
+  return {TypeID{rst_name}, const_cast<void*>(ref_obj.GetPtr())};
 }
 
-ConstObjectPtr ReflMngr::DereferenceAsConst(ConstObjectPtr pointer_obj) const {
-  if (!pointer_obj.Valid())
+ConstObjectPtr ReflMngr::DereferenceAsConst(ConstObjectPtr ref_obj) const {
+  if (!ref_obj.Valid())
     return nullptr;
 
-  auto name = tregistry.Nameof(pointer_obj.GetID());
+  auto name = tregistry.Nameof(ref_obj.GetID());
 
   if (!type_name_is_reference(name))
     return nullptr;
 
   std::string_view ele_name = type_name_remove_reference(name);
 
-  auto rst_name = type_name_remove_cv(ele_name);
+  auto rst_name = type_name_remove_const(ele_name);
+  assert(!type_name_is_volatile(rst_name));
 
-  return {TypeID{rst_name}, buffer_as<const void*>(pointer_obj.GetPtr())};
+  return {TypeID{rst_name}, ref_obj.GetPtr()};
+}
+
+TypeID ReflMngr::AddConstLValueReference(TypeID ID) {
+  return tregistry.RegisterAddConstLValueReference(ID);
+}
+
+ConstObjectPtr ReflMngr::AddConstLValueReference(ConstObjectPtr obj) {
+  TypeID newID = tregistry.RegisterAddConstLValueReference(obj.GetID());
+  if (!newID.Valid())
+    return {};
+
+  return {newID, obj.GetPtr()};
 }

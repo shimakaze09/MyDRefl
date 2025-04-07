@@ -186,6 +186,8 @@ class ObjectPtrBase {
   TypeID DereferenceID() const;
   ObjectPtr Dereference() const;
   ConstObjectPtr DereferenceAsConst() const;
+  TypeID AddConstLValueReferenceID() const;
+  ConstObjectPtr AddConstLValueReference() const;
 
   //
   // Meta
@@ -252,10 +254,7 @@ class ObjectPtrBase {
   auto* AsPtr() const noexcept {
     static_assert(!std::is_const_v<T> && !std::is_volatile_v<T>);
     assert(ID.Is<T>());
-    if constexpr (std::is_reference_v<T>)
-      return reinterpret_cast<std::add_pointer_t<T>*>(ptr);
-    else
-      return reinterpret_cast<T*>(ptr);
+    return reinterpret_cast<std::add_pointer_t<T>>(ptr);
   }
 
   template <typename T>
@@ -263,14 +262,14 @@ class ObjectPtrBase {
     assert(ptr);
     auto* ptr = AsPtr<T>();
     if constexpr (std::is_reference_v<T>)
-      return std::forward<T>(**ptr);
+      return std::forward<T>(*ptr);
     else
       return *ptr;
   }
 
  protected:
   TypeID ID;
-  void* ptr;
+  void* ptr;  // if type is reference, ptr is a pointer of referenced object
 };
 
 class ConstObjectPtr : public ObjectPtrBase {
@@ -631,10 +630,7 @@ class SharedObjectBase {
   auto* AsPtr() const noexcept {
     static_assert(!std::is_const_v<T> && !std::is_volatile_v<T>);
     assert(ID.Is<T>());
-    if constexpr (std::is_reference_v<T>)
-      return reinterpret_cast<const std::add_pointer_t<T>*>(GetPtr());
-    else
-      return reinterpret_cast<T*>(GetPtr());
+    return reinterpret_cast<std::add_pointer_t<T>>(GetPtr());
   }
 
   template <typename T>
@@ -642,13 +638,14 @@ class SharedObjectBase {
     assert(GetPtr());
     auto* ptr = AsPtr<T>();
     if constexpr (std::is_reference_v<T>)
-      return std::forward<T>(**ptr);
+      return std::forward<T>(*ptr);
     else
       return *ptr;
   }
 
   TypeID ID;
-  SharedBuffer buffer;
+  SharedBuffer
+      buffer;  // if type is reference, ptr is a pointer of referenced object
 
  private:
   ConstObjectPtr AsObjectPtr() const noexcept { return {ID, buffer.get()}; }
@@ -878,11 +875,11 @@ template <typename T>
 constexpr TypeID ArgID(T&& arg) noexcept {
   if constexpr (std::is_same_v<T, ObjectPtr> || std::is_same_v<T, SharedObject>)
     return arg.GetID();
-  else {
-    static_assert(!std::is_same_v<T, ConstObjectPtr> &&
-                  !std::is_same_v<T, SharedConstObject>);
+  else if constexpr (std::is_same_v<T, ConstObjectPtr> ||
+                     std::is_same_v<T, SharedConstObject>)
+    return ConstObjectPtr{arg}.AddConstLValueReferenceID();
+  else
     return TypeID_of<T>;
-  }
 }
 
 template <typename T>
@@ -890,6 +887,9 @@ constexpr void* ArgPtr(T&& arg) noexcept {
   using U = std::remove_reference_t<T>;
   if constexpr (std::is_same_v<U, ObjectPtr> || std::is_same_v<U, SharedObject>)
     return arg.GetPtr();
+  else if constexpr (std::is_same_v<U, ConstObjectPtr> ||
+                     std::is_same_v<U, SharedConstObject>)
+    return const_cast<void*>(arg.GetPtr());
   else {
     static_assert(!std::is_same_v<U, ConstObjectPtr> &&
                   !std::is_same_v<U, SharedConstObject>);

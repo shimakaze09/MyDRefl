@@ -6,6 +6,7 @@
 
 #include "AttrSet.h"
 #include "BaseInfo.h"
+#include "Basic.h"
 #include "FieldInfo.h"
 #include "FieldPtr.h"
 #include "IDRegistry.h"

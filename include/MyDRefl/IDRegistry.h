@@ -31,6 +31,9 @@ class IDRegistry {
   void UnregisterUnmanaged(T ID);
   void Clear() noexcept;
 
+ protected:
+  std::pmr::polymorphic_allocator<char> get_allocator() { return &resource; }
+
  private:
   std::pmr::monotonic_buffer_resource resource;
   std::pmr::unordered_map<T, std::string_view> id2name;
@@ -324,13 +327,13 @@ class TypeIDRegistry : public IDRegistry<TypeID> {
     static constexpr TypeID t_void = Meta::t_void;
   };
 
-  using IDRegistry<TypeID>::Register;
-  using IDRegistry<TypeID>::IsRegistered;
-
   TypeIDRegistry() {
     RegisterUnmanaged(Meta::global);
     RegisterUnmanaged(Meta::t_void);
   }
+
+  using IDRegistry<TypeID>::Register;
+  using IDRegistry<TypeID>::IsRegistered;
 
   // unmanaged
   template <typename T>
@@ -342,6 +345,8 @@ class TypeIDRegistry : public IDRegistry<TypeID> {
   bool IsRegistered() const {
     return IDRegistry<TypeID>::IsRegistered(TypeID_of<T>);
   }
+
+  TypeID RegisterAddConstLValueReference(TypeID ID);
 };
 }  // namespace My::MyDRefl
 
