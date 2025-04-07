@@ -22,8 +22,9 @@ class CopyArgumentsGuard {
 
  public:
   CopyArgumentsGuard(std::pmr::memory_resource* rsrc,
-                     Span<const TypeID> paramTypeIDs,
-                     Span<const TypeID> argTypeIDs, ArgsBuffer orig_args_buffer)
+                     std::span<const TypeID> paramTypeIDs,
+                     std::span<const TypeID> argTypeIDs,
+                     ArgsBuffer orig_args_buffer)
       : rsrc{rsrc}, paramTypeIDs{paramTypeIDs}, infos{rsrc} {
     assert(Mngr->IsCompatible(paramTypeIDs, argTypeIDs));
     void** copied_args_buffer = nullptr;
@@ -67,7 +68,7 @@ class CopyArgumentsGuard {
             TypeID{type_name_add_const_lvalue_reference_hash(lhs)}};
         std::array<void*, 1> tmp_args_buffer = {orig_args_buffer[i]};
         ObjectPtr copiedArg = Mngr->MNew(
-            paramTypeIDs[i], rsrc, Span<const TypeID>{tmp_argTypeIDs},
+            paramTypeIDs[i], rsrc, std::span<const TypeID>{tmp_argTypeIDs},
             static_cast<ArgsBuffer>(tmp_args_buffer.data()));
         copied_args_buffer[i] = copiedArg.GetPtr();
         infos.push_back({i, false});
@@ -102,7 +103,7 @@ class CopyArgumentsGuard {
 
  private:
   std::pmr::memory_resource* rsrc;
-  Span<const TypeID> paramTypeIDs;
+  std::span<const TypeID> paramTypeIDs;
   ArgsBuffer args_buffer{nullptr};
   std::pmr::vector<CopyInfo> infos;
 };
@@ -501,7 +502,7 @@ bool ReflMngr::AlignedFree(void* ptr) const {
                     std::move(ptr));
 }
 
-ObjectPtr ReflMngr::New(TypeID typeID, Span<const TypeID> argTypeIDs,
+ObjectPtr ReflMngr::New(TypeID typeID, std::span<const TypeID> argTypeIDs,
                         ArgsBuffer args_buffer) const {
   if (!IsConstructible(typeID, argTypeIDs))
     return nullptr;
@@ -540,7 +541,8 @@ bool ReflMngr::Delete(ConstObjectPtr obj) const {
   return free_success;
 }
 
-SharedObject ReflMngr::MakeShared(TypeID typeID, Span<const TypeID> argTypeIDs,
+SharedObject ReflMngr::MakeShared(TypeID typeID,
+                                  std::span<const TypeID> argTypeIDs,
                                   ArgsBuffer args_buffer) const {
   ObjectPtr obj = New(typeID, argTypeIDs, args_buffer);
   return {obj, [typeID](void* ptr) {
@@ -786,8 +788,8 @@ ConstObjectPtr ReflMngr::RVar(ConstObjectPtr obj, TypeID baseID,
   return RVar(base, fieldID);
 }
 
-bool ReflMngr::IsCompatible(Span<const TypeID> params,
-                            Span<const TypeID> argTypeIDs) const {
+bool ReflMngr::IsCompatible(std::span<const TypeID> params,
+                            std::span<const TypeID> argTypeIDs) const {
   if (params.size() != argTypeIDs.size())
     return false;
 
@@ -851,7 +853,7 @@ bool ReflMngr::IsCompatible(Span<const TypeID> params,
 }
 
 InvocableResult ReflMngr::IsStaticInvocable(
-    TypeID typeID, StrID methodID, Span<const TypeID> argTypeIDs) const {
+    TypeID typeID, StrID methodID, std::span<const TypeID> argTypeIDs) const {
   if (GetDereferenceProperty(typeID) != DereferenceProperty::NotReference)
     return IsStaticInvocable(Dereference(typeID), methodID, argTypeIDs);
 
@@ -880,7 +882,7 @@ InvocableResult ReflMngr::IsStaticInvocable(
 }
 
 InvocableResult ReflMngr::IsConstInvocable(
-    TypeID typeID, StrID methodID, Span<const TypeID> argTypeIDs) const {
+    TypeID typeID, StrID methodID, std::span<const TypeID> argTypeIDs) const {
   if (GetDereferenceProperty(typeID) != DereferenceProperty::NotReference)
     return IsConstInvocable(Dereference(typeID), methodID, argTypeIDs);
 
@@ -908,8 +910,8 @@ InvocableResult ReflMngr::IsConstInvocable(
   return {};
 }
 
-InvocableResult ReflMngr::IsInvocable(TypeID typeID, StrID methodID,
-                                      Span<const TypeID> argTypeIDs) const {
+InvocableResult ReflMngr::IsInvocable(
+    TypeID typeID, StrID methodID, std::span<const TypeID> argTypeIDs) const {
   if (GetDereferenceProperty(typeID) != DereferenceProperty::NotReference)
     return IsInvocable(Dereference(typeID), methodID, argTypeIDs);
 
@@ -938,7 +940,7 @@ InvocableResult ReflMngr::IsInvocable(TypeID typeID, StrID methodID,
 
 InvokeResult ReflMngr::Invoke(TypeID typeID, StrID methodID,
                               void* result_buffer,
-                              Span<const TypeID> argTypeIDs,
+                              std::span<const TypeID> argTypeIDs,
                               ArgsBuffer args_buffer) const {
   if (GetDereferenceProperty(typeID) != DereferenceProperty::NotReference)
     return Invoke(Dereference(typeID), methodID, result_buffer, argTypeIDs,
@@ -976,7 +978,7 @@ InvokeResult ReflMngr::Invoke(TypeID typeID, StrID methodID,
 
 InvokeResult ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID,
                               void* result_buffer,
-                              Span<const TypeID> argTypeIDs,
+                              std::span<const TypeID> argTypeIDs,
                               ArgsBuffer args_buffer) const {
   auto deref_prop = GetDereferenceProperty(obj.GetID());
   switch (deref_prop) {
@@ -1024,7 +1026,7 @@ InvokeResult ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID,
 
 InvokeResult ReflMngr::Invoke(ObjectPtr obj, StrID methodID,
                               void* result_buffer,
-                              Span<const TypeID> argTypeIDs,
+                              std::span<const TypeID> argTypeIDs,
                               ArgsBuffer args_buffer) const {
   auto deref_prop = GetDereferenceProperty(obj.GetID());
   switch (deref_prop) {
@@ -1090,7 +1092,7 @@ InvokeResult ReflMngr::Invoke(ObjectPtr obj, StrID methodID,
 }
 
 SharedObject ReflMngr::MInvoke(TypeID typeID, StrID methodID,
-                               Span<const TypeID> argTypeIDs,
+                               std::span<const TypeID> argTypeIDs,
                                ArgsBuffer args_buffer,
                                std::pmr::memory_resource* rst_rsrc) const {
   assert(rst_rsrc);
@@ -1149,7 +1151,7 @@ SharedObject ReflMngr::MInvoke(TypeID typeID, StrID methodID,
 }
 
 SharedObject ReflMngr::MInvoke(ConstObjectPtr obj, StrID methodID,
-                               Span<const TypeID> argTypeIDs,
+                               std::span<const TypeID> argTypeIDs,
                                ArgsBuffer args_buffer,
                                std::pmr::memory_resource* rst_rsrc) const {
   assert(rst_rsrc);
@@ -1218,7 +1220,7 @@ SharedObject ReflMngr::MInvoke(ConstObjectPtr obj, StrID methodID,
 }
 
 SharedObject ReflMngr::MInvoke(ObjectPtr obj, StrID methodID,
-                               Span<const TypeID> argTypeIDs,
+                               std::span<const TypeID> argTypeIDs,
                                ArgsBuffer args_buffer,
                                std::pmr::memory_resource* rst_rsrc) const {
   assert(rst_rsrc);
@@ -1330,7 +1332,7 @@ SharedObject ReflMngr::MInvoke(ObjectPtr obj, StrID methodID,
 }
 
 ObjectPtr ReflMngr::MNew(TypeID typeID, std::pmr::memory_resource* rsrc,
-                         Span<const TypeID> argTypeIDs,
+                         std::span<const TypeID> argTypeIDs,
                          ArgsBuffer args_buffer) const {
   assert(rsrc);
 
@@ -1369,7 +1371,7 @@ bool ReflMngr::MDelete(ConstObjectPtr obj,
 }
 
 bool ReflMngr::IsConstructible(TypeID typeID,
-                               Span<const TypeID> argTypeIDs) const {
+                               std::span<const TypeID> argTypeIDs) const {
   assert(GetDereferenceProperty(typeID) == DereferenceProperty::NotReference);
 
   auto target = typeinfos.find(typeID);
@@ -1417,7 +1419,7 @@ bool ReflMngr::IsDestructible(TypeID typeID) const {
   return false;
 }
 
-bool ReflMngr::Construct(ObjectPtr obj, Span<const TypeID> argTypeIDs,
+bool ReflMngr::Construct(ObjectPtr obj, std::span<const TypeID> argTypeIDs,
                          ArgsBuffer args_buffer) const {
   assert(GetDereferenceProperty(obj.GetID()) ==
          DereferenceProperty::NotReference);

@@ -24,7 +24,6 @@ ADD_TARGET(
         C_OPTION_INTERFACE
         ${c_options_i}
         LIB
-        My::MyContainer_core
         My::MyTemplate_core
 )
 

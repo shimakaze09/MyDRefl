@@ -209,19 +209,19 @@ SharedObject ObjectPtrBase::get_allocator() const {
 }
 
 InvocableResult ObjectPtrBase::IsInvocable(
-    StrID methodID, Span<const TypeID> argTypeIDs) const {
+    StrID methodID, std::span<const TypeID> argTypeIDs) const {
   return ReflMngr::Instance().IsConstInvocable(ID, methodID, argTypeIDs);
 }
 
 InvokeResult ObjectPtrBase::Invoke(StrID methodID, void* result_buffer,
-                                   Span<const TypeID> argTypeIDs,
+                                   std::span<const TypeID> argTypeIDs,
                                    ArgsBuffer args_buffer) const {
   return ReflMngr::Instance().Invoke(ConstObjectPtr{ID, ptr}, methodID,
                                      result_buffer, argTypeIDs, args_buffer);
 }
 
 SharedObject ObjectPtrBase::MInvoke(StrID methodID,
-                                    Span<const TypeID> argTypeIDs,
+                                    std::span<const TypeID> argTypeIDs,
                                     ArgsBuffer args_buffer,
                                     std::pmr::memory_resource* rst_rsrc) const {
   return ReflMngr::Instance().MInvoke(ConstObjectPtr{ID, ptr}, methodID,
@@ -342,19 +342,20 @@ ObjectPtr ObjectPtr::RWVar(TypeID baseID, StrID fieldID) const {
   return ReflMngr::Instance().RWVar(*this, baseID, fieldID);
 }
 
-InvocableResult ObjectPtr::IsInvocable(StrID methodID,
-                                       Span<const TypeID> argTypeIDs) const {
+InvocableResult ObjectPtr::IsInvocable(
+    StrID methodID, std::span<const TypeID> argTypeIDs) const {
   return ReflMngr::Instance().IsInvocable(ID, methodID, argTypeIDs);
 }
 
 InvokeResult ObjectPtr::Invoke(StrID methodID, void* result_buffer,
-                               Span<const TypeID> argTypeIDs,
+                               std::span<const TypeID> argTypeIDs,
                                ArgsBuffer args_buffer) const {
   return ReflMngr::Instance().Invoke(*this, methodID, result_buffer, argTypeIDs,
                                      args_buffer);
 }
 
-SharedObject ObjectPtr::MInvoke(StrID methodID, Span<const TypeID> argTypeIDs,
+SharedObject ObjectPtr::MInvoke(StrID methodID,
+                                std::span<const TypeID> argTypeIDs,
                                 ArgsBuffer args_buffer,
                                 std::pmr::memory_resource* rst_rsrc) const {
   return ReflMngr::Instance().MInvoke(*this, methodID, argTypeIDs, args_buffer,

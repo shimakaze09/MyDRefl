@@ -7,9 +7,8 @@
 #include "Basic.h"
 #include "IDRegistry.h"
 
-#include <MyContainer/Span.h>
-
 #include <optional>
+#include <span>
 
 #define OBJECT_PTR_DECLARE_OPERATOR(op, name) \
   template <typename Arg>                     \
@@ -111,17 +110,17 @@ class ObjectPtrBase {
   ///////////
 
   InvocableResult IsInvocable(StrID methodID,
-                              Span<const TypeID> argTypeIDs = {}) const;
+                              std::span<const TypeID> argTypeIDs = {}) const;
 
   InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
-                      Span<const TypeID> argTypeIDs = {},
+                      std::span<const TypeID> argTypeIDs = {},
                       ArgsBuffer args_buffer = nullptr) const;
 
   template <typename... Args>
   InvocableResult IsInvocable(StrID methodID) const;
 
   template <typename T>
-  T InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs = {},
+  T InvokeRet(StrID methodID, std::span<const TypeID> argTypeIDs = {},
               ArgsBuffer args_buffer = nullptr) const;
 
   template <typename... Args>
@@ -131,7 +130,7 @@ class ObjectPtrBase {
   template <typename T, typename... Args>
   T Invoke(StrID methodID, Args&&... args) const;
 
-  SharedObject MInvoke(StrID methodID, Span<const TypeID> argTypeIDs = {},
+  SharedObject MInvoke(StrID methodID, std::span<const TypeID> argTypeIDs = {},
                        ArgsBuffer args_buffer = nullptr,
                        std::pmr::memory_resource* rst_rsrc =
                            std::pmr::get_default_resource()) const;
@@ -413,13 +412,13 @@ class ObjectPtr : public ObjectPtrBase {
   ObjectPtr RWVar(TypeID baseID, StrID fieldID) const;
 
   InvocableResult IsInvocable(StrID methodID,
-                              Span<const TypeID> argTypeIDs = {}) const;
+                              std::span<const TypeID> argTypeIDs = {}) const;
 
   InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
-                      Span<const TypeID> argTypeIDs = {},
+                      std::span<const TypeID> argTypeIDs = {},
                       ArgsBuffer args_buffer = nullptr) const;
 
-  SharedObject MInvoke(StrID methodID, Span<const TypeID> argTypeIDs = {},
+  SharedObject MInvoke(StrID methodID, std::span<const TypeID> argTypeIDs = {},
                        ArgsBuffer args_buffer = nullptr,
                        std::pmr::memory_resource* rst_rsrc =
                            std::pmr::get_default_resource()) const;
@@ -428,7 +427,7 @@ class ObjectPtr : public ObjectPtrBase {
   InvocableResult IsInvocable(StrID methodID) const;
 
   template <typename T>
-  T InvokeRet(StrID methodID, Span<const TypeID> argTypeIDs = {},
+  T InvokeRet(StrID methodID, std::span<const TypeID> argTypeIDs = {},
               ArgsBuffer args_buffer = nullptr) const;
 
   template <typename... Args>
