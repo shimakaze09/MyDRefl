@@ -21,17 +21,21 @@ class ReflMngr {
   //
   // Data
   /////////
+  //
+  // <typeinfos> does not contain references, pointers, const, or volatile types
+  // Enums are special types (all members are static).
+  //
 
   StrIDRegistry nregistry;
   TypeIDRegistry tregistry;
 
   std::unordered_map<TypeID, TypeInfo> typeinfos;
 
-  // clear order
-  // - field attrs
-  // - type attrs
-  // - type dynamic shared field
-  // - typeinfos
+  // Clearing order:
+  // - field attributes
+  // - type attributes
+  // - dynamic shared fields for this type
+  // - type information
   void Clear() noexcept;
 
   //
@@ -47,29 +51,27 @@ class ReflMngr {
   ////////////
 
   // field_data can be:
-  // - static field: pointer to **non-void** type
-  // - member object pointer: pointer to **non-void** type
+  // - static field: pointer to a non-void type
+  // - member object pointer: pointer to a non-void type
   // - enumerator
   template <auto field_data>
   FieldPtr GenerateFieldPtr();
 
   // data can be:
-  // 1. member object pointer
-  // 2. pointer to **non-void** and **non-function** type
-  // 3. functor : Value*(Object*)
-  // > - result must be an pointer of **non-void** type
-  // 4. enumerator
+  // 1. Member object pointer
+  // 2. Pointer to a non-void, non-function type
+  // 3. Functor: Value*(Object*)
+  // 4. Enumerator
+  // > - The result must be a pointer to a non-void type.
   template <typename T>
   FieldPtr GenerateFieldPtr(T&& data);
 
-  // if T is bufferable, T will be stored as buffer,
-  // else we will use std::make_shared to store it
+  // If T can be stored in a buffer, it will be stored there; otherwise, std::make_shared is used.
   // require alignof(T) <= alignof(std::max_align_t)
   template <typename T, typename... Args>
   FieldPtr GenerateDynamicFieldPtr(Args&&... args);
 
-  // if T is bufferable, T will be stored as buffer,
-  // else we will use std::alloc_shared to store it
+  // If T can be stored in a buffer, it is stored there; otherwise, std::alloc_shared is used.
   template <typename T, typename Alloc, typename... Args>
   FieldPtr GenerateDynamicFieldPtrByAlloc(const Alloc& alloc, Args&&... args);
 
@@ -80,8 +82,8 @@ class ReflMngr {
   }
 
   // field_data can be:
-  // - static field: pointer to **non-void** type
-  // - member object pointer: pointer to **non-void** type
+  // - static field: pointer to a non-void type
+  // - member object pointer: pointer to a non-void type
   // - enumerator
   template <auto field_data>
   std::pair<StrID, FieldInfo> GenerateField(std::string_view name,
@@ -379,42 +381,36 @@ class ReflMngr {
   // Field
   //////////
   //
-  // - RWVar is not support reference
+  // - RWVar does not support references
   //
 
-  // variable object
+  // A variable object
   ObjectPtr RWVar(TypeID typeID, StrID fieldID);
-  // object
+  // A read-only object
   ConstObjectPtr RVar(TypeID typeID, StrID fieldID) const;
-  // variable
+  // A variable object
   ObjectPtr RWVar(ObjectPtr obj, StrID fieldID);
-  // all
+  // A read-only object
   ConstObjectPtr RVar(ConstObjectPtr obj, StrID fieldID) const;
-  // variable, for diamond inheritance
+  // A variable object, for diamond inheritance scenarios
   ObjectPtr RWVar(ObjectPtr obj, TypeID baseID, StrID fieldID);
-  // all, for diamond inheritance
+  // Read-only object, for diamond inheritance scenarios
   ConstObjectPtr RVar(ConstObjectPtr obj, TypeID baseID, StrID fieldID) const;
 
   //
   // Invoke
   ///////////
   //
-  // - args_buffer maybe change for copy
+  // - Automatically search methods in base classes
+  // - Supports overloading
+  // - Requires IsCompatible()
+  // - If the parameter type is T and the argument type is T&, const T&, or const T&&, call Construct(...) to copy.
   //
 
-  // parameter <- argument
-  // - same
-  // - ConstObjectPtr <- ObjectPtr
-  // - SharedConstObject <- SharedObject
-  // - reference
-  // > - 0 (invalid), 1 (convertible), 2 (copy)
-  // > - table
-  //     |    -     | T | T & | const T & | T&& | const T&& |
-  //     |      T   | - |  2  |     2     |  1  |     2     |
-  //     |      T & | 0 |  -  |     0     |  0  |     0     |
-  //     |const T & | 1 |  1  |     -     |  1  |     1     |
-  //     |      T&& | 1 |  0  |     0     |  -  |     0     |
-  //     |const T&& | 1 |  0  |     0     |  1  |     -     |
+  // Parameter <- Argument
+  // - Same
+  // - Reference
+  // > - 0 = invalid, 1 = convertible, 2 = copy
   bool IsCompatible(Span<const TypeID> paramTypeIDs,
                     Span<const TypeID> argTypeIDs) const;
 
@@ -517,13 +513,13 @@ class ReflMngr {
   template <typename... Args>
   SharedObject MakeShared(TypeID typeID, Args&&... args) const;
 
-  // - if T is not register, call RegisterTypeAuto<T>()
-  // - call AddConstructor<T, Args...>()
+  // - If T is not registered, call RegisterTypeAuto<T>()
+  // - Then call AddConstructor<T, Args...>()
   template <typename T, typename... Args>
   ObjectPtr NewAuto(Args... args);
 
-  // if T is not register, call RegisterTypeAuto
-  // else add ctor
+  // If T is not registered, call RegisterTypeAuto
+  // Else add ctor
   template <typename T, typename... Args>
   SharedObject MakeSharedAuto(Args... args);
 
@@ -617,6 +613,7 @@ class ReflMngr {
   //
   // - MInvoke will allocate buffer for result, and move to SharedObject
   // - if result is reference, SharedObject's Ptr is a pointer of referenced object
+  // - DMInvoke's 'D' means 'default' (use the default memory resource)
   //
 
   SharedObject MInvoke(TypeID typeID, StrID methodID,
@@ -673,6 +670,9 @@ class ReflMngr {
   //
   // Type
   /////////
+  //
+  // - 'reference' include lvalue reference, rvalue reference and pointer
+  //
 
   DereferenceProperty GetDereferenceProperty(TypeID ID) const;
   TypeID Dereference(TypeID ID) const;

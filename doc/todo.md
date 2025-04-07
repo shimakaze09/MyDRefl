@@ -16,3 +16,4 @@
 - [ ] improve method ptr
 - [x] perfect forwarding when invoking (auto copy)
 - [ ] simplify assign operator
+- [ ] simplify malloc/free
