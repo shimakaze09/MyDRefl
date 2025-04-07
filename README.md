@@ -20,7 +20,8 @@ Extremely **fast** C++17 dynamic reflection library
 
 ## How to Use
 
-> the example code is [here](src/test/00_readme/main.cpp), other examples is [here](https://github.com/shimakaze09/MyDRefl#other-example)
+> the example code is [here](src/test/00_readme/main.cpp), other examples
+> is [here](https://github.com/shimakaze09/MyDRefl#other-example)
 
 Suppose you need to reflect `struct Vec`
 
@@ -106,6 +107,7 @@ for (const auto& [type, field, var] : v->GetTypeFieldRVars()) {
 - [attr](src/test/08_attr/main.cpp)
 - [lifecycle (malloc, free, ctor, dtor)](src/test/09_lifecycle/main.cpp)
 - [dynamic field](src/test/10_dynamic/main.cpp)
+- [invoke](src/test/11_invoke/main.cpp)
 - [meta function](src/test/12_Meta/main.cpp)
 - [reference](src/test/13_ref/main.cpp)
 - [serialize](src/test/15_serializer/main.cpp)
