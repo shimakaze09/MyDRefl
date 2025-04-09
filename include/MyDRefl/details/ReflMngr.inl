@@ -773,7 +773,11 @@ struct TypeAutoRegister_Default {
             "allocate", [](Allocator& lhs, std::size_t rhs) -> decltype(auto) {
               return lhs.allocate(rhs);
             });
-        mngr.AddMethod<&Allocator::deallocate>("deallocate");
+        mngr.AddMemberMethod("deallocate",
+                             [](Allocator& lhs, typename T::value_type* ptr,
+                                std::size_t num) -> decltype(auto) {
+                               return lhs.deallocate(ptr, num);
+                             });
       }
       if constexpr (is_valid_v<container_size_type, T>)
         mngr.RegisterType<typename T::size_type>();

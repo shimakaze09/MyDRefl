@@ -9,7 +9,7 @@ using namespace My::MyDRefl;
 Destructor MethodPtr::Invoke(void* obj, void* result_buffer,
                              ArgsBuffer args_buffer) const {
   return std::visit(
-      [=](const auto& f) {
+      [=, this](const auto& f) {
         using Func = std::decay_t<decltype(f)>;
         if constexpr (std::is_same_v<Func, MemberVariableFunction*>)
           return f(obj, result_buffer, {args_buffer, paramList});
@@ -34,7 +34,7 @@ Destructor MethodPtr::Invoke(void* obj, void* result_buffer,
 Destructor MethodPtr::Invoke(const void* obj, void* result_buffer,
                              ArgsBuffer args_buffer) const {
   return std::visit(
-      [=](const auto& f) -> Destructor {
+      [=, this](const auto& f) -> Destructor {
         using Func = std::decay_t<decltype(f)>;
         if constexpr (std::is_same_v<Func, MemberVariableFunction*>) {
           assert(false);
@@ -61,7 +61,7 @@ Destructor MethodPtr::Invoke(const void* obj, void* result_buffer,
 Destructor MethodPtr::Invoke(void* result_buffer,
                              ArgsBuffer args_buffer) const {
   return std::visit(
-      [=](const auto& f) -> Destructor {
+      [=, this](const auto& f) -> Destructor {
         using Func = std::decay_t<decltype(f)>;
         if constexpr (std::is_same_v<Func, MemberVariableFunction*>) {
           assert(false);

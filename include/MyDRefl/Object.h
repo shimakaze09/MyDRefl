@@ -14,11 +14,11 @@
   template <typename Arg>                     \
   SharedObject operator op(Arg&& rhs) const
 
-#define OBJECT_PTR_DEFINE_CMP_OPERATOR(op, name)                               \
-  template <typename Arg>                                                      \
-  bool operator op(Arg&& rhs) const {                                          \
-    return static_cast<bool>(ADMInvoke(StrIDRegistry::MetaID::operator_##name, \
-                                       std::forward<Arg>(rhs)));               \
+#define OBJECT_PTR_DEFINE_CMP_OPERATOR(op, name)                 \
+  template <typename Arg>                                        \
+  bool operator op(const Arg& rhs) const {                       \
+    return static_cast<bool>(                                    \
+        ADMInvoke(StrIDRegistry::MetaID::operator_##name, rhs)); \
   }
 
 #define OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(op, name)    \
@@ -48,10 +48,10 @@
     return *this;                                       \
   }
 
-#define SHARED_OBJECT_DEFINE_CMP_OPERATOR(op)                  \
-  template <typename Arg>                                      \
-  bool operator op(Arg&& rhs) const {                          \
-    return AsObjectPtr()->operator op(std::forward<Arg>(rhs)); \
+#define SHARED_OBJECT_DEFINE_CMP_OPERATOR(op) \
+  template <typename Arg>                     \
+  bool operator op(const Arg& rhs) const {    \
+    return AsObjectPtr()->operator op(rhs);   \
   }
 
 #define SHARED_OBJECT_DEFINE_UNARY_OPERATOR(op) \
@@ -219,8 +219,6 @@ class ObjectPtrBase {
   OBJECT_PTR_DECLARE_OPERATOR(|, bor);
   OBJECT_PTR_DECLARE_OPERATOR(^, bxor);
 
-  OBJECT_PTR_DEFINE_CMP_OPERATOR(==, eq);
-  OBJECT_PTR_DEFINE_CMP_OPERATOR(!=, ne);
   OBJECT_PTR_DEFINE_CMP_OPERATOR(<, lt);
   OBJECT_PTR_DEFINE_CMP_OPERATOR(<=, le);
   OBJECT_PTR_DEFINE_CMP_OPERATOR(>, gt);
@@ -632,8 +630,6 @@ class SharedObjectBase {
   SHARED_OBJECT_DECLARE_OPERATOR(|);
   SHARED_OBJECT_DECLARE_OPERATOR(^);
 
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(==)
-  SHARED_OBJECT_DEFINE_CMP_OPERATOR(!=)
   SHARED_OBJECT_DEFINE_CMP_OPERATOR(>)
   SHARED_OBJECT_DEFINE_CMP_OPERATOR(>=)
   SHARED_OBJECT_DEFINE_CMP_OPERATOR(<)
@@ -915,6 +911,8 @@ template <typename T>
 struct IsObjectOrPtr;
 template <typename T>
 constexpr bool IsObjectOrPtr_v = IsObjectOrPtr<T>::value;
+template <typename T>
+concept NonObjectAndPtr = !IsObjectOrPtr<T>::value;
 }  // namespace My::MyDRefl
 
 #undef OBJECT_PTR_DECLARE_OPERATOR

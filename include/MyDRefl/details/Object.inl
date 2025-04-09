@@ -446,146 +446,116 @@ struct My::MyDRefl::IsObjectOrPtr {
 };
 
 namespace My::MyDRefl {
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+inline bool operator==(const ConstObjectPtr& lhs, const ConstObjectPtr& rhs) {
+  return static_cast<bool>(
+             lhs.ADMInvoke(StrIDRegistry::MetaID::operator_eq, rhs)) ||
+         static_cast<bool>(
+             rhs.ADMInvoke(StrIDRegistry::MetaID::operator_eq, lhs));
+}
+
+inline bool operator!=(const ObjectPtr& lhs, const ObjectPtr& rhs) {
+  return static_cast<bool>(
+             lhs.ADMInvoke(StrIDRegistry::MetaID::operator_ne, rhs)) ||
+         static_cast<bool>(
+             rhs.ADMInvoke(StrIDRegistry::MetaID::operator_ne, lhs));
+}
+
+template <NonObjectAndPtr T>
 bool operator==(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
-  return My::MyDRefl::Ptr(lhs) == My::MyDRefl::ConstCast(ptr);
-}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-bool operator!=(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
-  return My::MyDRefl::Ptr(lhs) != My::MyDRefl::ConstCast(ptr);
-}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-bool operator<(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
-  return My::MyDRefl::Ptr(lhs) < My::MyDRefl::ConstCast(ptr);
-}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-bool operator>(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
-  return My::MyDRefl::Ptr(lhs) > My::MyDRefl::ConstCast(ptr);
-}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-bool operator<=(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
-  return My::MyDRefl::Ptr(lhs) <= My::MyDRefl::ConstCast(ptr);
-}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-bool operator>=(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
-  return My::MyDRefl::Ptr(lhs) >= My::MyDRefl::ConstCast(ptr);
-}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-bool operator==(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
   return My::MyDRefl::Ptr(lhs) == ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-bool operator!=(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
+template <NonObjectAndPtr T>
+bool operator!=(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
   return My::MyDRefl::Ptr(lhs) != ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+template <NonObjectAndPtr T>
+bool operator==(My::MyDRefl::ConstObjectPtr ptr, const T& rhs) {
+  return ptr == My::MyDRefl::Ptr(rhs);
+}
+
+template <NonObjectAndPtr T>
+bool operator!=(My::MyDRefl::ConstObjectPtr ptr, const T& rhs) {
+  return ptr == My::MyDRefl::Ptr(rhs);
+}
+
+template <NonObjectAndPtr T>
+bool operator<(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) < ptr;
+}
+
+template <NonObjectAndPtr T>
+bool operator>(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) > ptr;
+}
+
+template <NonObjectAndPtr T>
+bool operator<=(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) <= ptr;
+}
+
+template <NonObjectAndPtr T>
+bool operator>=(const T& lhs, My::MyDRefl::ConstObjectPtr ptr) {
+  return My::MyDRefl::Ptr(lhs) >= ptr;
+}
+
+template <NonObjectAndPtr T>
 bool operator<(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
   return My::MyDRefl::Ptr(lhs) < ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+template <NonObjectAndPtr T>
 bool operator>(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
   return My::MyDRefl::Ptr(lhs) > ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+template <NonObjectAndPtr T>
 bool operator<=(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
   return My::MyDRefl::Ptr(lhs) <= ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+template <NonObjectAndPtr T>
 bool operator>=(const T& lhs, My::MyDRefl::ObjectPtr ptr) {
   return My::MyDRefl::Ptr(lhs) >= ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-bool operator==(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
-  return My::MyDRefl::Ptr(lhs) == My::MyDRefl::ConstCast(ptr);
-}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-bool operator!=(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
-  return My::MyDRefl::Ptr(lhs) != My::MyDRefl::ConstCast(ptr);
-}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+template <NonObjectAndPtr T>
 bool operator<(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
-  return My::MyDRefl::Ptr(lhs) < My::MyDRefl::ConstCast(ptr);
+  return My::MyDRefl::Ptr(lhs) < ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+template <NonObjectAndPtr T>
 bool operator>(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
-  return My::MyDRefl::Ptr(lhs) > My::MyDRefl::ConstCast(ptr);
+  return My::MyDRefl::Ptr(lhs) > ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+template <NonObjectAndPtr T>
 bool operator<=(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
-  return My::MyDRefl::Ptr(lhs) <= My::MyDRefl::ConstCast(ptr);
+  return My::MyDRefl::Ptr(lhs) <= ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+template <NonObjectAndPtr T>
 bool operator>=(const T& lhs, const My::MyDRefl::SharedConstObject& ptr) {
-  return My::MyDRefl::Ptr(lhs) >= My::MyDRefl::ConstCast(ptr);
+  return My::MyDRefl::Ptr(lhs) >= ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-bool operator==(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
-  return My::MyDRefl::Ptr(lhs) == ptr;
-}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
-bool operator!=(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
-  return My::MyDRefl::Ptr(lhs) != ptr;
-}
-
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+template <NonObjectAndPtr T>
 bool operator<(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
   return My::MyDRefl::Ptr(lhs) < ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+template <NonObjectAndPtr T>
 bool operator>(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
   return My::MyDRefl::Ptr(lhs) > ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+template <NonObjectAndPtr T>
 bool operator<=(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
   return My::MyDRefl::Ptr(lhs) <= ptr;
 }
 
-template <typename T,
-          std::enable_if_t<!My::MyDRefl::IsObjectOrPtr_v<T>, int> = 0>
+template <NonObjectAndPtr T>
 bool operator>=(const T& lhs, const My::MyDRefl::SharedObject& ptr) {
   return My::MyDRefl::Ptr(lhs) >= ptr;
 }
