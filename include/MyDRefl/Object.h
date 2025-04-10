@@ -23,7 +23,7 @@
 
 #define OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(op, name)    \
   template <typename Arg>                                 \
-  ObjectPtr operator op(Arg&& rhs) const {                \
+  const ObjectPtr& operator op(Arg && rhs) const {        \
     AInvoke<void>(StrIDRegistry::MetaID::operator_##name, \
                   std::forward<Arg>(rhs));                \
     return *this;                                         \
@@ -64,6 +64,13 @@ class SharedObject;
 class SharedConstObject;
 class ObjectPtr;
 class ConstObjectPtr;
+
+template <typename T>
+struct IsObjectOrPtr;
+template <typename T>
+constexpr bool IsObjectOrPtr_v = IsObjectOrPtr<T>::value;
+template <typename T>
+concept NonObjectAndPtr = !IsObjectOrPtr<T>::value;
 
 class ObjectPtrBase {
  public:
@@ -202,6 +209,14 @@ class ObjectPtrBase {
   ConstObjectPtr FindROwnedVar(
       const std::function<bool(ConstObjectPtr)>& func) const;
 
+  bool ContainsBase(TypeID baseID) const;
+  bool ContainsField(StrID fieldID) const;
+  bool ContainsRWField(StrID fieldID) const;
+  bool ContainsMethod(StrID methodID) const;
+  bool ContainsVariableMethod(StrID methodID) const;
+  bool ContainsConstMethod(StrID methodID) const;
+  bool ContainsStaticMethod(StrID methodID) const;
+
   //
   // Type
   /////////
@@ -211,12 +226,8 @@ class ObjectPtrBase {
   ObjectPtr Dereference() const;
   ConstObjectPtr DereferenceAsConst() const;
 
-  TypeID AddLValueReferenceID() const;
-  TypeID AddRValueReferenceID() const;
-  TypeID AddConstLValueReferenceID() const;
-  ConstObjectPtr AddLValueReference() const;
-  ConstObjectPtr AddRValueReference() const;
   ConstObjectPtr AddConstLValueReference() const;
+  ConstObjectPtr AddConstRValueReference() const;
 
   //
   // Meta
@@ -502,12 +513,9 @@ class ObjectPtr : public ObjectPtrBase {
 
   using ObjectPtrBase::operator*;
 
-  template <typename Arg,
-            std::enable_if_t<
-                !std::is_same_v<std::remove_cv_t<std::remove_reference_t<Arg>>,
-                                ObjectPtr>,
-                int> = 0>
-  SharedObject operator=(Arg&& rhs) const;
+  template <typename Arg>
+  requires NonObjectAndPtr<std::decay_t<Arg>> const ObjectPtr& operator=(
+      Arg&& rhs) const;
 
   OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(+=, assign_add);
   OBJECT_PTR_DEFINE_ASSIGN_OP_OPERATOR(-=, assign_sub);
@@ -868,12 +876,9 @@ class SharedObject : public SharedObjectBase {
 
   using SharedObjectBase::operator*;
 
-  template <typename Arg,
-            std::enable_if_t<
-                !std::is_same_v<std::remove_cv_t<std::remove_reference_t<Arg>>,
-                                ObjectPtr>,
-                int> = 0>
-  SharedObject operator=(Arg&& rhs) const {
+  template <typename Arg>
+  requires NonObjectAndPtr<std::decay_t<Arg>> SharedObject
+  operator=(Arg&& rhs) const {
     return AsObjectPtr()->operator=(std::forward<Arg>(rhs));
   }
 
@@ -930,13 +935,6 @@ inline SharedObject ConstCast(const SharedConstObject& obj) noexcept {
 // generate ObjectPtr/ConstObjectPtr
 template <typename T>
 constexpr auto Ptr(T&& p) noexcept;
-
-template <typename T>
-struct IsObjectOrPtr;
-template <typename T>
-constexpr bool IsObjectOrPtr_v = IsObjectOrPtr<T>::value;
-template <typename T>
-concept NonObjectAndPtr = !IsObjectOrPtr<T>::value;
 }  // namespace My::MyDRefl
 
 #undef OBJECT_PTR_DECLARE_OPERATOR
