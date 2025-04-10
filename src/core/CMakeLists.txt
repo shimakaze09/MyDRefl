@@ -18,6 +18,6 @@ ADD_TARGET(
         ${c_options}
         LIB
         My::MyTemplate_core
+        PCH
+        "${PROJECT_SOURCE_DIR}/include/MyDRefl/MyDRefl.h"
 )
-
-TARGET_PRECOMPILE_HEADERS(${tname} PRIVATE "${PROJECT_SOURCE_DIR}/include/MyDRefl/MyDRefl.h")

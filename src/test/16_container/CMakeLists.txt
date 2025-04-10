@@ -9,8 +9,5 @@ ADD_TARGET(
         RET_TARGET_NAME tname
         LIB
         My::MyDRefl_core
-        C_OPTION
-        ${c_options}
+        PCH_REUSE_FROM MyDRefl_core
 )
-
-TARGET_PRECOMPILE_HEADERS(${tname} REUSE_FROM MyDRefl_core)
