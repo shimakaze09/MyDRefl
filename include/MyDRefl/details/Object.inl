@@ -93,6 +93,22 @@ constexpr auto Ptr(T&& p) noexcept {
 // ObjectPtrBase
 //////////////////
 
+inline ObjectPtrBase::operator bool() const noexcept {
+  if (ptr) {
+    if (Is<bool>())
+      return As<bool>();
+    else {
+      auto rst = IsInvocable(StrIDRegistry::MetaID::operator_bool);
+      if (rst.success) {
+        assert(rst.result_desc.typeID == TypeID_of<bool>);
+        return Invoke<bool>(StrIDRegistry::MetaID::operator_bool);
+      } else
+        return true;
+    }
+  } else
+    return false;
+}
+
 template <typename... Args>
 InvocableResult ObjectPtrBase::IsInvocable(StrID methodID) const {
   constexpr std::array argTypeIDs = {TypeID_of<Args>...};
@@ -155,6 +171,17 @@ template <typename... Args>
 SharedObject ObjectPtrBase::DMInvoke(StrID methodID, Args&&... args) const {
   return MInvoke(methodID, std::pmr::get_default_resource(),
                  std::forward<Args>(args)...);
+}
+
+template <typename T, typename... Args>
+T ObjectPtrBase::AInvoke(StrID methodID, Args&&... args) const {
+  if constexpr (sizeof...(Args) > 0) {
+    std::array argTypeIDs = {details::ArgID<Args>(args)...};
+    const std::array args_buffer{details::ArgPtr(args)...};
+    return InvokeRet<T>(methodID, std::span<const TypeID>{argTypeIDs},
+                        static_cast<ArgsBuffer>(args_buffer.data()));
+  } else
+    return InvokeRet<T>(methodID);
 }
 
 template <typename... Args>

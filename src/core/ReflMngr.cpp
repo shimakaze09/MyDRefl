@@ -165,7 +165,7 @@ static bool ForEachRWVar(
     ObjectPtr obj,
     const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func,
     std::set<TypeID>& visitedVBs) {
-  if (!obj)
+  if (!obj.Valid())
     return true;
 
   auto target = ReflMngr::Instance().typeinfos.find(obj.GetID());
@@ -203,7 +203,7 @@ static bool ForEachRVar(
     ConstObjectPtr obj,
     const std::function<bool(TypeRef, FieldRef, ConstObjectPtr)>& func,
     std::set<TypeID>& visitedVBs) {
-  if (!obj)
+  if (!obj.Valid())
     return true;
 
   auto target = ReflMngr::Instance().typeinfos.find(obj.GetID());
@@ -328,22 +328,22 @@ ReflMngr::ReflMngr() {
   MethodInfo methodinfo_free{GenerateMethodPtr<&free>()};
 
 #if defined(_WIN32) || defined(_WIN64)
-#define MY_MYDREFL_ALIGN_MALLOC _aligned_malloc
+#define UBPA_UDREFL_ALIGN_MALLOC _aligned_malloc
 #else
-#define MY_MYDREFL_ALIGN_MALLOC aligned_alloc
+#define UBPA_UDREFL_ALIGN_MALLOC aligned_alloc
 #endif  // defined(_WIN32) || defined(_WIN64)
   MethodInfo methodinfo_aligned_malloc{
-      GenerateMethodPtr<&MY_MYDREFL_ALIGN_MALLOC>()};
-#undef MY_MYDREFL_ALIGN_MALLOC
+      GenerateMethodPtr<&UBPA_UDREFL_ALIGN_MALLOC>()};
+#undef UBPA_UDREFL_ALIGN_MALLOC
 
 #if defined(_WIN32) || defined(_WIN64)
-#define MY_MYDREFL_ALIGN_FREE _aligned_free
+#define UBPA_UDREFL_ALIGN_FREE _aligned_free
 #else
-#define MY_MYDREFL_ALIGN_FREE free
+#define UBPA_UDREFL_ALIGN_FREE free
 #endif  // defined(_WIN32) || defined(_WIN64)
   MethodInfo methodinfo_aligned_free{
-      GenerateMethodPtr<&MY_MYDREFL_ALIGN_FREE>()};
-#undef MY_MYDREFL_ALIGN_FREE
+      GenerateMethodPtr<&UBPA_UDREFL_ALIGN_FREE>()};
+#undef UBPA_UDREFL_ALIGN_FREE
 
   TypeInfo global{
       0,
@@ -676,9 +676,52 @@ ObjectPtr ReflMngr::DynamicCast(ObjectPtr obj, TypeID typeID) const {
   return nullptr;
 }
 
+ConstObjectPtr ReflMngr::StaticCast_DerivedToBase(ConstObjectPtr obj,
+                                                  TypeID typeID) const {
+  if (auto prop = GetDereferenceProperty(typeID);
+      DereferenceProperty_IsReference(prop))
+    return StaticCast_DerivedToBase(DereferenceAsConst(obj), typeID);
+
+  return StaticCast_DerivedToBase(ConstCast(obj), typeID);
+}
+
+ConstObjectPtr ReflMngr::StaticCast_BaseToDerived(ConstObjectPtr obj,
+                                                  TypeID typeID) const {
+  if (auto prop = GetDereferenceProperty(typeID);
+      DereferenceProperty_IsReference(prop))
+    return StaticCast_BaseToDerived(DereferenceAsConst(obj), typeID);
+
+  return StaticCast_BaseToDerived(ConstCast(obj), typeID);
+}
+
+ConstObjectPtr ReflMngr::DynamicCast_BaseToDerived(ConstObjectPtr obj,
+                                                   TypeID typeID) const {
+  if (auto prop = GetDereferenceProperty(typeID);
+      DereferenceProperty_IsReference(prop))
+    return DynamicCast_BaseToDerived(DereferenceAsConst(obj), typeID);
+
+  return DynamicCast_BaseToDerived(ConstCast(obj), typeID);
+}
+
+ConstObjectPtr ReflMngr::StaticCast(ConstObjectPtr obj, TypeID typeID) const {
+  if (auto prop = GetDereferenceProperty(typeID);
+      DereferenceProperty_IsReference(prop))
+    return StaticCast(DereferenceAsConst(obj), typeID);
+
+  return StaticCast(ConstCast(obj), typeID);
+}
+
+ConstObjectPtr ReflMngr::DynamicCast(ConstObjectPtr obj, TypeID typeID) const {
+  if (auto prop = GetDereferenceProperty(typeID);
+      DereferenceProperty_IsReference(prop))
+    return DynamicCast(DereferenceAsConst(obj), typeID);
+
+  return DynamicCast(ConstCast(obj), typeID);
+}
+
 ObjectPtr ReflMngr::RWVar(TypeID typeID, StrID fieldID) {
   if (auto prop = GetDereferenceProperty(typeID);
-      prop != DereferenceProperty::NotReference) {
+      DereferenceProperty_IsReference(prop)) {
     if (prop == DereferenceProperty::Const)
       return nullptr;
 
@@ -731,7 +774,7 @@ ConstObjectPtr ReflMngr::RVar(TypeID typeID, StrID fieldID) const {
 
 ObjectPtr ReflMngr::RWVar(ObjectPtr obj, StrID fieldID) {
   if (auto prop = GetDereferenceProperty(obj.GetID());
-      prop != DereferenceProperty::NotReference) {
+      DereferenceProperty_IsReference(prop)) {
     if (prop == DereferenceProperty::Const)
       return nullptr;
 
@@ -1436,7 +1479,7 @@ bool ReflMngr::Construct(ObjectPtr obj, std::span<const TypeID> argTypeIDs,
   assert(GetDereferenceProperty(obj.GetID()) ==
          DereferenceProperty::NotReference);
 
-  if (!obj.GetPtr())
+  if (!obj.Valid())
     return false;
 
   auto target = typeinfos.find(obj.GetID());
@@ -1464,7 +1507,7 @@ bool ReflMngr::Destruct(ConstObjectPtr obj) const {
   assert(GetDereferenceProperty(obj.GetID()) ==
          DereferenceProperty::NotReference);
 
-  if (!obj.GetPtr())
+  if (!obj.Valid())
     return false;
 
   auto target = typeinfos.find(obj.GetID());

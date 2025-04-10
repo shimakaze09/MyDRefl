@@ -94,6 +94,12 @@ struct TypeAutoRegister_Default {
                                return -lhs;
                            });
 
+    if constexpr (is_valid_v<operator_bool, T>)
+      mngr.AddMemberMethod(StrIDRegistry::Meta::operator_bool,
+                           [](const T& obj) -> decltype(auto) {
+                             return static_cast<bool>(obj);
+                           });
+
     if constexpr (is_valid_v<operator_add, T>)
       mngr.AddMemberMethod(StrIDRegistry::Meta::operator_add,
                            [](const T& lhs, const T& rhs) -> decltype(auto) {

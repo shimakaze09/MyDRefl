@@ -67,6 +67,8 @@ class StrIDRegistry : public IDRegistry<StrID> {
     static constexpr char ctor[] = "MyDRefl::ctor";
     static constexpr char dtor[] = "MyDRefl::dtor";
 
+    static constexpr char operator_bool[] = "MyDRefl::operator_bool";
+
     static constexpr char operator_plus[] = "MyDRefl::operator+";
     static constexpr char operator_minus[] = "MyDRefl::operator-";
 
@@ -200,6 +202,8 @@ class StrIDRegistry : public IDRegistry<StrID> {
 
     static constexpr StrID ctor{Meta::ctor};
     static constexpr StrID dtor{Meta::dtor};
+
+    static constexpr StrID operator_bool{Meta::operator_bool};
 
     static constexpr StrID operator_plus{Meta::operator_plus};
     static constexpr StrID operator_minus{Meta::operator_minus};
