@@ -410,17 +410,17 @@ class ReflMngr {
   InvokeResult Invoke(TypeID typeID, StrID methodID,
                       void* result_buffer = nullptr,
                       std::span<const TypeID> argTypeIDs = {},
-                      ArgsBuffer args_buffer = nullptr) const;
+                      ArgPtrBuffer argptr_buffer = nullptr) const;
 
   InvokeResult Invoke(ConstObjectPtr obj, StrID methodID,
                       void* result_buffer = nullptr,
                       std::span<const TypeID> argTypeIDs = {},
-                      ArgsBuffer args_buffer = nullptr) const;
+                      ArgPtrBuffer argptr_buffer = nullptr) const;
 
   InvokeResult Invoke(ObjectPtr obj, StrID methodID,
                       void* result_buffer = nullptr,
                       std::span<const TypeID> argTypeIDs = {},
-                      ArgsBuffer args_buffer = nullptr) const;
+                      ArgPtrBuffer argptr_buffer = nullptr) const;
 
   // -- template --
 
@@ -434,15 +434,15 @@ class ReflMngr {
   template <typename T>
   T InvokeRet(TypeID typeID, StrID methodID,
               std::span<const TypeID> argTypeIDs = {},
-              ArgsBuffer args_buffer = nullptr) const;
+              ArgPtrBuffer argptr_buffer = nullptr) const;
   template <typename T>
   T InvokeRet(ConstObjectPtr obj, StrID methodID,
               std::span<const TypeID> argTypeIDs = {},
-              ArgsBuffer args_buffer = nullptr) const;
+              ArgPtrBuffer argptr_buffer = nullptr) const;
   template <typename T>
   T InvokeRet(ObjectPtr obj, StrID methodID,
               std::span<const TypeID> argTypeIDs = {},
-              ArgsBuffer args_buffer = nullptr) const;
+              ArgPtrBuffer argptr_buffer = nullptr) const;
 
   template <typename... Args>
   InvokeResult InvokeArgs(TypeID typeID, StrID methodID, void* result_buffer,
@@ -473,9 +473,9 @@ class ReflMngr {
   bool IsMoveConstructible(TypeID typeID) const;
 
   bool NonArgCopyConstruct(ObjectPtr obj, std::span<const TypeID> argTypeIDs,
-                           ArgsBuffer args_buffer) const;
+                           ArgPtrBuffer argptr_buffer) const;
   bool Construct(ObjectPtr obj, std::span<const TypeID> argTypeIDs,
-                 ArgsBuffer args_buffer) const;
+                 ArgPtrBuffer argptr_buffer) const;
   bool Destruct(ConstObjectPtr obj) const;
 
   void* Malloc(size_t size) const;
@@ -485,13 +485,13 @@ class ReflMngr {
   bool AlignedFree(void* ptr) const;
 
   ObjectPtr NonArgCopyNew(TypeID typeID, std::span<const TypeID> argTypeIDs,
-                          ArgsBuffer args_buffer) const;
+                          ArgPtrBuffer argptr_buffer) const;
   ObjectPtr New(TypeID typeID, std::span<const TypeID> argTypeIDs,
-                ArgsBuffer args_buffer) const;
+                ArgPtrBuffer argptr_buffer) const;
   bool Delete(ConstObjectPtr obj) const;
 
   SharedObject MakeShared(TypeID typeID, std::span<const TypeID> argTypeIDs,
-                          ArgsBuffer args_buffer) const;
+                          ArgPtrBuffer argptr_buffer) const;
 
   // -- template --
 
@@ -648,19 +648,19 @@ class ReflMngr {
 
   SharedObject MInvoke(TypeID typeID, StrID methodID,
                        std::span<const TypeID> argTypeIDs = {},
-                       ArgsBuffer args_buffer = nullptr,
+                       ArgPtrBuffer argptr_buffer = nullptr,
                        std::pmr::memory_resource* result_rsrc =
                            std::pmr::get_default_resource()) const;
 
   SharedObject MInvoke(ConstObjectPtr obj, StrID methodID,
                        std::span<const TypeID> argTypeIDs = {},
-                       ArgsBuffer args_buffer = nullptr,
+                       ArgPtrBuffer argptr_buffer = nullptr,
                        std::pmr::memory_resource* result_rsrc =
                            std::pmr::get_default_resource()) const;
 
   SharedObject MInvoke(ObjectPtr obj, StrID methodID,
                        std::span<const TypeID> argTypeIDs = {},
-                       ArgsBuffer args_buffer = nullptr,
+                       ArgPtrBuffer argptr_buffer = nullptr,
                        std::pmr::memory_resource* result_rsrc =
                            std::pmr::get_default_resource()) const;
 
@@ -691,10 +691,10 @@ class ReflMngr {
 
   ObjectPtr NonArgCopyMNew(TypeID typeID, std::pmr::memory_resource* rsrc,
                            std::span<const TypeID> argTypeIDs,
-                           ArgsBuffer args_buffer) const;
+                           ArgPtrBuffer argptr_buffer) const;
   ObjectPtr MNew(TypeID typeID, std::pmr::memory_resource* rsrc,
                  std::span<const TypeID> argTypeIDs,
-                 ArgsBuffer args_buffer) const;
+                 ArgPtrBuffer argptr_buffer) const;
   bool MDelete(ConstObjectPtr obj, std::pmr::memory_resource* rsrc) const;
 
   template <typename... Args>

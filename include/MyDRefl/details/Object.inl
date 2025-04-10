@@ -117,12 +117,12 @@ InvocableResult ObjectPtrBase::IsInvocable(StrID methodID) const {
 
 template <typename T>
 T ObjectPtrBase::InvokeRet(StrID methodID, std::span<const TypeID> argTypeIDs,
-                           ArgsBuffer args_buffer) const {
+                           ArgPtrBuffer argptr_buffer) const {
   using U =
       std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
   std::uint8_t result_buffer[sizeof(U)];
   InvokeResult result =
-      Invoke(methodID, result_buffer, argTypeIDs, args_buffer);
+      Invoke(methodID, result_buffer, argTypeIDs, argptr_buffer);
   assert(result.resultID == TypeID_of<T>);
   return result.Move<T>(result_buffer);
 }
@@ -132,10 +132,10 @@ InvokeResult ObjectPtrBase::InvokeArgs(StrID methodID, void* result_buffer,
                                        Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
-    const std::array args_buffer{
+    const std::array argptr_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return Invoke(methodID, result_buffer, std::span<const TypeID>{argTypeIDs},
-                  static_cast<ArgsBuffer>(args_buffer.data()));
+                  static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
     return Invoke(methodID, result_buffer);
 }
@@ -144,10 +144,10 @@ template <typename T, typename... Args>
 T ObjectPtrBase::Invoke(StrID methodID, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
-    const std::array args_buffer{
+    const std::array argptr_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return InvokeRet<T>(methodID, std::span<const TypeID>{argTypeIDs},
-                        static_cast<ArgsBuffer>(args_buffer.data()));
+                        static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
     return InvokeRet<T>(methodID);
 }
@@ -158,13 +158,13 @@ SharedObject ObjectPtrBase::MInvoke(StrID methodID,
                                     Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
-    const std::array args_buffer{
+    const std::array argptr_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return MInvoke(methodID, std::span<const TypeID>{argTypeIDs},
-                   static_cast<ArgsBuffer>(args_buffer.data()), rst_rsrc);
+                   static_cast<ArgPtrBuffer>(argptr_buffer.data()), rst_rsrc);
   } else
     return MInvoke(methodID, std::span<const TypeID>{},
-                   static_cast<ArgsBuffer>(nullptr), rst_rsrc);
+                   static_cast<ArgPtrBuffer>(nullptr), rst_rsrc);
 }
 
 template <typename... Args>
@@ -177,9 +177,9 @@ template <typename T, typename... Args>
 T ObjectPtrBase::AInvoke(StrID methodID, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypeIDs = {details::ArgID<decltype(args)>(args)...};
-    const std::array args_buffer{details::ArgPtr(args)...};
+    const std::array argptr_buffer{details::ArgPtr(args)...};
     return InvokeRet<T>(methodID, std::span<const TypeID>{argTypeIDs},
-                        static_cast<ArgsBuffer>(args_buffer.data()));
+                        static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
     return InvokeRet<T>(methodID);
 }
@@ -190,12 +190,12 @@ SharedObject ObjectPtrBase::AMInvoke(StrID methodID,
                                      Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypeIDs = {details::ArgID<decltype(args)>(args)...};
-    const std::array args_buffer{details::ArgPtr(args)...};
+    const std::array argptr_buffer{details::ArgPtr(args)...};
     return MInvoke(methodID, std::span<const TypeID>{argTypeIDs},
-                   static_cast<ArgsBuffer>(args_buffer.data()), rst_rsrc);
+                   static_cast<ArgPtrBuffer>(argptr_buffer.data()), rst_rsrc);
   } else
     return MInvoke(methodID, std::span<const TypeID>{},
-                   static_cast<ArgsBuffer>(nullptr), rst_rsrc);
+                   static_cast<ArgPtrBuffer>(nullptr), rst_rsrc);
 }
 
 template <typename... Args>
@@ -246,17 +246,17 @@ InvocableResult ObjectPtr::IsInvocable(StrID methodID) const {
 
 template <typename T>
 T ObjectPtr::InvokeRet(StrID methodID, std::span<const TypeID> argTypeIDs,
-                       ArgsBuffer args_buffer) const {
+                       ArgPtrBuffer argptr_buffer) const {
   if constexpr (!std::is_void_v<T>) {
     using U =
         std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
     std::uint8_t result_buffer[sizeof(U)];
     InvokeResult result =
-        Invoke(methodID, result_buffer, argTypeIDs, args_buffer);
+        Invoke(methodID, result_buffer, argTypeIDs, argptr_buffer);
     assert(result.resultID == TypeID_of<T>);
     return result.Move<T>(result_buffer);
   } else
-    Invoke(methodID, nullptr, argTypeIDs, args_buffer);
+    Invoke(methodID, nullptr, argTypeIDs, argptr_buffer);
 }
 
 template <typename... Args>
@@ -264,10 +264,10 @@ InvokeResult ObjectPtr::InvokeArgs(StrID methodID, void* result_buffer,
                                    Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
-    const std::array args_buffer{
+    const std::array argptr_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return Invoke(methodID, result_buffer, std::span<const TypeID>{argTypeIDs},
-                  static_cast<ArgsBuffer>(args_buffer.data()));
+                  static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
     return Invoke(methodID, result_buffer);
 }
@@ -276,10 +276,10 @@ template <typename T, typename... Args>
 T ObjectPtr::Invoke(StrID methodID, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
-    const std::array args_buffer{
+    const std::array argptr_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return InvokeRet<T>(methodID, std::span<const TypeID>{argTypeIDs},
-                        static_cast<ArgsBuffer>(args_buffer.data()));
+                        static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
     return InvokeRet<T>(methodID);
 }
@@ -290,13 +290,13 @@ SharedObject ObjectPtr::MInvoke(StrID methodID,
                                 Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
-    const std::array args_buffer{
+    const std::array argptr_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return MInvoke(methodID, std::span<const TypeID>{argTypeIDs},
-                   static_cast<ArgsBuffer>(args_buffer.data()), rst_rsrc);
+                   static_cast<ArgPtrBuffer>(argptr_buffer.data()), rst_rsrc);
   } else
     return MInvoke(methodID, std::span<const TypeID>{},
-                   static_cast<ArgsBuffer>(nullptr), rst_rsrc);
+                   static_cast<ArgPtrBuffer>(nullptr), rst_rsrc);
 }
 
 template <typename... Args>
@@ -310,9 +310,9 @@ template <typename T, typename... Args>
 T ObjectPtr::AInvoke(StrID methodID, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypeIDs = {details::ArgID<decltype(args)>(args)...};
-    const std::array args_buffer{details::ArgPtr(args)...};
+    const std::array argptr_buffer{details::ArgPtr(args)...};
     return InvokeRet<T>(methodID, std::span<const TypeID>{argTypeIDs},
-                        static_cast<ArgsBuffer>(args_buffer.data()));
+                        static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
     return InvokeRet<T>(methodID);
 }
@@ -323,12 +323,12 @@ SharedObject ObjectPtr::AMInvoke(StrID methodID,
                                  Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypeIDs = {details::ArgID<decltype(args)>(args)...};
-    const std::array args_buffer{details::ArgPtr(args)...};
+    const std::array argptr_buffer{details::ArgPtr(args)...};
     return MInvoke(methodID, std::span<const TypeID>{argTypeIDs},
-                   static_cast<ArgsBuffer>(args_buffer.data()), rst_rsrc);
+                   static_cast<ArgPtrBuffer>(argptr_buffer.data()), rst_rsrc);
   } else
     return MInvoke(methodID, std::span<const TypeID>{},
-                   static_cast<ArgsBuffer>(nullptr), rst_rsrc);
+                   static_cast<ArgPtrBuffer>(nullptr), rst_rsrc);
 }
 
 template <typename... Args>

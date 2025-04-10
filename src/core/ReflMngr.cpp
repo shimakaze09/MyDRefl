@@ -185,6 +185,8 @@ class ConstructedArgumentsGuard {
     std::size_t typeID;  // doesn't use TypeID to avoid init on stack
   };
 
+  static_assert(alignof(NonPtrArgInfo) == alignof(void*));
+
   struct PtrArgInfo {
     std::size_t idx;
     void* ptr;
@@ -194,11 +196,13 @@ class ConstructedArgumentsGuard {
   ConstructedArgumentsGuard(std::pmr::memory_resource* rsrc,
                             std::span<const TypeID> paramTypeIDs,
                             std::span<const TypeID> argTypeIDs,
-                            ArgsBuffer orig_args_buffer)
+                            ArgPtrBuffer orig_argptr_buffer)
       : rsrc{rsrc}, num_args{argTypeIDs.size()} {
     NonPtrArgInfo nonptrargs_stack[MaxArgNum];
+    std::size_t offset_nonptrargs[MaxArgNum];
     PtrArgInfo ptrargs_stack[MaxArgNum];
     std::size_t num_ptrargs = 0;
+    std::size_t size_nonptrargs = 0;
 
     for (std::size_t i = 0; i < argTypeIDs.size(); i++) {
       if (paramTypeIDs[i] == argTypeIDs[i])
@@ -240,74 +244,93 @@ class ConstructedArgumentsGuard {
 
       std::string_view name = Mngr->tregistry.Nameof(paramTypeIDs[i]);
       if (type_name_is_pointer(name)) {
-        ptrargs_stack[num_ptrargs++] = {i, orig_args_buffer[i]};  // copy ptr
+        ptrargs_stack[num_ptrargs++] = {i, orig_argptr_buffer[i]};  // copy ptr
         assert(num_ptrargs <= MaxArgNum);
       } else {
         TypeID raw_param_ID = TypeID{type_name_remove_cvref(lhs)};
-        nonptrargs_stack[num_nonptrargs++] = {i, raw_param_ID.GetValue()};
+        const auto& typeinfo = Mngr->typeinfos.at(raw_param_ID);
+        std::size_t offset = (size_nonptrargs + (typeinfo.alignment - 1)) /
+                             typeinfo.alignment * typeinfo.alignment;
+        nonptrargs_stack[num_nonptrargs] = {i, raw_param_ID.GetValue()};
+        offset_nonptrargs[num_nonptrargs] = offset;
+        size_nonptrargs = offset + typeinfo.size;
+        if (typeinfo.alignment > max_alignment)
+          max_alignment = typeinfo.alignment;
+        num_nonptrargs++;
         assert(num_nonptrargs <= MaxArgNum);
       }
     }
 
     if (num_nonptrargs + num_ptrargs == 0)
-      args_buffer = orig_args_buffer;
+      argptr_buffer = orig_argptr_buffer;
     else {
-      // buffer = constructed_args_buffer + nonptrargs
-      buffer_size =
-          num_args * sizeof(void*) + num_nonptrargs * sizeof(NonPtrArgInfo);
-      buffer = rsrc->allocate(buffer_size);
-      constructed_args_buffer =
-          reinterpret_cast<void**>(forward_offset(buffer, 0));
-      nonptrargs = reinterpret_cast<NonPtrArgInfo*>(
-          forward_offset(buffer, num_args * sizeof(void*)));
+      // buffer = constructed argptr buffer + nonptrarginfos + copied args
 
-      std::memcpy(constructed_args_buffer, orig_args_buffer,
+      std::size_t offset_constructed_argptr_buffer = 0;
+      std::size_t offset_nonptrarginfos = num_args * sizeof(void*);
+      std::size_t offset_nonptrargs_buffer =
+          (offset_nonptrarginfos + num_nonptrargs * sizeof(NonPtrArgInfo) +
+           max_alignment - 1) /
+          max_alignment * max_alignment;
+      buffer_size = offset_nonptrargs_buffer + size_nonptrargs;
+
+      buffer = rsrc->allocate(buffer_size, max_alignment);
+      constructed_argptr_buffer = reinterpret_cast<void**>(
+          forward_offset(buffer, offset_constructed_argptr_buffer));
+      nonptrarginfos = reinterpret_cast<NonPtrArgInfo*>(
+          forward_offset(buffer, offset_nonptrarginfos));
+      void* nonptrargs_buffer =
+          forward_offset(buffer, offset_nonptrargs_buffer);
+
+      std::memcpy(constructed_argptr_buffer, orig_argptr_buffer,
                   num_args * sizeof(void*));
-      std::memcpy(nonptrargs, nonptrargs_stack,
+      std::memcpy(nonptrarginfos, nonptrargs_stack,
                   num_nonptrargs * sizeof(NonPtrArgInfo));
 
       for (std::size_t i = 0; i < num_nonptrargs; i++) {
-        ObjectPtr constructedArg =
-            Mngr->NonArgCopyMNew(TypeID{nonptrargs_stack[i].typeID}, rsrc,
-                                 std::span<const TypeID>{&argTypeIDs[i], 1},
-                                 static_cast<ArgsBuffer>(&orig_args_buffer[i]));
-        constructed_args_buffer[nonptrargs_stack[i].idx] =
-            constructedArg.GetPtr();
+        void* ptr = forward_offset(nonptrargs_buffer, offset_nonptrargs[i]);
+        bool success = Mngr->NonArgCopyConstruct(
+            ObjectPtr{TypeID{nonptrargs_stack[i].typeID}, ptr},
+            std::span<const TypeID>{&argTypeIDs[i], 1},
+            static_cast<ArgPtrBuffer>(&orig_argptr_buffer[i]));
+        assert(success);
+        constructed_argptr_buffer[nonptrargs_stack[i].idx] = ptr;
       }
 
       for (std::size_t i = 0; i < num_ptrargs; i++)
-        constructed_args_buffer[ptrargs_stack[i].idx] = ptrargs_stack[i].ptr;
+        constructed_argptr_buffer[ptrargs_stack[i].idx] = ptrargs_stack[i].ptr;
 
-      args_buffer = constructed_args_buffer;
+      argptr_buffer = constructed_argptr_buffer;
     }
   }
 
   ~ConstructedArgumentsGuard() {
     if (buffer) {
       for (const auto& arg :
-           std::span<NonPtrArgInfo>{nonptrargs, num_nonptrargs}) {
-        bool success = Mngr->MDelete(
-            {TypeID{arg.typeID}, constructed_args_buffer[arg.idx]}, rsrc);
+           std::span<NonPtrArgInfo>{nonptrarginfos, num_nonptrargs}) {
+        bool success = Mngr->Destruct(
+            {TypeID{arg.typeID}, constructed_argptr_buffer[arg.idx]});
         assert(success);
       }
-      rsrc->deallocate(buffer, buffer_size);
+      rsrc->deallocate(buffer, buffer_size, max_alignment);
     }
   }
 
   ConstructedArgumentsGuard(const ConstructedArgumentsGuard&) = delete;
   ConstructedArgumentsGuard& operator=(ConstructedArgumentsGuard&) = delete;
 
-  ArgsBuffer GetArgsBuffer() const noexcept { return args_buffer; }
+  ArgPtrBuffer GetArgPtrBuffer() const noexcept { return argptr_buffer; }
 
  private:
   std::pmr::memory_resource* rsrc;
   std::size_t buffer_size{0};
+  std::size_t max_alignment{alignof(std::max_align_t)};
   void* buffer{nullptr};
-  void** constructed_args_buffer{nullptr};
-  NonPtrArgInfo* nonptrargs{nullptr};
+  void** constructed_argptr_buffer{nullptr};
+  NonPtrArgInfo* nonptrarginfos{nullptr};
   std::size_t num_args;
   std::size_t num_nonptrargs{0};
-  ArgsBuffer args_buffer{nullptr};
+  ArgPtrBuffer argptr_buffer{nullptr};
 };
 
 static InvocableResult IsStaticInvocable(bool is_priority, TypeID typeID,
@@ -426,7 +449,7 @@ static InvokeResult Invoke(bool is_priority,
                            std::pmr::memory_resource* args_rsrc, TypeID typeID,
                            StrID methodID, void* result_buffer,
                            std::span<const TypeID> argTypeIDs,
-                           ArgsBuffer args_buffer) {
+                           ArgPtrBuffer argptr_buffer) {
   assert(Mngr->GetDereferenceProperty(typeID) ==
          DereferenceProperty::NotReference);
 
@@ -448,16 +471,16 @@ static InvokeResult Invoke(bool is_priority,
                                   argTypeIDs))) {
       ConstructedArgumentsGuard guard{args_rsrc,
                                       mtarget->second.methodptr.GetParamList(),
-                                      argTypeIDs, args_buffer};
+                                      argTypeIDs, argptr_buffer};
       return {true, mtarget->second.methodptr.GetResultDesc().typeID,
               std::move(mtarget->second.methodptr.Invoke(
-                  result_buffer, guard.GetArgsBuffer()))};
+                  result_buffer, guard.GetArgPtrBuffer()))};
     }
   }
 
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
     auto rst = Invoke(is_priority, args_rsrc, baseID, methodID, result_buffer,
-                      argTypeIDs, args_buffer);
+                      argTypeIDs, argptr_buffer);
     if (rst.success)
       return rst;
   }
@@ -470,7 +493,7 @@ static InvokeResult Invoke(bool is_priority,
                            ConstObjectPtr obj, StrID methodID,
                            void* result_buffer,
                            std::span<const TypeID> argTypeIDs,
-                           ArgsBuffer args_buffer) {
+                           ArgPtrBuffer argptr_buffer) {
   assert(Mngr->GetDereferenceProperty(obj.GetID()) ==
          DereferenceProperty::NotReference);
 
@@ -492,10 +515,10 @@ static InvokeResult Invoke(bool is_priority,
                                   argTypeIDs))) {
       ConstructedArgumentsGuard guard{args_rsrc,
                                       mtarget->second.methodptr.GetParamList(),
-                                      argTypeIDs, args_buffer};
+                                      argTypeIDs, argptr_buffer};
       return {true, mtarget->second.methodptr.GetResultDesc().typeID,
               std::move(mtarget->second.methodptr.Invoke(
-                  obj.GetPtr(), result_buffer, guard.GetArgsBuffer()))};
+                  obj.GetPtr(), result_buffer, guard.GetArgPtrBuffer()))};
     }
   }
 
@@ -503,7 +526,7 @@ static InvokeResult Invoke(bool is_priority,
     auto rst = Invoke(
         is_priority, args_rsrc,
         ConstObjectPtr{baseID, baseinfo.StaticCast_DerivedToBase(obj.GetPtr())},
-        methodID, result_buffer, argTypeIDs, args_buffer);
+        methodID, result_buffer, argTypeIDs, argptr_buffer);
     if (rst.success)
       return rst;
   }
@@ -515,7 +538,7 @@ static InvokeResult Invoke(bool is_priority,
                            std::pmr::memory_resource* args_rsrc, ObjectPtr obj,
                            StrID methodID, void* result_buffer,
                            std::span<const TypeID> argTypeIDs,
-                           ArgsBuffer args_buffer) {
+                           ArgPtrBuffer argptr_buffer) {
   assert(Mngr->GetDereferenceProperty(obj.GetID()) ==
          DereferenceProperty::NotReference);
 
@@ -540,10 +563,10 @@ static InvokeResult Invoke(bool is_priority,
                                     argTypeIDs))) {
         ConstructedArgumentsGuard guard{args_rsrc,
                                         iter->second.methodptr.GetParamList(),
-                                        argTypeIDs, args_buffer};
+                                        argTypeIDs, argptr_buffer};
         return {true, iter->second.methodptr.GetResultDesc().typeID,
                 iter->second.methodptr.Invoke(obj.GetPtr(), result_buffer,
-                                              guard.GetArgsBuffer())};
+                                              guard.GetArgPtrBuffer())};
       }
     }
   }
@@ -559,10 +582,10 @@ static InvokeResult Invoke(bool is_priority,
                                     argTypeIDs))) {
         ConstructedArgumentsGuard guard{args_rsrc,
                                         iter->second.methodptr.GetParamList(),
-                                        argTypeIDs, args_buffer};
+                                        argTypeIDs, argptr_buffer};
         return {true, iter->second.methodptr.GetResultDesc().typeID,
                 iter->second.methodptr.Invoke(obj.GetPtr(), result_buffer,
-                                              guard.GetArgsBuffer())};
+                                              guard.GetArgPtrBuffer())};
       }
     }
   }
@@ -571,7 +594,7 @@ static InvokeResult Invoke(bool is_priority,
     auto rst = Invoke(
         is_priority, args_rsrc,
         ObjectPtr{baseID, baseinfo.StaticCast_DerivedToBase(obj.GetPtr())},
-        methodID, result_buffer, argTypeIDs, args_buffer);
+        methodID, result_buffer, argTypeIDs, argptr_buffer);
     if (rst.success)
       return rst;
   }
@@ -582,7 +605,7 @@ static InvokeResult Invoke(bool is_priority,
 static SharedObject MInvoke(bool is_priority,
                             std::pmr::memory_resource* args_rsrc, TypeID typeID,
                             StrID methodID, std::span<const TypeID> argTypeIDs,
-                            ArgsBuffer args_buffer,
+                            ArgPtrBuffer argptr_buffer,
                             std::pmr::memory_resource* rst_rsrc) {
   assert(Mngr->GetDereferenceProperty(typeID) ==
          DereferenceProperty::NotReference);
@@ -607,17 +630,17 @@ static SharedObject MInvoke(bool is_priority,
       const auto& rst_desc = methodptr.GetResultDesc();
       ConstructedArgumentsGuard guard{args_rsrc,
                                       mtarget->second.methodptr.GetParamList(),
-                                      argTypeIDs, args_buffer};
+                                      argTypeIDs, argptr_buffer};
 
       if (rst_desc.IsVoid()) {
-        mtarget->second.methodptr.Invoke(nullptr, guard.GetArgsBuffer());
+        mtarget->second.methodptr.Invoke(nullptr, guard.GetArgPtrBuffer());
         return {{rst_desc.typeID, nullptr}, [](void* ptr) {
                   assert(ptr);
                 }};
       } else if (type_name_is_reference(
                      Mngr->tregistry.Nameof(rst_desc.typeID))) {
         std::aligned_storage_t<sizeof(void*)> buffer;
-        mtarget->second.methodptr.Invoke(&buffer, guard.GetArgsBuffer());
+        mtarget->second.methodptr.Invoke(&buffer, guard.GetArgPtrBuffer());
         return {{rst_desc.typeID, buffer_as<void*>(&buffer)}, [](void* ptr) {
                   assert(ptr);
                 }};
@@ -625,7 +648,7 @@ static SharedObject MInvoke(bool is_priority,
         void* result_buffer =
             rst_rsrc->allocate(rst_desc.size, rst_desc.alignment);
         auto dtor = mtarget->second.methodptr.Invoke(result_buffer,
-                                                     guard.GetArgsBuffer());
+                                                     guard.GetArgPtrBuffer());
         return {{rst_desc.typeID, result_buffer},
                 GenerateDeleteFunc(std::move(dtor), rst_rsrc, rst_desc.size,
                                    rst_desc.alignment)};
@@ -635,7 +658,7 @@ static SharedObject MInvoke(bool is_priority,
 
   for (const auto& [baseID, baseinfo] : typeinfo.baseinfos) {
     auto rst = MInvoke(is_priority, args_rsrc, baseID, methodID, argTypeIDs,
-                       args_buffer, rst_rsrc);
+                       argptr_buffer, rst_rsrc);
     if (rst.GetID())
       return rst;
   }
@@ -647,7 +670,7 @@ static SharedObject MInvoke(bool is_priority,
                             std::pmr::memory_resource* args_rsrc,
                             ConstObjectPtr obj, StrID methodID,
                             std::span<const TypeID> argTypeIDs,
-                            ArgsBuffer args_buffer,
+                            ArgPtrBuffer argptr_buffer,
                             std::pmr::memory_resource* rst_rsrc) {
   assert(rst_rsrc);
   assert(Mngr->GetDereferenceProperty(obj.GetID()) ==
@@ -673,10 +696,10 @@ static SharedObject MInvoke(bool is_priority,
       const auto& rst_desc = methodptr.GetResultDesc();
       ConstructedArgumentsGuard guard{args_rsrc,
                                       mtarget->second.methodptr.GetParamList(),
-                                      argTypeIDs, args_buffer};
+                                      argTypeIDs, argptr_buffer};
       if (rst_desc.IsVoid()) {
         auto dtor = mtarget->second.methodptr.Invoke(obj.GetPtr(), nullptr,
-                                                     guard.GetArgsBuffer());
+                                                     guard.GetArgPtrBuffer());
         return {{rst_desc.typeID, nullptr}, [](void* ptr) {
                   assert(!ptr);
                 }};
@@ -684,7 +707,7 @@ static SharedObject MInvoke(bool is_priority,
                      Mngr->tregistry.Nameof(rst_desc.typeID))) {
         std::aligned_storage_t<sizeof(void*)> buffer;
         mtarget->second.methodptr.Invoke(obj.GetPtr(), &buffer,
-                                         guard.GetArgsBuffer());
+                                         guard.GetArgPtrBuffer());
         return {{rst_desc.typeID, buffer_as<void*>(&buffer)}, [](void* ptr) {
                   assert(ptr);
                 }};
@@ -692,7 +715,7 @@ static SharedObject MInvoke(bool is_priority,
         void* result_buffer =
             rst_rsrc->allocate(rst_desc.size, rst_desc.alignment);
         auto dtor = mtarget->second.methodptr.Invoke(
-            obj.GetPtr(), result_buffer, guard.GetArgsBuffer());
+            obj.GetPtr(), result_buffer, guard.GetArgPtrBuffer());
         return {{rst_desc.typeID, result_buffer},
                 GenerateDeleteFunc(std::move(dtor), rst_rsrc, rst_desc.size,
                                    rst_desc.alignment)};
@@ -704,7 +727,7 @@ static SharedObject MInvoke(bool is_priority,
     auto rst = MInvoke(
         is_priority, args_rsrc,
         ConstObjectPtr{baseID, baseinfo.StaticCast_DerivedToBase(obj.GetPtr())},
-        methodID, argTypeIDs, args_buffer, rst_rsrc);
+        methodID, argTypeIDs, argptr_buffer, rst_rsrc);
     if (rst.GetID())
       return rst;
   }
@@ -715,7 +738,7 @@ static SharedObject MInvoke(bool is_priority,
 static SharedObject MInvoke(bool is_priority,
                             std::pmr::memory_resource* args_rsrc, ObjectPtr obj,
                             StrID methodID, std::span<const TypeID> argTypeIDs,
-                            ArgsBuffer args_buffer,
+                            ArgPtrBuffer argptr_buffer,
                             std::pmr::memory_resource* rst_rsrc) {
   assert(rst_rsrc);
   assert(Mngr->GetDereferenceProperty(obj.GetID()) ==
@@ -744,11 +767,11 @@ static SharedObject MInvoke(bool is_priority,
         const auto& rst_desc = methodptr.GetResultDesc();
         ConstructedArgumentsGuard guard{args_rsrc,
                                         iter->second.methodptr.GetParamList(),
-                                        argTypeIDs, args_buffer};
+                                        argTypeIDs, argptr_buffer};
 
         if (rst_desc.IsVoid()) {
           auto dtor = iter->second.methodptr.Invoke(obj.GetPtr(), nullptr,
-                                                    guard.GetArgsBuffer());
+                                                    guard.GetArgPtrBuffer());
           return {{rst_desc.typeID, nullptr}, [](void* ptr) {
                     assert(!ptr);
                   }};
@@ -756,7 +779,7 @@ static SharedObject MInvoke(bool is_priority,
                        Mngr->tregistry.Nameof(rst_desc.typeID))) {
           std::aligned_storage_t<sizeof(void*)> buffer;
           iter->second.methodptr.Invoke(obj.GetPtr(), &buffer,
-                                        guard.GetArgsBuffer());
+                                        guard.GetArgPtrBuffer());
           return {{rst_desc.typeID, buffer_as<void*>(&buffer)}, [](void* ptr) {
                     assert(ptr);
                   }};
@@ -764,7 +787,7 @@ static SharedObject MInvoke(bool is_priority,
           void* result_buffer =
               rst_rsrc->allocate(rst_desc.size, rst_desc.alignment);
           auto dtor = iter->second.methodptr.Invoke(obj.GetPtr(), result_buffer,
-                                                    guard.GetArgsBuffer());
+                                                    guard.GetArgPtrBuffer());
           return {{rst_desc.typeID, result_buffer},
                   GenerateDeleteFunc(std::move(dtor), rst_rsrc, rst_desc.size,
                                      rst_desc.alignment)};
@@ -786,10 +809,10 @@ static SharedObject MInvoke(bool is_priority,
         const auto& rst_desc = methodptr.GetResultDesc();
         ConstructedArgumentsGuard guard{args_rsrc,
                                         iter->second.methodptr.GetParamList(),
-                                        argTypeIDs, args_buffer};
+                                        argTypeIDs, argptr_buffer};
         if (rst_desc.IsVoid()) {
           auto dtor = iter->second.methodptr.Invoke(obj.GetPtr(), nullptr,
-                                                    guard.GetArgsBuffer());
+                                                    guard.GetArgPtrBuffer());
           return {{rst_desc.typeID, nullptr}, [](void* ptr) {
                     assert(!ptr);
                   }};
@@ -797,7 +820,7 @@ static SharedObject MInvoke(bool is_priority,
                        Mngr->tregistry.Nameof(rst_desc.typeID))) {
           std::aligned_storage_t<sizeof(void*)> buffer;
           iter->second.methodptr.Invoke(obj.GetPtr(), &buffer,
-                                        guard.GetArgsBuffer());
+                                        guard.GetArgPtrBuffer());
           return {{rst_desc.typeID, buffer_as<void*>(&buffer)}, [](void* ptr) {
                     assert(ptr);
                   }};
@@ -805,7 +828,7 @@ static SharedObject MInvoke(bool is_priority,
           void* result_buffer =
               rst_rsrc->allocate(rst_desc.size, rst_desc.alignment);
           auto dtor = iter->second.methodptr.Invoke(obj.GetPtr(), result_buffer,
-                                                    guard.GetArgsBuffer());
+                                                    guard.GetArgPtrBuffer());
           return {{rst_desc.typeID, result_buffer},
                   GenerateDeleteFunc(std::move(dtor), rst_rsrc, rst_desc.size,
                                      rst_desc.alignment)};
@@ -818,7 +841,7 @@ static SharedObject MInvoke(bool is_priority,
     auto rst = MInvoke(
         is_priority, args_rsrc,
         ObjectPtr{baseID, baseinfo.StaticCast_DerivedToBase(obj.GetPtr())},
-        methodID, argTypeIDs, args_buffer, rst_rsrc);
+        methodID, argTypeIDs, argptr_buffer, rst_rsrc);
     if (rst.GetID())
       return rst;
   }
@@ -1231,7 +1254,7 @@ bool ReflMngr::AlignedFree(void* ptr) const {
 
 ObjectPtr ReflMngr::NonArgCopyNew(TypeID typeID,
                                   std::span<const TypeID> argTypeIDs,
-                                  ArgsBuffer args_buffer) const {
+                                  ArgPtrBuffer argptr_buffer) const {
   if (!IsNonArgCopyConstructible(typeID, argTypeIDs))
     return nullptr;
 
@@ -1245,14 +1268,14 @@ ObjectPtr ReflMngr::NonArgCopyNew(TypeID typeID,
     return nullptr;
 
   ObjectPtr obj{typeID, buffer};
-  bool success = NonArgCopyConstruct(obj, argTypeIDs, args_buffer);
+  bool success = NonArgCopyConstruct(obj, argTypeIDs, argptr_buffer);
   assert(success);
 
   return obj;
 }
 
 ObjectPtr ReflMngr::New(TypeID typeID, std::span<const TypeID> argTypeIDs,
-                        ArgsBuffer args_buffer) const {
+                        ArgPtrBuffer argptr_buffer) const {
   if (!IsConstructible(typeID, argTypeIDs))
     return nullptr;
 
@@ -1266,7 +1289,7 @@ ObjectPtr ReflMngr::New(TypeID typeID, std::span<const TypeID> argTypeIDs,
     return nullptr;
 
   ObjectPtr obj{typeID, buffer};
-  bool success = Construct(obj, argTypeIDs, args_buffer);
+  bool success = Construct(obj, argTypeIDs, argptr_buffer);
   assert(success);
 
   return obj;
@@ -1290,8 +1313,8 @@ bool ReflMngr::Delete(ConstObjectPtr obj) const {
 
 SharedObject ReflMngr::MakeShared(TypeID typeID,
                                   std::span<const TypeID> argTypeIDs,
-                                  ArgsBuffer args_buffer) const {
-  ObjectPtr obj = New(typeID, argTypeIDs, args_buffer);
+                                  ArgPtrBuffer argptr_buffer) const {
+  ObjectPtr obj = New(typeID, argTypeIDs, argptr_buffer);
 
   if (!obj.Valid())
     return {obj, [](void*) {
@@ -1706,144 +1729,144 @@ InvocableResult ReflMngr::IsInvocable(
 InvokeResult ReflMngr::Invoke(TypeID typeID, StrID methodID,
                               void* result_buffer,
                               std::span<const TypeID> argTypeIDs,
-                              ArgsBuffer args_buffer) const {
+                              ArgPtrBuffer argptr_buffer) const {
   if (GetDereferenceProperty(typeID) != DereferenceProperty::NotReference)
     return Invoke(Dereference(typeID), methodID, result_buffer, argTypeIDs,
-                  args_buffer);
+                  argptr_buffer);
 
   if (auto priority_rst =
           details::Invoke(true, &temporary_resource, typeID, methodID,
-                          result_buffer, argTypeIDs, args_buffer))
+                          result_buffer, argTypeIDs, argptr_buffer))
     return priority_rst;
 
   return details::Invoke(false, &temporary_resource, typeID, methodID,
-                         result_buffer, argTypeIDs, args_buffer);
+                         result_buffer, argTypeIDs, argptr_buffer);
 }
 
 InvokeResult ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID,
                               void* result_buffer,
                               std::span<const TypeID> argTypeIDs,
-                              ArgsBuffer args_buffer) const {
+                              ArgPtrBuffer argptr_buffer) const {
   auto deref_prop = GetDereferenceProperty(obj.GetID());
   switch (deref_prop) {
     case My::MyDRefl::DereferenceProperty::Variable:
       return Invoke(Dereference(obj), methodID, result_buffer, argTypeIDs,
-                    args_buffer);
+                    argptr_buffer);
     case My::MyDRefl::DereferenceProperty::Const:
       return Invoke(DereferenceAsConst(obj), methodID, result_buffer,
-                    argTypeIDs, args_buffer);
+                    argTypeIDs, argptr_buffer);
     default:
       break;
   }
 
   if (auto priority_rst =
           details::Invoke(true, &temporary_resource, obj, methodID,
-                          result_buffer, argTypeIDs, args_buffer))
+                          result_buffer, argTypeIDs, argptr_buffer))
     return priority_rst;
 
   return details::Invoke(false, &temporary_resource, obj, methodID,
-                         result_buffer, argTypeIDs, args_buffer);
+                         result_buffer, argTypeIDs, argptr_buffer);
 }
 
 InvokeResult ReflMngr::Invoke(ObjectPtr obj, StrID methodID,
                               void* result_buffer,
                               std::span<const TypeID> argTypeIDs,
-                              ArgsBuffer args_buffer) const {
+                              ArgPtrBuffer argptr_buffer) const {
   auto deref_prop = GetDereferenceProperty(obj.GetID());
   switch (deref_prop) {
     case My::MyDRefl::DereferenceProperty::Variable:
       return Invoke(Dereference(obj), methodID, result_buffer, argTypeIDs,
-                    args_buffer);
+                    argptr_buffer);
     case My::MyDRefl::DereferenceProperty::Const:
       return Invoke(DereferenceAsConst(obj), methodID, result_buffer,
-                    argTypeIDs, args_buffer);
+                    argTypeIDs, argptr_buffer);
     default:
       break;
   }
 
   if (auto priority_rst =
           details::Invoke(true, &temporary_resource, obj, methodID,
-                          result_buffer, argTypeIDs, args_buffer))
+                          result_buffer, argTypeIDs, argptr_buffer))
     return priority_rst;
 
   return details::Invoke(false, &temporary_resource, obj, methodID,
-                         result_buffer, argTypeIDs, args_buffer);
+                         result_buffer, argTypeIDs, argptr_buffer);
 }
 
 SharedObject ReflMngr::MInvoke(TypeID typeID, StrID methodID,
                                std::span<const TypeID> argTypeIDs,
-                               ArgsBuffer args_buffer,
+                               ArgPtrBuffer argptr_buffer,
                                std::pmr::memory_resource* rst_rsrc) const {
   assert(rst_rsrc);
   if (GetDereferenceProperty(typeID) != DereferenceProperty::NotReference)
-    return MInvoke(Dereference(typeID), methodID, argTypeIDs, args_buffer,
+    return MInvoke(Dereference(typeID), methodID, argTypeIDs, argptr_buffer,
                    rst_rsrc);
 
   if (auto priority_rst =
           details::MInvoke(true, &temporary_resource, typeID, methodID,
-                           argTypeIDs, args_buffer, rst_rsrc))
+                           argTypeIDs, argptr_buffer, rst_rsrc))
     return priority_rst;
 
   return details::MInvoke(false, &temporary_resource, typeID, methodID,
-                          argTypeIDs, args_buffer, rst_rsrc);
+                          argTypeIDs, argptr_buffer, rst_rsrc);
 }
 
 SharedObject ReflMngr::MInvoke(ConstObjectPtr obj, StrID methodID,
                                std::span<const TypeID> argTypeIDs,
-                               ArgsBuffer args_buffer,
+                               ArgPtrBuffer argptr_buffer,
                                std::pmr::memory_resource* rst_rsrc) const {
   assert(rst_rsrc);
   auto deref_prop = GetDereferenceProperty(obj.GetID());
   switch (deref_prop) {
     case My::MyDRefl::DereferenceProperty::Variable:
-      return MInvoke(Dereference(obj), methodID, argTypeIDs, args_buffer,
+      return MInvoke(Dereference(obj), methodID, argTypeIDs, argptr_buffer,
                      rst_rsrc);
     case My::MyDRefl::DereferenceProperty::Const:
-      return MInvoke(DereferenceAsConst(obj), methodID, argTypeIDs, args_buffer,
-                     rst_rsrc);
+      return MInvoke(DereferenceAsConst(obj), methodID, argTypeIDs,
+                     argptr_buffer, rst_rsrc);
     default:
       break;
   }
 
   if (auto priority_rst =
           details::MInvoke(true, &temporary_resource, obj, methodID, argTypeIDs,
-                           args_buffer, rst_rsrc))
+                           argptr_buffer, rst_rsrc))
     return priority_rst;
 
   return details::MInvoke(false, &temporary_resource, obj, methodID, argTypeIDs,
-                          args_buffer, rst_rsrc);
+                          argptr_buffer, rst_rsrc);
 }
 
 SharedObject ReflMngr::MInvoke(ObjectPtr obj, StrID methodID,
                                std::span<const TypeID> argTypeIDs,
-                               ArgsBuffer args_buffer,
+                               ArgPtrBuffer argptr_buffer,
                                std::pmr::memory_resource* rst_rsrc) const {
   assert(rst_rsrc);
   auto deref_prop = GetDereferenceProperty(obj.GetID());
   switch (deref_prop) {
     case My::MyDRefl::DereferenceProperty::Variable:
-      return MInvoke(Dereference(obj), methodID, argTypeIDs, args_buffer,
+      return MInvoke(Dereference(obj), methodID, argTypeIDs, argptr_buffer,
                      rst_rsrc);
     case My::MyDRefl::DereferenceProperty::Const:
-      return MInvoke(DereferenceAsConst(obj), methodID, argTypeIDs, args_buffer,
-                     rst_rsrc);
+      return MInvoke(DereferenceAsConst(obj), methodID, argTypeIDs,
+                     argptr_buffer, rst_rsrc);
     default:
       break;
   }
 
   if (auto priority_rst =
           details::MInvoke(true, &temporary_resource, obj, methodID, argTypeIDs,
-                           args_buffer, rst_rsrc))
+                           argptr_buffer, rst_rsrc))
     return priority_rst;
 
   return details::MInvoke(false, &temporary_resource, obj, methodID, argTypeIDs,
-                          args_buffer, rst_rsrc);
+                          argptr_buffer, rst_rsrc);
 }
 
 ObjectPtr ReflMngr::NonArgCopyMNew(TypeID typeID,
                                    std::pmr::memory_resource* rsrc,
                                    std::span<const TypeID> argTypeIDs,
-                                   ArgsBuffer args_buffer) const {
+                                   ArgPtrBuffer argptr_buffer) const {
   assert(rsrc);
 
   if (!IsConstructible(typeID, argTypeIDs))
@@ -1857,7 +1880,7 @@ ObjectPtr ReflMngr::NonArgCopyMNew(TypeID typeID,
     return nullptr;
 
   ObjectPtr obj{typeID, buffer};
-  bool success = NonArgCopyConstruct(obj, argTypeIDs, args_buffer);
+  bool success = NonArgCopyConstruct(obj, argTypeIDs, argptr_buffer);
   assert(success);
 
   return obj;
@@ -1865,7 +1888,7 @@ ObjectPtr ReflMngr::NonArgCopyMNew(TypeID typeID,
 
 ObjectPtr ReflMngr::MNew(TypeID typeID, std::pmr::memory_resource* rsrc,
                          std::span<const TypeID> argTypeIDs,
-                         ArgsBuffer args_buffer) const {
+                         ArgPtrBuffer argptr_buffer) const {
   assert(rsrc);
 
   if (!IsConstructible(typeID, argTypeIDs))
@@ -1879,7 +1902,7 @@ ObjectPtr ReflMngr::MNew(TypeID typeID, std::pmr::memory_resource* rsrc,
     return nullptr;
 
   ObjectPtr obj{typeID, buffer};
-  bool success = Construct(obj, argTypeIDs, args_buffer);
+  bool success = Construct(obj, argTypeIDs, argptr_buffer);
   assert(success);
 
   return obj;
@@ -1970,7 +1993,7 @@ bool ReflMngr::IsDestructible(TypeID typeID) const {
 
 bool ReflMngr::NonArgCopyConstruct(ObjectPtr obj,
                                    std::span<const TypeID> argTypeIDs,
-                                   ArgsBuffer args_buffer) const {
+                                   ArgPtrBuffer argptr_buffer) const {
   assert(GetDereferenceProperty(obj.GetID()) ==
          DereferenceProperty::NotReference);
 
@@ -1988,7 +2011,7 @@ bool ReflMngr::NonArgCopyConstruct(ObjectPtr obj,
     if (mtarget->second.methodptr.IsMemberVariable() &&
         details::IsNonArgCopyConstructCompatible(
             mtarget->second.methodptr.GetParamList(), argTypeIDs)) {
-      mtarget->second.methodptr.Invoke(obj.GetPtr(), nullptr, args_buffer);
+      mtarget->second.methodptr.Invoke(obj.GetPtr(), nullptr, argptr_buffer);
       return true;
     }
   }
@@ -1996,7 +2019,7 @@ bool ReflMngr::NonArgCopyConstruct(ObjectPtr obj,
 }
 
 bool ReflMngr::Construct(ObjectPtr obj, std::span<const TypeID> argTypeIDs,
-                         ArgsBuffer args_buffer) const {
+                         ArgPtrBuffer argptr_buffer) const {
   assert(GetDereferenceProperty(obj.GetID()) ==
          DereferenceProperty::NotReference);
 
@@ -2015,9 +2038,9 @@ bool ReflMngr::Construct(ObjectPtr obj, std::span<const TypeID> argTypeIDs,
         IsCompatible(mtarget->second.methodptr.GetParamList(), argTypeIDs)) {
       details::ConstructedArgumentsGuard guard{
           &temporary_resource, mtarget->second.methodptr.GetParamList(),
-          argTypeIDs, args_buffer};
+          argTypeIDs, argptr_buffer};
       mtarget->second.methodptr.Invoke(obj.GetPtr(), nullptr,
-                                       guard.GetArgsBuffer());
+                                       guard.GetArgPtrBuffer());
       return true;
     }
   }

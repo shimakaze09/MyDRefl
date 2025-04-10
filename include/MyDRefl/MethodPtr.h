@@ -14,10 +14,10 @@ using ParamList = std::vector<TypeID>;
 
 class ArgsView {
  public:
-  ArgsView(ArgsBuffer buffer, const ParamList& paramList)
+  ArgsView(ArgPtrBuffer buffer, const ParamList& paramList)
       : buffer{buffer}, paramList{paramList} {}
 
-  ArgsBuffer GetBuffer() const noexcept { return buffer; }
+  ArgPtrBuffer GetBuffer() const noexcept { return buffer; }
 
   const ParamList& GetParamList() const noexcept { return paramList; }
 
@@ -30,7 +30,7 @@ class ArgsView {
   }
 
  private:
-  ArgsBuffer buffer;
+  ArgPtrBuffer buffer;
   const ParamList& paramList;
 };
 
@@ -103,10 +103,10 @@ class MethodPtr {
   }
 
   Destructor Invoke(void* obj, void* result_buffer,
-                    ArgsBuffer args_buffer) const;
+                    ArgPtrBuffer argptr_buffer) const;
   Destructor Invoke(const void* obj, void* result_buffer,
-                    ArgsBuffer args_buffer) const;
-  Destructor Invoke(void* result_buffer, ArgsBuffer args_buffer) const;
+                    ArgPtrBuffer argptr_buffer) const;
+  Destructor Invoke(void* result_buffer, ArgPtrBuffer argptr_buffer) const;
 
  private:
   std::variant<MemberVariableFunction*, MemberConstFunction*, StaticFunction*,

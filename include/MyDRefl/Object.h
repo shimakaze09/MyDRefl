@@ -120,14 +120,14 @@ class ObjectPtrBase {
 
   InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
                       std::span<const TypeID> argTypeIDs = {},
-                      ArgsBuffer args_buffer = nullptr) const;
+                      ArgPtrBuffer argptr_buffer = nullptr) const;
 
   template <typename... Args>
   InvocableResult IsInvocable(StrID methodID) const;
 
   template <typename T>
   T InvokeRet(StrID methodID, std::span<const TypeID> argTypeIDs = {},
-              ArgsBuffer args_buffer = nullptr) const;
+              ArgPtrBuffer argptr_buffer = nullptr) const;
 
   template <typename... Args>
   InvokeResult InvokeArgs(StrID methodID, void* result_buffer,
@@ -137,7 +137,7 @@ class ObjectPtrBase {
   T Invoke(StrID methodID, Args&&... args) const;
 
   SharedObject MInvoke(StrID methodID, std::span<const TypeID> argTypeIDs = {},
-                       ArgsBuffer args_buffer = nullptr,
+                       ArgPtrBuffer argptr_buffer = nullptr,
                        std::pmr::memory_resource* rst_rsrc =
                            std::pmr::get_default_resource()) const;
 
@@ -437,10 +437,10 @@ class ObjectPtr : public ObjectPtrBase {
 
   InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
                       std::span<const TypeID> argTypeIDs = {},
-                      ArgsBuffer args_buffer = nullptr) const;
+                      ArgPtrBuffer argptr_buffer = nullptr) const;
 
   SharedObject MInvoke(StrID methodID, std::span<const TypeID> argTypeIDs = {},
-                       ArgsBuffer args_buffer = nullptr,
+                       ArgPtrBuffer argptr_buffer = nullptr,
                        std::pmr::memory_resource* rst_rsrc =
                            std::pmr::get_default_resource()) const;
 
@@ -449,7 +449,7 @@ class ObjectPtr : public ObjectPtrBase {
 
   template <typename T>
   T InvokeRet(StrID methodID, std::span<const TypeID> argTypeIDs = {},
-              ArgsBuffer args_buffer = nullptr) const;
+              ArgPtrBuffer argptr_buffer = nullptr) const;
 
   template <typename... Args>
   InvokeResult InvokeArgs(StrID methodID, void* result_buffer,
