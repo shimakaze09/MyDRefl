@@ -1268,7 +1268,7 @@ template <typename... Args>
 InvokeResult ReflMngr::InvokeArgs(TypeID typeID, StrID methodID,
                                   void* result_buffer, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    constexpr std::array argTypeIDs = {TypeID_of<Args>...};
+    constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array args_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return Invoke(typeID, methodID, result_buffer,
@@ -1282,7 +1282,7 @@ template <typename... Args>
 InvokeResult ReflMngr::InvokeArgs(ConstObjectPtr obj, StrID methodID,
                                   void* result_buffer, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    constexpr std::array argTypeIDs = {TypeID_of<Args>...};
+    constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array args_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return Invoke(obj, methodID, result_buffer,
@@ -1296,7 +1296,7 @@ template <typename... Args>
 InvokeResult ReflMngr::InvokeArgs(ObjectPtr obj, StrID methodID,
                                   void* result_buffer, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    constexpr std::array argTypeIDs = {TypeID_of<Args>...};
+    constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array args_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return Invoke(obj, methodID, result_buffer,
@@ -1309,7 +1309,7 @@ InvokeResult ReflMngr::InvokeArgs(ObjectPtr obj, StrID methodID,
 template <typename T, typename... Args>
 T ReflMngr::Invoke(TypeID typeID, StrID methodID, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    constexpr std::array argTypeIDs = {TypeID_of<Args>...};
+    constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array args_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return InvokeRet<T>(typeID, methodID, std::span<const TypeID>{argTypeIDs},
@@ -1321,7 +1321,7 @@ T ReflMngr::Invoke(TypeID typeID, StrID methodID, Args&&... args) const {
 template <typename T, typename... Args>
 T ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    constexpr std::array argTypeIDs = {TypeID_of<Args>...};
+    constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array args_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return InvokeRet<T>(obj, methodID, std::span<const TypeID>{argTypeIDs},
@@ -1333,7 +1333,7 @@ T ReflMngr::Invoke(ConstObjectPtr obj, StrID methodID, Args&&... args) const {
 template <typename T, typename... Args>
 T ReflMngr::Invoke(ObjectPtr obj, StrID methodID, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    constexpr std::array argTypeIDs = {TypeID_of<Args>...};
+    constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array args_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return InvokeRet<T>(obj, methodID, std::span<const TypeID>{argTypeIDs},
@@ -1355,7 +1355,7 @@ bool ReflMngr::IsConstructible(TypeID typeID) const {
 template <typename... Args>
 bool ReflMngr::Construct(ObjectPtr obj, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    constexpr std::array argTypeIDs = {TypeID_of<Args>...};
+    constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array args_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return Construct(obj, std::span<const TypeID>{argTypeIDs},
@@ -1368,7 +1368,7 @@ bool ReflMngr::Construct(ObjectPtr obj, Args&&... args) const {
 template <typename... Args>
 ObjectPtr ReflMngr::New(TypeID typeID, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    constexpr std::array argTypeIDs = {TypeID_of<Args>...};
+    constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array args_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return New(typeID, std::span<const TypeID>{argTypeIDs},
@@ -1391,7 +1391,7 @@ ObjectPtr ReflMngr::NewAuto(Args... args) {
 template <typename... Args>
 SharedObject ReflMngr::MakeShared(TypeID typeID, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    constexpr std::array argTypeIDs = {TypeID_of<Args>...};
+    constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array args_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return MakeShared(typeID, std::span<const TypeID>{argTypeIDs},
@@ -1420,7 +1420,7 @@ SharedObject ReflMngr::MInvoke(TypeID typeID, StrID methodID,
                                std::pmr::memory_resource* rst_rsrc,
                                Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    constexpr std::array argTypeIDs = {TypeID_of<Args>...};
+    constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array args_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return MInvoke(typeID, methodID, std::span<const TypeID>{argTypeIDs},
@@ -1435,7 +1435,7 @@ SharedObject ReflMngr::MInvoke(ConstObjectPtr obj, StrID methodID,
                                std::pmr::memory_resource* rst_rsrc,
                                Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    constexpr std::array argTypeIDs = {TypeID_of<Args>...};
+    constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array args_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return MInvoke(obj, methodID, std::span<const TypeID>{argTypeIDs},
@@ -1450,7 +1450,7 @@ SharedObject ReflMngr::MInvoke(ObjectPtr obj, StrID methodID,
                                std::pmr::memory_resource* rst_rsrc,
                                Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    constexpr std::array argTypeIDs = {TypeID_of<Args>...};
+    constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array args_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return MInvoke(obj, methodID, std::span<const TypeID>{argTypeIDs},
@@ -1484,7 +1484,7 @@ template <typename... Args>
 ObjectPtr ReflMngr::MNew(TypeID typeID, std::pmr::memory_resource* rsrc,
                          Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
-    constexpr std::array argTypeIDs = {TypeID_of<Args>...};
+    constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array args_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return MNew(typeID, rsrc, std::span<const TypeID>{argTypeIDs},

@@ -202,11 +202,20 @@ class ObjectPtrBase {
   ConstObjectPtr FindROwnedVar(
       const std::function<bool(ConstObjectPtr)>& func) const;
 
+  //
+  // Type
+  /////////
+
   DereferenceProperty GetDereferenceProperty() const;
   TypeID DereferenceID() const;
   ObjectPtr Dereference() const;
   ConstObjectPtr DereferenceAsConst() const;
+
+  TypeID AddLValueReferenceID() const;
+  TypeID AddRValueReferenceID() const;
   TypeID AddConstLValueReferenceID() const;
+  ConstObjectPtr AddLValueReference() const;
+  ConstObjectPtr AddRValueReference() const;
   ConstObjectPtr AddConstLValueReference() const;
 
   //
@@ -458,6 +467,10 @@ class ObjectPtr : public ObjectPtrBase {
   template <typename... Args>
   SharedObject ADMInvoke(StrID methodID, Args&&... args) const;
 
+  //
+  // Algorithm
+  //////////////
+
   // self [r/w] vars and all bases' [r/w] vars
   void ForEachRWVar(
       const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const;
@@ -475,6 +488,13 @@ class ObjectPtr : public ObjectPtrBase {
 
   ObjectPtr FindRWVar(const std::function<bool(ObjectPtr)>& func) const;
   ObjectPtr FindRWOwnedVar(const std::function<bool(ObjectPtr)>& func) const;
+
+  //
+  // Type
+  /////////
+
+  ObjectPtr AddLValueReference() const;
+  ObjectPtr AddRValueReference() const;
 
   //
   // Meta

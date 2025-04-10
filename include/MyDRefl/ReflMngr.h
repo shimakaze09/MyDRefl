@@ -170,7 +170,7 @@ class ReflMngr {
   template <typename T>
   MethodPtr GenerateDestructorPtr();
 
-  // Func: Ret(const? volatile? Object&, Args...)
+  // Func: Ret(const? Object&, Args...)
   template <typename Func>
   MethodPtr GenerateMemberMethodPtr(Func&& func);
 
@@ -389,13 +389,10 @@ class ReflMngr {
   // - auto search methods in bases
   // - support overload
   // - require IsCompatible()
-  // - if parameter type is T, and argument type is T&/const T&/const T&&, call Construct(...) for copy
   //
 
   // parameter <- argument
   // - same
-  // - ConstObjectPtr <- ObjectPtr
-  // - SharedConstObject <- SharedObject
   // - reference
   // > - 0 (invalid), 1 (convertible), 2 (copy)
   // > - table
@@ -405,6 +402,7 @@ class ReflMngr {
   //     |const T & | 1 |  1  |     -     |  1  |     1     |
   //     |      T&& | 1 |  0  |     0     |  -  |     0     |
   //     |const T&& | 1 |  0  |     0     |  1  |     -     |
+  // - direct constructible
   bool IsCompatible(std::span<const TypeID> paramTypeIDs,
                     std::span<const TypeID> argTypeIDs) const;
 
@@ -475,6 +473,9 @@ class ReflMngr {
   // Meta
   /////////
 
+  // No argument copying is required
+  bool IsNonArgCopyConstructible(TypeID typeID,
+                                 std::span<const TypeID> argTypeIDs) const;
   bool IsConstructible(TypeID typeID, std::span<const TypeID> argTypeIDs) const;
   bool IsDestructible(TypeID typeID) const;
   bool IsCopyConstructible(TypeID typeID) const;
@@ -692,7 +693,7 @@ class ReflMngr {
   // Type
   /////////
   //
-  // - 'reference' include lvalue reference, rvalue reference and pointer
+  // - 'reference' include lvalue reference and rvalue reference
   //
 
   DereferenceProperty GetDereferenceProperty(TypeID ID) const;
@@ -702,7 +703,13 @@ class ReflMngr {
   // require: DereferenceProperty(ref_obj.GetID()) != DereferenceProperty::NotReference
   ConstObjectPtr DereferenceAsConst(ConstObjectPtr ref_obj) const;
 
+  TypeID AddLValueReference(TypeID ID);
+  TypeID AddRValueReference(TypeID ID);
   TypeID AddConstLValueReference(TypeID ID);
+  ObjectPtr AddLValueReference(ObjectPtr obj);
+  ConstObjectPtr AddLValueReference(ConstObjectPtr obj);
+  ObjectPtr AddRValueReference(ObjectPtr obj);
+  ConstObjectPtr AddRValueReference(ConstObjectPtr obj);
   ConstObjectPtr AddConstLValueReference(ConstObjectPtr obj);
 
  private:

@@ -15,3 +15,5 @@
 - [x] improve method ptr
 - [x] perfect forwarding when invoking (auto copy)
 - [x] simplify assign operator
+- [ ] improve iteration for multimap
+- [ ] pointer <-> reference
