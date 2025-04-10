@@ -184,6 +184,12 @@ struct IsDeque<
 // TODO : list
 
 template <typename T, typename = void>
+struct IsList : std::false_type {};
+
+template <typename T, typename = void>
+struct IsForwardList : std::false_type {};
+
+template <typename T, typename = void>
 struct IsSet : std::false_type {};
 
 template <typename T>
@@ -356,6 +362,14 @@ struct IsUnorderedMap<
                         is_valid_v<container_insert_or_assign_7, T>
 
                         >> : std::true_type {};
+
+// TODO : Stack, Queue
+
+template <typename T, typename = void>
+struct IsStack : std::false_type {};
+
+template <typename T, typename = void>
+struct IsQueue : std::false_type {};
 }  // namespace My::MyDRefl::details
 
 template <typename T>
@@ -366,6 +380,12 @@ struct My::MyDRefl::IsVector : My::MyDRefl::details::IsVector<T> {};
 
 template <typename T>
 struct My::MyDRefl::IsDeque : My::MyDRefl::details::IsDeque<T> {};
+
+template <typename T>
+struct My::MyDRefl::IsForwardList : My::MyDRefl::details::IsForwardList<T> {};
+
+template <typename T>
+struct My::MyDRefl::IsList : My::MyDRefl::details::IsList<T> {};
 
 template <typename T>
 struct My::MyDRefl::IsSet : My::MyDRefl::details::IsSet<T> {};
@@ -380,9 +400,17 @@ template <typename T>
 struct My::MyDRefl::IsUnorderedMap : My::MyDRefl::details::IsUnorderedMap<T> {};
 
 template <typename T>
+struct My::MyDRefl::IsStack : My::MyDRefl::details::IsStack<T> {};
+
+template <typename T>
+struct My::MyDRefl::IsQueue : My::MyDRefl::details::IsQueue<T> {};
+
+template <typename T>
 struct My::MyDRefl::IsContainer
     : std::bool_constant<
           My::MyDRefl::IsArray_v<T> || My::MyDRefl::IsVector_v<T> ||
-          My::MyDRefl::IsDeque_v<T> || My::MyDRefl::IsSet_v<T> ||
+          My::MyDRefl::IsDeque_v<T> || My::MyDRefl::IsForwardList_v<T> ||
+          My::MyDRefl::IsList_v<T> || My::MyDRefl::IsSet_v<T> ||
           My::MyDRefl::IsMap_v<T> || My::MyDRefl::IsUnorderedSet_v<T> ||
-          My::MyDRefl::IsUnorderedMap_v<T>> {};
+          My::MyDRefl::IsUnorderedMap_v<T> || My::MyDRefl::IsStack_v<T> ||
+          My::MyDRefl::IsQueue_v<T>> {};
