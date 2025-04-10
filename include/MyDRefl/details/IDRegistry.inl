@@ -24,9 +24,9 @@ void IDRegistry<T>::RegisterUnmanaged(T ID, std::string_view name) {
   if (target != id2name.end()) {
     assert(target->second == name);
     return;
-  } else
-    target = id2name.emplace_hint(target, ID, name);
-  target->second = name;
+  }
+
+  id2name.emplace_hint(target, ID, name);
 
 #ifndef NDEBUG
   unmanagedIDs.insert(ID);
@@ -109,16 +109,15 @@ void IDRegistry<T>::ClearUnmanaged() noexcept {
 
 template <typename T>
 bool IDRegistry<T>::IsRegistered(T ID) const {
-  return id2name.find(ID) != id2name.end();
+  return id2name.contains(ID);
 }
 
 template <typename T>
 std::string_view IDRegistry<T>::Nameof(T ID) const {
-  auto target = id2name.find(ID);
-  if (target != id2name.end())
+  if (auto target = id2name.find(ID); target != id2name.end())
     return target->second;
-  else
-    return {};
+
+  return {};
 }
 
 template <typename T>

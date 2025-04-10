@@ -16,3 +16,4 @@
 #include "ReflMngr.h"
 #include "TypeInfo.h"
 #include "Util.h"
+#include "config.h"

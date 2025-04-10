@@ -17,3 +17,4 @@
 - [x] simplify assign operator
 - [ ] improve iteration for multimap
 - [ ] pointer <-> reference
+- [ ] combine IsCompatible and ConstructedArgumentsGuard to improve performance
