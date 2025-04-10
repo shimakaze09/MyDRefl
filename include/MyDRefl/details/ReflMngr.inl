@@ -760,27 +760,27 @@ struct TypeAutoRegister_Default {
             StrIDRegistry::Meta::container_get_allocator,
             [](const T& lhs) -> decltype(auto) { return lhs.get_allocator(); });
 
-      if constexpr (IsArray_v<T>)
-        mngr.AddAttr(TypeID_of<T>, mngr.MakeShared(TypeID_of<ContainerType>,
-                                                   ContainerType::Array));
-      else if constexpr (IsVector_v<T>)
+      if constexpr (IsVector_v<T>)
         mngr.AddAttr(TypeID_of<T>, mngr.MakeShared(TypeID_of<ContainerType>,
                                                    ContainerType::Vector));
       else if constexpr (IsDeque_v<T>)
         mngr.AddAttr(TypeID_of<T>, mngr.MakeShared(TypeID_of<ContainerType>,
                                                    ContainerType::Deque));
-      else if constexpr (IsForwardList_v<T>)
+      else if constexpr (IsArray_v<T>)
         mngr.AddAttr(TypeID_of<T>, mngr.MakeShared(TypeID_of<ContainerType>,
-                                                   ContainerType::ForwardList));
+                                                   ContainerType::Array));
       else if constexpr (IsList_v<T>)
         mngr.AddAttr(TypeID_of<T>, mngr.MakeShared(TypeID_of<ContainerType>,
                                                    ContainerType::List));
-      else if constexpr (IsSet_v<T>)
+      else if constexpr (IsForwardList_v<T>)
         mngr.AddAttr(TypeID_of<T>, mngr.MakeShared(TypeID_of<ContainerType>,
-                                                   ContainerType::Set));
+                                                   ContainerType::ForwardList));
       else if constexpr (IsMap_v<T>)
         mngr.AddAttr(TypeID_of<T>, mngr.MakeShared(TypeID_of<ContainerType>,
                                                    ContainerType::Map));
+      else if constexpr (IsSet_v<T>)
+        mngr.AddAttr(TypeID_of<T>, mngr.MakeShared(TypeID_of<ContainerType>,
+                                                   ContainerType::Set));
       else if constexpr (IsUnorderedSet_v<T>)
         mngr.AddAttr(TypeID_of<T>,
                      mngr.MakeShared(TypeID_of<ContainerType>,

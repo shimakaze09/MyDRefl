@@ -25,10 +25,11 @@ DeleteFunc GenerateDeleteFunc(Destructor&& dtor,
       d(ptr);
       result_rsrc->deallocate(ptr, size, alignment);
     };
-  } else  // !dtor
-    return [](void* ptr) {
-      assert(ptr);
+  } else {  // !dtor
+    return [result_rsrc, size, alignment](void* ptr) {
+      result_rsrc->deallocate(ptr, size, alignment);
     };
+  }
 }
 
 // parameter <- argument
@@ -252,13 +253,13 @@ class ConstructedArgumentsGuard {
       args_buffer = orig_args_buffer;
     else {
       // buffer = constructed_args_buffer + nonptrargs
-      buffer_size = argTypeIDs.size() * sizeof(void*) +
-                    num_nonptrargs * sizeof(NonPtrArgInfo);
+      buffer_size =
+          num_args * sizeof(void*) + num_nonptrargs * sizeof(NonPtrArgInfo);
       buffer = rsrc->allocate(buffer_size);
       constructed_args_buffer =
           reinterpret_cast<void**>(forward_offset(buffer, 0));
       nonptrargs = reinterpret_cast<NonPtrArgInfo*>(
-          forward_offset(buffer, argTypeIDs.size() * sizeof(void*)));
+          forward_offset(buffer, num_args * sizeof(void*)));
 
       std::memcpy(constructed_args_buffer, orig_args_buffer,
                   num_args * sizeof(void*));
@@ -276,6 +277,8 @@ class ConstructedArgumentsGuard {
 
       for (std::size_t i = 0; i < num_ptrargs; i++)
         constructed_args_buffer[ptrargs_stack[i].idx] = ptrargs_stack[i].ptr;
+
+      args_buffer = constructed_args_buffer;
     }
   }
 
