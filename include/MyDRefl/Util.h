@@ -366,6 +366,17 @@ using iterator_add = decltype(std::declval<const T&>() + std::declval<U>);
 template <typename T, typename U = std::size_t>
 using iterator_sub = decltype(std::declval<const T&>() - std::declval<U>);
 
+// - pair
+
+template <typename T>
+using pair_first_type = typename T::first_type;
+template <typename T>
+using pair_second_type = typename T::second_type;
+template <typename T>
+using pair_first = decltype(std::declval<const T&>().first);
+template <typename T>
+using pair_second = decltype(std::declval<const T&>().second);
+
 // container
 
 template <typename T, typename U = typename T::size_type,

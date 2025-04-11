@@ -362,6 +362,17 @@ struct TypeAutoRegister_Default {
             });
     }
 
+    if constexpr (is_valid_v<pair_first_type, T>)
+      mngr.RegisterType<pair_first_type<T>>();
+    if constexpr (is_valid_v<pair_second_type, T>)
+      mngr.RegisterType<pair_second_type<T>>();
+    if constexpr (is_valid_v<pair_first, T>)
+      mngr.AddField<&T::first>("first");
+    if constexpr (is_valid_v<pair_second, T>)
+      mngr.AddField<&T::second>("second");
+
+    // pair
+
     // container
 
     if constexpr (IsContainer_v<T>) {
@@ -378,7 +389,7 @@ struct TypeAutoRegister_Default {
             [](const T& lhs) -> decltype(auto) { return lhs.begin(); });
       if constexpr (is_valid_v<container_cbegin, T>)
         mngr.AddMemberMethod(
-            StrIDRegistry::Meta::container_begin,
+            StrIDRegistry::Meta::container_cbegin,
             [](const T& lhs) -> decltype(auto) { return lhs.cbegin(); });
       if constexpr (is_valid_v<container_end, T>)
         mngr.AddMemberMethod(
@@ -390,7 +401,7 @@ struct TypeAutoRegister_Default {
             [](const T& lhs) -> decltype(auto) { return lhs.end(); });
       if constexpr (is_valid_v<container_cend, T>)
         mngr.AddMemberMethod(
-            StrIDRegistry::Meta::container_end,
+            StrIDRegistry::Meta::container_cend,
             [](const T& lhs) -> decltype(auto) { return lhs.cend(); });
 
       if constexpr (is_valid_v<container_rbegin, T>)
