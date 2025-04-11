@@ -465,15 +465,15 @@ class ReflMngr {
   // Meta
   /////////
 
-  bool IsNonArgCopyConstructible(TypeID typeID,
-                                 std::span<const TypeID> argTypeIDs) const;
+  bool IsNonArgConstructible(TypeID typeID,
+                             std::span<const TypeID> argTypeIDs) const;
   bool IsConstructible(TypeID typeID, std::span<const TypeID> argTypeIDs) const;
   bool IsDestructible(TypeID typeID) const;
   bool IsCopyConstructible(TypeID typeID) const;
   bool IsMoveConstructible(TypeID typeID) const;
 
-  bool NonArgCopyConstruct(ObjectPtr obj, std::span<const TypeID> argTypeIDs,
-                           ArgPtrBuffer argptr_buffer) const;
+  bool NonArgConstruct(ObjectPtr obj, std::span<const TypeID> argTypeIDs,
+                       ArgPtrBuffer argptr_buffer) const;
   bool Construct(ObjectPtr obj, std::span<const TypeID> argTypeIDs,
                  ArgPtrBuffer argptr_buffer) const;
   bool Destruct(ConstObjectPtr obj) const;
