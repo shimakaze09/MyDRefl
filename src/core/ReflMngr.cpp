@@ -565,11 +565,12 @@ static InvokeResult Invoke(bool is_priority,
       NewArgsGuard guard{is_priority, args_rsrc,
                          iter->second.methodptr.GetParamList(), argTypeIDs,
                          argptr_buffer};
-      if (guard.IsCompatible()) {
-        return {true, iter->second.methodptr.GetResultDesc().typeID,
-                std::move(iter->second.methodptr.Invoke(
-                    result_buffer, guard.GetArgPtrBuffer()))};
-      }
+      if (!guard.IsCompatible())
+        continue;
+
+      return {true, iter->second.methodptr.GetResultDesc().typeID,
+              std::move(iter->second.methodptr.Invoke(
+                  result_buffer, guard.GetArgPtrBuffer()))};
     }
   }
 
@@ -882,7 +883,7 @@ static SharedObject MInvoke(bool is_priority,
                            iter->second.methodptr.GetParamList(), argTypeIDs,
                            argptr_buffer};
 
-        if (guard.IsCompatible())
+        if (!guard.IsCompatible())
           continue;
 
         const auto& methodptr = iter->second.methodptr;
