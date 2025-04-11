@@ -6,7 +6,8 @@
 
 - 0.7.3
     - support `std::pair` (first, second)
-    - support `std::tuple` 
+    - support `std::tuple`
+    - `IDRegistry` name require ending with `'\0'` 
 - 0.7.2
     - add algorithm `Contains*`
     - `GetTemporaryResource` for user arguments buffer

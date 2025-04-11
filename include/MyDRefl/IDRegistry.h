@@ -15,6 +15,7 @@
 #endif  // !NDEBUG
 
 namespace My::MyDRefl {
+// name must end with '\0'
 template <typename T>
 class IDRegistry {
  public:

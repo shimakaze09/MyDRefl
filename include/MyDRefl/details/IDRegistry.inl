@@ -20,12 +20,15 @@ IDRegistry<T>::IDRegistry()
 
 template <typename T>
 void IDRegistry<T>::RegisterUnmanaged(T ID, std::string_view name) {
+  assert(!name.empty());
+
   auto target = id2name.find(ID);
   if (target != id2name.end()) {
     assert(target->second == name);
     return;
   }
 
+  assert(name.data() && name.data()[name.size()] == 0);
   id2name.emplace_hint(target, ID, name);
 
 #ifndef NDEBUG
@@ -42,22 +45,20 @@ T IDRegistry<T>::RegisterUnmanaged(std::string_view name) {
 
 template <typename T>
 void IDRegistry<T>::Register(T ID, std::string_view name) {
+  assert(!name.empty());
+
   auto target = id2name.find(ID);
   if (target != id2name.end()) {
     assert(target->second == name);
     return;
   }
 
-  if (name.empty()) {
-    id2name.emplace_hint(target, ID, std::string_view{});
-    return;
-  }
+  assert(name.data() && name.data()[name.size()] == 0);
 
-  assert(name.data());
-
-  auto buffer =
-      reinterpret_cast<char*>(resource.allocate(name.size(), alignof(char)));
+  auto buffer = reinterpret_cast<char*>(
+      resource.allocate(name.size() + 1, alignof(char)));
   std::memcpy(buffer, name.data(), name.size());
+  buffer[name.size()] = 0;
 
   id2name.emplace_hint(target, ID, std::string_view{buffer, name.size()});
 
