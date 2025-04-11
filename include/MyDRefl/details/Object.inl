@@ -8,7 +8,7 @@
 
 #define OBJECT_PTR_DEFINE_OPERATOR_T(type, op, name)         \
   template <typename Arg>                                    \
-  SharedObject type::operator op(Arg && rhs) const {         \
+  SharedObject type::operator op(Arg&& rhs) const {          \
     return ADMInvoke(StrIDRegistry::MetaID::operator_##name, \
                      std::forward<Arg>(rhs));                \
   }
@@ -29,7 +29,7 @@
 
 #define SHARED_OBJECT_DEFINE_OPERATOR_T(type, op)              \
   template <typename Arg>                                      \
-  SharedObject type::operator op(Arg && rhs) const {           \
+  SharedObject type::operator op(Arg&& rhs) const {            \
     return AsObjectPtr()->operator op(std::forward<Arg>(rhs)); \
   }
 
@@ -118,13 +118,16 @@ InvocableResult ObjectPtrBase::IsInvocable(StrID methodID) const {
 template <typename T>
 T ObjectPtrBase::InvokeRet(StrID methodID, std::span<const TypeID> argTypeIDs,
                            ArgPtrBuffer argptr_buffer) const {
-  using U =
-      std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
-  std::uint8_t result_buffer[sizeof(U)];
-  InvokeResult result =
-      Invoke(methodID, result_buffer, argTypeIDs, argptr_buffer);
-  assert(result.resultID == TypeID_of<T>);
-  return result.Move<T>(result_buffer);
+  if constexpr (!std::is_void_v<T>) {
+    using U =
+        std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
+    std::uint8_t result_buffer[sizeof(U)];
+    InvokeResult result =
+        Invoke(methodID, result_buffer, argTypeIDs, argptr_buffer);
+    assert(result.resultID == TypeID_of<T>);
+    return result.Move<T>(result_buffer);
+  } else
+    Invoke(methodID, (void*)nullptr, argTypeIDs, argptr_buffer);
 }
 
 template <typename... Args>
