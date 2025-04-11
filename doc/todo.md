@@ -17,3 +17,4 @@
 - [x] simplify assign operator
 - [x] improve iteration for multimap
 - [x] combine `IsCompatible` and `ConstructedArgumentsGuard` to improve performance
+- [ ] improve return type

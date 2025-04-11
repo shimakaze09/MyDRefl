@@ -122,6 +122,11 @@ class StrIDRegistry : public IDRegistry<StrID> {
     static constexpr char operator_call[] = "MyDRefl::operator()";
     static constexpr char operator_comma[] = "MyDRefl::operator,";
 
+    // tuple
+
+    static constexpr char tuple_size[] = "MyDRefl::tuple_size";
+    static constexpr char tuple_get[] = "MyDRefl::tuple_get";
+
     // container
 
     static constexpr char container_assign[] = "MyDRefl::container_assign";
@@ -258,6 +263,11 @@ class StrIDRegistry : public IDRegistry<StrID> {
 
     static constexpr StrID operator_call{Meta::operator_call};
     static constexpr StrID operator_comma{Meta::operator_comma};
+
+    // tuple
+
+    static constexpr StrID tuple_size = Meta::tuple_size;
+    static constexpr StrID tuple_get = Meta::tuple_get;
 
     // container
 

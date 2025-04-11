@@ -257,6 +257,12 @@ class ObjectPtrBase {
   }
 
   //
+  // Tuple
+  //////////
+
+  std::size_t tuple_size() const;
+
+  //
   // container
   //////////////
 
@@ -368,6 +374,12 @@ class ConstObjectPtr : public ObjectPtrBase {
 
   template <typename... Args>
   SharedObject operator()(Args&&... args) const;
+
+  //
+  // Tuple
+  //////////
+
+  ConstObjectPtr tuple_get(std::size_t i) const;
 
   //
   // container
@@ -543,6 +555,12 @@ class ObjectPtr : public ObjectPtrBase {
 
   template <typename T>
   SharedObject operator<<(T&& in) const;
+
+  //
+  // Tuple
+  //////////
+
+  ObjectPtr tuple_get(std::size_t i) const;
 
   //
   // container
