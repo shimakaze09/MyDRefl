@@ -34,46 +34,17 @@ class MethodPtr {
   using StaticFunction = Destructor(void*, ArgsView);
 
   MethodPtr(MemberVariableFunction* func, ResultDesc resultDesc = {},
-            ParamList paramList = {})
-      : func{func},
-        resultDesc{std::move(resultDesc)},
-        paramList{std::move(paramList)} {
-    assert(func);
-  }
-
+            ParamList paramList = {});
   MethodPtr(MemberConstFunction* func, ResultDesc resultDesc = {},
-            ParamList paramList = {})
-      : func{func},
-        resultDesc{std::move(resultDesc)},
-        paramList{std::move(paramList)} {
-    assert(func);
-  }
-
+            ParamList paramList = {});
   MethodPtr(StaticFunction* func, ResultDesc resultDesc = {},
-            ParamList paramList = {})
-      : func{func},
-        resultDesc{std::move(resultDesc)},
-        paramList{std::move(paramList)} {
-    assert(func);
-  }
-
+            ParamList paramList = {});
   MethodPtr(std::function<MemberVariableFunction> func,
-            ResultDesc resultDesc = {}, ParamList paramList = {})
-      : func{(assert(func), std::move(func))},
-        resultDesc{std::move(resultDesc)},
-        paramList{std::move(paramList)} {}
-
+            ResultDesc resultDesc = {}, ParamList paramList = {});
   MethodPtr(std::function<MemberConstFunction> func, ResultDesc resultDesc = {},
-            ParamList paramList = {})
-      : func{(assert(func), std::move(func))},
-        resultDesc{std::move(resultDesc)},
-        paramList{std::move(paramList)} {}
-
+            ParamList paramList = {});
   MethodPtr(std::function<StaticFunction> func, ResultDesc resultDesc = {},
-            ParamList paramList = {})
-      : func{(assert(func), std::move(func))},
-        resultDesc{std::move(resultDesc)},
-        paramList{std::move(paramList)} {}
+            ParamList paramList = {});
 
   bool IsMemberVariable() const noexcept {
     return func.index() == 0 || func.index() == 3;
@@ -86,6 +57,8 @@ class MethodPtr {
   bool IsStatic() const noexcept {
     return func.index() == 2 || func.index() == 5;
   }
+
+  FuncMode GetFuncMode() const noexcept;
 
   const ParamList& GetParamList() const noexcept { return paramList; }
 

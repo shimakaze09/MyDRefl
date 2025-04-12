@@ -12,7 +12,7 @@ class FieldPtr {
   // Buffer
   ///////////
 
-  static constexpr size_t BufferSize =
+  static constexpr std::size_t BufferSize =
       std::max(sizeof(Offsetor), sizeof(SharedBuffer));  // maybe 64
   using Buffer = std::aligned_storage_t<BufferSize>;
   static_assert(sizeof(Buffer) == BufferSize);
@@ -34,7 +34,7 @@ class FieldPtr {
   template <typename T>
   static constexpr Buffer ConvertToBuffer(const T& data) noexcept {
     static_assert(IsBufferable<T>());
-    Buffer buffer{};
+    Buffer buffer;
     memcpy(&buffer, &data, sizeof(T));
     return buffer;
   }

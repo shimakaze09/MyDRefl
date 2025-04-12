@@ -8,6 +8,8 @@
 #include <memory>
 
 namespace My::MyDRefl {
+enum class FuncMode { Variable, Const, Static };
+
 using SharedBuffer = std::shared_ptr<void>;
 
 struct ResultDesc {

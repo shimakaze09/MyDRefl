@@ -2,6 +2,67 @@
 
 using namespace My::MyDRefl;
 
+MethodPtr::MethodPtr(MemberVariableFunction* func, ResultDesc resultDesc,
+                     ParamList paramList)
+    : func{func},
+      resultDesc{std::move(resultDesc)},
+      paramList{std::move(paramList)} {
+  assert(func);
+}
+
+MethodPtr::MethodPtr(MemberConstFunction* func, ResultDesc resultDesc,
+                     ParamList paramList)
+    : func{func},
+      resultDesc{std::move(resultDesc)},
+      paramList{std::move(paramList)} {
+  assert(func);
+}
+
+MethodPtr::MethodPtr(StaticFunction* func, ResultDesc resultDesc,
+                     ParamList paramList)
+    : func{func},
+      resultDesc{std::move(resultDesc)},
+      paramList{std::move(paramList)} {
+  assert(func);
+}
+
+MethodPtr::MethodPtr(std::function<MemberVariableFunction> func,
+                     ResultDesc resultDesc, ParamList paramList)
+    : func{(assert(func), std::move(func))},
+      resultDesc{std::move(resultDesc)},
+      paramList{std::move(paramList)} {}
+
+MethodPtr::MethodPtr(std::function<MemberConstFunction> func,
+                     ResultDesc resultDesc, ParamList paramList)
+    : func{(assert(func), std::move(func))},
+      resultDesc{std::move(resultDesc)},
+      paramList{std::move(paramList)} {}
+
+MethodPtr::MethodPtr(std::function<StaticFunction> func, ResultDesc resultDesc,
+                     ParamList paramList)
+    : func{(assert(func), std::move(func))},
+      resultDesc{std::move(resultDesc)},
+      paramList{std::move(paramList)} {}
+
+FuncMode MethodPtr::GetFuncMode() const noexcept {
+  switch (func.index()) {
+    case 0:
+      [[fallthrough]];
+    case 3:
+      return FuncMode::Variable;
+    case 1:
+      [[fallthrough]];
+    case 4:
+      return FuncMode::Const;
+    case 2:
+    case 5:
+      return FuncMode::Static;
+    default:
+      assert(false);
+      return FuncMode::Static;
+  }
+}
+
 Destructor MethodPtr::Invoke(void* obj, void* result_buffer,
                              ArgPtrBuffer argptr_buffer) const {
   return std::visit(
@@ -52,7 +113,7 @@ Destructor MethodPtr::Invoke(const void* obj, void* result_buffer,
           static_assert(always_false<Func>);
       },
       func);
-};
+}
 
 Destructor MethodPtr::Invoke(void* result_buffer,
                              ArgPtrBuffer argptr_buffer) const {
@@ -82,4 +143,4 @@ Destructor MethodPtr::Invoke(void* result_buffer,
           static_assert(always_false<Func>);
       },
       func);
-};
+}

@@ -165,8 +165,9 @@ ObjectView ObjectView::AddRValueReference() const {
 }
 
 InvocableResult ObjectView::IsInvocable(Name method_name,
-                                        std::span<const Type> argTypes) const {
-  return Mngr.IsConstInvocable(type, method_name, argTypes);
+                                        std::span<const Type> argTypes,
+                                        FuncMode mode) const {
+  return Mngr.IsInvocable(type, method_name, argTypes, mode);
 }
 
 ObjectView ObjectView::StaticCast_DerivedToBase(Type type) const {

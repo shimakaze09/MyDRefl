@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include "attrs/ContainerType.h"
@@ -256,12 +257,9 @@ class ReflMngr {
   bool IsCompatible(std::span<const Type> paramTypeIDs,
                     std::span<const Type> argTypes) const;
 
-  InvocableResult IsStaticInvocable(Type type, Name method_name,
-                                    std::span<const Type> argTypes = {}) const;
-  InvocableResult IsConstInvocable(Type type, Name method_name,
-                                   std::span<const Type> argTypes = {}) const;
   InvocableResult IsInvocable(Type type, Name method_name,
-                              std::span<const Type> argTypes = {}) const;
+                              std::span<const Type> argTypes = {},
+                              FuncMode mode = FuncMode::Variable) const;
 
   InvokeResult Invoke(Type type, Name method_name,
                       void* result_buffer = nullptr,
@@ -276,11 +274,8 @@ class ReflMngr {
   // -- template --
 
   template <typename... Args>
-  InvocableResult IsStaticInvocable(Type type, Name method_name) const;
-  template <typename... Args>
-  InvocableResult IsConstInvocable(Type type, Name method_name) const;
-  template <typename... Args>
-  InvocableResult IsInvocable(Type type, Name method_name) const;
+  InvocableResult IsInvocable(Type type, Name method_name,
+                              FuncMode mode = FuncMode::Variable) const;
 
   template <typename T>
   T InvokeRet(Type type, Name method_name, std::span<const Type> argTypes = {},
