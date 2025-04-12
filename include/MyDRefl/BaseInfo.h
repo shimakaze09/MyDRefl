@@ -1,10 +1,4 @@
-//
-// Created by Admin on 1/04/2025.
-//
-
 #pragma once
-
-#include <cassert>
 
 #include "Util.h"
 

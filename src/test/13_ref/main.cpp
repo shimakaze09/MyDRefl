@@ -1,7 +1,3 @@
-//
-// Created by Admin on 4/04/2025.
-//
-
 #include <MyDRefl/MyDRefl.h>
 
 #include <iostream>
@@ -74,7 +70,7 @@ int main() {
 
   Data f = 1.f;
   Data g = 2.f;
-  auto a = Mngr.MakeShared(TypeID_of<A>, f, std::move(g));
+  auto a = Mngr.MakeShared(Type_of<A>, f, std::move(g));
   std::cout << "a.rref: " << a.Var("rref").Var("value") << std::endl;
   std::cout << "a.lref: " << a.Var("lref").Var("value") << std::endl;
 

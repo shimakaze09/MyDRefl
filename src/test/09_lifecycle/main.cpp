@@ -1,7 +1,3 @@
-//
-// Created by Admin on 2/04/2025.
-//
-
 #include <MyDRefl/MyDRefl.h>
 #include <iostream>
 
@@ -21,11 +17,11 @@ int main() {
   Mngr.AddField<&Point::x>("x");
   Mngr.AddField<&Point::y>("y");
 
-  SharedObject p = Mngr.MakeShared(TypeID_of<Point>);
+  SharedObject p = Mngr.MakeShared(Type_of<Point>);
   p.Var("x") = 1.f;
   p.Var("y") = 2.f;
 
   for (const auto& [type, field, var] : p.GetTypeFieldVars()) {
-    std::cout << Mngr.nregistry.Nameof(field.ID) << ": " << var << std::endl;
+    std::cout << field.name.GetView() << ": " << var << std::endl;
   }
 }

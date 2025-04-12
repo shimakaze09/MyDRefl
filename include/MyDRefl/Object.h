@@ -1,7 +1,3 @@
-//
-// Created by Admin on 11/03/2025.
-//
-
 #pragma once
 
 #include "Basic.h"
@@ -14,19 +10,21 @@
   template <typename Arg>                      \
   SharedObject operator op(Arg&& rhs) const
 
-#define OBJECT_VIEW_DEFINE_CMP_OPERATOR(op, name)                \
-  template <typename Arg>                                        \
-  bool operator op(const Arg& rhs) const {                       \
-    return static_cast<bool>(                                    \
-        ADMInvoke(StrIDRegistry::MetaID::operator_##name, rhs)); \
+#define OBJECT_VIEW_DEFINE_CMP_OPERATOR(op, name)               \
+  template <typename Arg>                                       \
+  bool operator op(const Arg& rhs) const {                      \
+    return static_cast<bool>(                                   \
+        ADMInvoke(NameIDRegistry::Meta::operator_##name, rhs)); \
   }
 
-#define OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(op, name)   \
-  template <typename Arg>                                 \
-  const ObjectView& operator op(Arg && rhs) const {       \
-    AInvoke<void>(StrIDRegistry::MetaID::operator_##name, \
-                  std::forward<Arg>(rhs));                \
-    return *this;                                         \
+#define OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(op, name)  \
+  template <typename Arg>                                \
+  ObjectView operator op(Arg&& rhs) const {              \
+    if (GetType().IsReadOnly())                          \
+      return *this;                                      \
+    AInvoke<void>(NameIDRegistry::Meta::operator_##name, \
+                  std::forward<Arg>(rhs));               \
+    return AddLValueReference();                         \
   }
 
 #define OBJECT_VIEW_DECLARE_CONTAINER(name) \
@@ -54,28 +52,27 @@ class ObjectView {
 
   constexpr ObjectView(std::nullptr_t) noexcept : ObjectView{} {}
 
-  constexpr ObjectView(TypeID ID, void* ptr) noexcept : ID{ID}, ptr{ptr} {}
+  constexpr ObjectView(Type type, void* ptr) noexcept : type{type}, ptr{ptr} {}
 
-  explicit constexpr ObjectView(TypeID ID) noexcept : ObjectView{ID, nullptr} {}
+  explicit constexpr ObjectView(Type type) noexcept
+      : ObjectView{type, nullptr} {}
 
   template <typename T>
-  requires std::negation_v<std::is_same<std::remove_cvref_t<T>, TypeID>>&&
+  requires std::negation_v<std::is_same<std::remove_cvref_t<T>, Type>>&&
       std::negation_v<std::is_same<std::remove_cvref_t<T>, std::nullptr_t>>&&
           NonObjectAndView<T> explicit ObjectView(T&& obj) noexcept
-      : ObjectView{TypeID_of<decltype(obj)>,
+      : ObjectView{Type_of<decltype(obj)>,
                    const_cast<void*>(static_cast<const void*>(&obj))} {}
 
-  constexpr TypeID GetTypeID() const noexcept { return ID; }
+  constexpr Type GetType() const noexcept { return type; }
 
   void* GetPtr() const noexcept { return ptr; }
-
-  constexpr bool Valid() const noexcept { return ID.Valid() && ptr; }
 
   explicit operator bool() const noexcept;
 
   template <typename T>
   auto* AsPtr() const noexcept {
-    assert(ID.Is<T>());
+    assert(type.Is<T>());
     return reinterpret_cast<std::add_pointer_t<T>>(ptr);
   }
 
@@ -95,77 +92,75 @@ class ObjectView {
 
   TypeInfo* GetTypeInfo() const;
 
-  std::string_view TypeName() const;
-
   //
   // Cast
   /////////
 
-  ObjectView StaticCast_DerivedToBase(TypeID baseID) const;
-  ObjectView StaticCast_BaseToDerived(TypeID derivedID) const;
-  ObjectView DynamicCast_BaseToDerived(TypeID derivedID) const;
-  ObjectView StaticCast(TypeID typeID) const;
-  ObjectView DynamicCast(TypeID typeID) const;
+  ObjectView StaticCast_DerivedToBase(Type base) const;
+  ObjectView StaticCast_BaseToDerived(Type derived) const;
+  ObjectView DynamicCast_BaseToDerived(Type derived) const;
+  ObjectView StaticCast(Type type) const;
+  ObjectView DynamicCast(Type type) const;
 
   //
   // Invoke
   ///////////
 
-  InvocableResult IsInvocable(StrID methodID,
-                              std::span<const TypeID> argTypeIDs = {}) const;
+  InvocableResult IsInvocable(Name method_name,
+                              std::span<const Type> argTypes = {}) const;
 
-  InvokeResult Invoke(StrID methodID, void* result_buffer = nullptr,
-                      std::span<const TypeID> argTypeIDs = {},
+  InvokeResult Invoke(Name method_name, void* result_buffer = nullptr,
+                      std::span<const Type> argTypes = {},
                       ArgPtrBuffer argptr_buffer = nullptr) const;
 
   template <typename... Args>
-  InvocableResult IsInvocable(StrID methodID) const;
+  InvocableResult IsInvocable(Name method_name) const;
 
   template <typename T>
-  T InvokeRet(StrID methodID, std::span<const TypeID> argTypeIDs = {},
+  T InvokeRet(Name method_name, std::span<const Type> argTypes = {},
               ArgPtrBuffer argptr_buffer = nullptr) const;
 
   template <typename... Args>
-  InvokeResult InvokeArgs(StrID methodID, void* result_buffer,
+  InvokeResult InvokeArgs(Name method_name, void* result_buffer,
                           Args&&... args) const;
 
   template <typename T, typename... Args>
-  T Invoke(StrID methodID, Args&&... args) const;
+  T Invoke(Name method_name, Args&&... args) const;
 
-  SharedObject MInvoke(StrID methodID, std::span<const TypeID> argTypeIDs = {},
+  SharedObject MInvoke(Name method_name, std::span<const Type> argTypes = {},
                        ArgPtrBuffer argptr_buffer = nullptr,
                        std::pmr::memory_resource* rst_rsrc =
                            std::pmr::get_default_resource()) const;
 
   template <typename... Args>
-  SharedObject MInvoke(StrID methodID, std::pmr::memory_resource* rst_rsrc,
+  SharedObject MInvoke(Name method_name, std::pmr::memory_resource* rst_rsrc,
                        Args&&... args) const;
 
   template <typename... Args>
-  SharedObject DMInvoke(StrID methodID, Args&&... args) const;
+  SharedObject DMInvoke(Name method_name, Args&&... args) const;
 
   // 'A' means auto, ObjectView/SharedObject will be transformed as ID + ptr
   template <typename T, typename... Args>
-  T AInvoke(StrID methodID, Args&&... args) const;
+  T AInvoke(Name method_name, Args&&... args) const;
 
   // 'A' means auto, ObjectView/SharedObject will be transformed as ID + ptr
   template <typename... Args>
-  SharedObject AMInvoke(StrID methodID, std::pmr::memory_resource* rst_rsrc,
+  SharedObject AMInvoke(Name method_name, std::pmr::memory_resource* rst_rsrc,
                         Args&&... args) const;
 
   // 'A' means auto, ObjectView/SharedObject will be transformed as ID + ptr
   template <typename... Args>
-  SharedObject ADMInvoke(StrID methodID, Args&&... args) const;
+  SharedObject ADMInvoke(Name method_name, Args&&... args) const;
 
   //
   // Fields
   ///////////
 
   // all
-  ObjectView Var(StrID fieldID) const;
+  ObjectView Var(Name field_name) const;
 
   // all, for diamond inheritance
-  ObjectView Var(TypeID baseID, StrID fieldID) const;
+  ObjectView Var(Type base, Name field_name) const;
 
   // self vars and all bases' vars
   void ForEachVar(
@@ -179,7 +174,6 @@ class ObjectView {
   // Algorithm
   //////////////
 
-  std::vector<TypeID> GetTypeIDs() const;
   std::vector<TypeRef> GetTypes() const;
   std::vector<TypeFieldRef> GetTypeFields() const;
   std::vector<FieldRef> GetFields() const;
@@ -192,8 +186,6 @@ class ObjectView {
       const;
   std::vector<ObjectView> GetOwnedVars() const;
 
-  std::optional<TypeID> FindTypeID(
-      const std::function<bool(TypeID)>& func) const;
   std::optional<TypeRef> FindType(
       const std::function<bool(TypeRef)>& func) const;
   std::optional<FieldRef> FindField(
@@ -203,21 +195,16 @@ class ObjectView {
   ObjectView FindVar(const std::function<bool(ObjectView)>& func) const;
   ObjectView FindOwnedVar(const std::function<bool(ObjectView)>& func) const;
 
-  bool ContainsBase(TypeID baseID) const;
-  bool ContainsField(StrID fieldID) const;
-  bool ContainsMethod(StrID methodID) const;
-  bool ContainsVariableMethod(StrID methodID) const;
-  bool ContainsConstMethod(StrID methodID) const;
-  bool ContainsStaticMethod(StrID methodID) const;
+  bool ContainsBase(Type base) const;
+  bool ContainsField(Name field_name) const;
+  bool ContainsMethod(Name method_name) const;
+  bool ContainsVariableMethod(Name method_name) const;
+  bool ContainsConstMethod(Name method_name) const;
+  bool ContainsStaticMethod(Name method_name) const;
 
   //
   // Type
   /////////
-
-  bool IsConst() const;
-  bool IsReadOnly() const;
-  bool IsReference() const;
-  ConstReferenceMode GetConstReferenceMode() const;
 
   ObjectView RemoveConst() const;
   ObjectView RemoveReference() const;
@@ -251,7 +238,7 @@ class ObjectView {
   template <typename Arg>
   requires NonObjectAndView<std::decay_t<Arg>> const ObjectView& operator=(
       Arg&& rhs) const {
-    AInvoke<void>(StrIDRegistry::MetaID::operator_assign,
+    AInvoke<void>(NameIDRegistry::Meta::operator_assign,
                   std::forward<Arg>(rhs));
     return *this;
   }
@@ -285,7 +272,7 @@ class ObjectView {
 
   template <typename T>
   T& operator>>(T& out) const {
-    ADMInvoke(StrIDRegistry::MetaID::operator_rshift, out);
+    ADMInvoke(NameIDRegistry::Meta::operator_rshift, out);
     return out;
   }
 
@@ -366,7 +353,7 @@ class ObjectView {
   SharedObject get_allocator() const;
 
  protected:
-  TypeID ID;
+  Type type;
   void* ptr;  // if type is reference, ptr is a pointer of referenced object
 };
 
@@ -378,14 +365,14 @@ class SharedObject : public ObjectView {
 
   using ObjectView::ObjectView;
 
-  SharedObject(TypeID ID, SharedBuffer buffer) noexcept
-      : ObjectView{ID}, buffer{std::move(buffer)} {
+  SharedObject(Type type, SharedBuffer buffer) noexcept
+      : ObjectView{type}, buffer{std::move(buffer)} {
     ptr = buffer.get();
   }
 
   template <typename T>
-  SharedObject(TypeID ID, std::shared_ptr<T> buffer) noexcept
-      : ObjectView{ID, buffer.get()}, buffer{std::move(buffer)} {}
+  SharedObject(Type type, std::shared_ptr<T> buffer) noexcept
+      : ObjectView{type, buffer.get()}, buffer{std::move(buffer)} {}
 
   template <typename Deleter>
   SharedObject(ObjectView obj, Deleter d) noexcept
@@ -422,7 +409,7 @@ class SharedObject : public ObjectView {
   bool IsObjectView() const noexcept { return ptr && !buffer; }
 
   void Swap(SharedObject& rhs) noexcept {
-    std::swap(ID, rhs.ID);
+    std::swap(type, rhs.type);
     std::swap(ptr, rhs.ptr);
     buffer.swap(rhs.buffer);
   }

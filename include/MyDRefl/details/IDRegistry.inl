@@ -1,7 +1,3 @@
-//
-// Created by Admin on 2/04/2025.
-//
-
 #pragma once
 
 #include <cassert>

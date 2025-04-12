@@ -1,7 +1,3 @@
-//
-// Created by Admin on 10/04/2025.
-//
-
 #include <MyDRefl/MyDRefl.h>
 #include <cmath>
 #include <iostream>
@@ -33,7 +29,7 @@ int main() {
   Mngr.AddMethod<MemFuncOf<void(std::uint8_t&&)>::get(&Funcs::f)>("f");
   Mngr.AddMethod<MemFuncOf<void(const std::uint8_t&&)>::get(&Funcs::f)>("f");
 
-  SharedObject funcs = Mngr.MakeShared(TypeID_of<Funcs>);
+  SharedObject funcs = Mngr.MakeShared(Type_of<Funcs>);
 
   std::uint8_t i = 1;
   const std::uint8_t ci = 1;

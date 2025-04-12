@@ -1,7 +1,3 @@
-//
-// Created by Admin on 1/04/2025.
-//
-
 #pragma once
 
 #include "Object.h"
@@ -10,7 +6,7 @@
 #include <vector>
 
 namespace My::MyDRefl {
-using ParamList = std::vector<TypeID>;
+using ParamList = std::vector<Type>;
 
 class ArgsView {
  public:

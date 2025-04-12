@@ -1,7 +1,3 @@
-//
-// Created by Admin on 5/04/2025.
-//
-
 #include "B.h"
 
 #include <MyDRefl/MyDRefl.h>

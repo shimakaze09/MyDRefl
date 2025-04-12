@@ -1,7 +1,3 @@
-//
-// Created by Admin on 3/04/2025.
-//
-
 #include <MyDRefl/FieldPtr.h>
 
 using namespace My::MyDRefl;
@@ -16,11 +12,11 @@ ObjectView FieldPtr::Var() noexcept {
           assert(false);
           return nullptr;
         } else if constexpr (std::is_same_v<T, void*>) {
-          return {valueID, value};
+          return {type, value};
         } else if constexpr (std::is_same_v<T, SharedBuffer>) {
-          return {valueID, value.get()};
+          return {type, value.get()};
         } else if constexpr (std::is_same_v<T, Buffer>) {
-          return {valueID, &value};
+          return {type, &value};
         } else
           static_assert(always_false<T>);
       },
@@ -32,16 +28,16 @@ ObjectView FieldPtr::Var(void* obj) {
       [obj, this]<typename T>(T& value) -> ObjectView {
         if constexpr (std::is_same_v<T, size_t>) {
           assert(obj);
-          return {valueID, forward_offset(obj, value)};
+          return {type, forward_offset(obj, value)};
         } else if constexpr (std::is_same_v<T, Offsetor>) {
           assert(obj);
-          return {valueID, value(obj)};
+          return {type, value(obj)};
         } else if constexpr (std::is_same_v<T, void*>) {
-          return {valueID, value};
+          return {type, value};
         } else if constexpr (std::is_same_v<T, SharedBuffer>) {
-          return {valueID, value.get()};
+          return {type, value.get()};
         } else if constexpr (std::is_same_v<T, Buffer>) {
-          return {valueID, &value};
+          return {type, &value};
         } else
           static_assert(always_false<T>);
       },

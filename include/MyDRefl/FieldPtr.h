@@ -1,7 +1,3 @@
-//
-// Created by Admin on 31/03/2025.
-//
-
 #pragma once
 
 #include "Object.h"
@@ -49,35 +45,34 @@ class FieldPtr {
 
   constexpr FieldPtr() noexcept = default;
 
-  constexpr FieldPtr(TypeID valueID, std::size_t forward_offset_value) noexcept
-      : valueID{valueID}, data{forward_offset_value} {
-    assert(valueID);
+  constexpr FieldPtr(Type type, std::size_t forward_offset_value) noexcept
+      : type{type}, data{forward_offset_value} {
+    assert(type);
   }
 
-  FieldPtr(TypeID valueID, Offsetor offsetor) noexcept
-      : valueID{valueID}, data{std::move(offsetor)} {
-    assert(valueID && std::get<1>(data));
+  FieldPtr(Type type, Offsetor offsetor) noexcept
+      : type{type}, data{std::move(offsetor)} {
+    assert(type && std::get<1>(data));
   }
 
-  constexpr FieldPtr(TypeID valueID, void* ptr) noexcept
-      : valueID{valueID}, data{ptr} {
-    assert(valueID && ptr);
+  constexpr FieldPtr(Type type, void* ptr) noexcept : type{type}, data{ptr} {
+    assert(type && ptr);
   }
 
   explicit constexpr FieldPtr(ObjectView static_obj) noexcept
-      : FieldPtr{static_obj.GetTypeID(), static_obj.GetPtr()} {}
+      : FieldPtr{static_obj.GetType(), static_obj.GetPtr()} {}
 
   explicit FieldPtr(SharedObject obj) noexcept
-      : valueID{obj.GetTypeID()}, data{std::move(obj.GetBuffer())} {
-    assert(valueID && std::get<3>(data));
+      : type{obj.GetType()}, data{std::move(obj.GetBuffer())} {
+    assert(type && std::get<3>(data));
   }
 
-  FieldPtr(TypeID valueID, const Buffer& buffer) noexcept
-      : valueID{valueID}, data{buffer} {
-    assert(valueID);
+  FieldPtr(Type type, const Buffer& buffer) noexcept
+      : type{type}, data{buffer} {
+    assert(type);
   }
 
-  constexpr TypeID GetValueID() const noexcept { return valueID; }
+  constexpr Type GetType() const noexcept { return type; }
 
   constexpr bool IsBasic() const noexcept { return data.index() == 0; }
 
@@ -100,7 +95,7 @@ class FieldPtr {
   ObjectView Var(void* obj);
 
  private:
-  TypeID valueID;
+  Type type;
   Data data;
 };
 }  // namespace My::MyDRefl

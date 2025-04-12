@@ -1,7 +1,3 @@
-//
-// Created by Admin on 1/04/2025.
-//
-
 #include <MyDRefl/MyDRefl.h>
 
 #include <array>
@@ -39,10 +35,11 @@ int main() {
     Mngr.AddField<&Vec::y>("y");
     Mngr.AddMethod<&Vec::Norm2>("Norm2");
     Mngr.AddMethod<&Vec::NormalizeSelf>("NormalizeSelf");
-    Mngr.AddMethod<&Vec::operator+= >(StrIDRegistry::Meta::operator_assign_add);
+    Mngr.AddMethod<&Vec::operator+= >(
+        NameIDRegistry::Meta::operator_assign_add);
   }
 
-  auto v = Mngr.MakeShared(TypeID_of<Vec>, 1.f, 2.f);
+  auto v = Mngr.MakeShared(Type_of<Vec>, 1.f, 2.f);
 
   v.Invoke("NormalizeSelf");
   std::cout << v.Var("x") << ", " << v.Var("y") << std::endl;

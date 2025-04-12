@@ -1,7 +1,3 @@
-//
-// Created by Admin on 6/04/2025.
-//
-
 #include "Vector.h"
 
 #include <MyDRefl/MyDRefl.h>

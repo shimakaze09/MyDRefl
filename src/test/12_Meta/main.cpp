@@ -1,7 +1,3 @@
-//
-// Created by Admin on 4/04/2025.
-//
-
 #include <MyDRefl/MyDRefl.h>
 
 #include <iostream>
@@ -70,9 +66,9 @@ int main() {
   Mngr.AddField<&Vec::x>("x");
   Mngr.AddField<&Vec::y>("y");
   Mngr.AddMethod<MemFuncOf<Vec(float) const noexcept>::get(&Vec::operator+)>(
-      StrIDRegistry::Meta::operator_add);
+      NameIDRegistry::Meta::operator_add);
 
-  SharedObject v = Mngr.MakeShared(TypeID_of<Vec>, 3.f, 4.f);
+  SharedObject v = Mngr.MakeShared(Type_of<Vec>, 3.f, 4.f);
 
   ObjectView pv = v;
   SharedObject w0 = v + v;
@@ -85,7 +81,7 @@ int main() {
 
   for (const auto& w : std::array{w0, w1, w2, w3, w4, w5, w6}) {
     for (const auto& [type, field, var] : w.GetTypeFieldVars()) {
-      std::cout << Mngr.nregistry.Nameof(field.ID) << ": " << var << std::endl;
+      std::cout << field.name.GetView() << ": " << var << std::endl;
     }
   }
 

@@ -1,7 +1,3 @@
-//
-// Created by Admin on 1/04/2025.
-//
-
 #include <MyDRefl/MyDRefl.h>
 
 #include <iostream>
@@ -34,12 +30,12 @@ int main() {
     Mngr.AddField<&Vec::x>("x");
     Mngr.AddField<&Vec::y>("y");
     Mngr.AddMethod<MemFuncOf<Vec&(const Vec&)>::get(&Vec::operator+=)>(
-        StrIDRegistry::Meta::operator_assign_add);
+        NameIDRegistry::Meta::operator_assign_add);
     Mngr.AddMethod<MemFuncOf<Vec&(float)>::get(&Vec::operator+=)>(
-        StrIDRegistry::Meta::operator_assign_add);
+        NameIDRegistry::Meta::operator_assign_add);
   }
 
-  auto obj = Mngr.MakeShared(TypeID_of<Vec>);
+  auto obj = Mngr.MakeShared(Type_of<Vec>);
 
   {
     auto v = obj += Vec{10.f, 10.f};

@@ -1,7 +1,3 @@
-//
-// Created by Admin on 31/03/2025.
-//
-
 #include <MyDRefl/MyDRefl.h>
 
 #include <iostream>
@@ -20,14 +16,14 @@ int main() {
   Mngr.RegisterType<A>();
   Mngr.AddField<&A::data>("data");
   Mngr.AddField<&A::c_data>("c_data");
-  Mngr.AddField(TypeID_of<A>, "s_data", &A::s_data);
-  Mngr.AddField(TypeID_of<A>, "sc_data", &A::sc_data);
+  Mngr.AddField(Type_of<A>, "s_data", &A::s_data);
+  Mngr.AddField(Type_of<A>, "sc_data", &A::sc_data);
 
   A a;
   ObjectView ptr{a};
 
-  for (auto field : Mngr.GetFields(TypeID_of<A>))
-    std::cout << Mngr.nregistry.Nameof(field.ID) << std::endl;
+  for (auto field : Mngr.GetFields(Type_of<A>))
+    std::cout << field.name.GetView() << std::endl;
 
   ptr.Var("data") = 10;
   ptr.Var("s_data") = 20;
@@ -35,20 +31,20 @@ int main() {
   std::cout << "//" << std::endl
             << "// unowned var" << std::endl
             << "////////////////" << std::endl;
-  for (auto [type, field, var] : Mngr.GetTypeFieldVars(TypeID_of<A>))
-    std::cout << Mngr.nregistry.Nameof(field.ID) << ": " << var << std::endl;
+  for (auto [type, field, var] : Mngr.GetTypeFieldVars(Type_of<A>))
+    std::cout << field.name.GetView() << ": " << var << std::endl;
 
   std::cout << "//" << std::endl
             << "// object var" << std::endl
             << "///////////////" << std::endl;
   for (auto [type, field, var] : ptr.GetTypeFieldVars())
-    std::cout << Mngr.nregistry.Nameof(field.ID) << ": " << var << std::endl;
+    std::cout << field.name.GetView() << ": " << var << std::endl;
 
   std::cout << "//" << std::endl
             << "// object owned var" << std::endl
             << "/////////////////////" << std::endl;
   for (auto [type, field, var] : ptr.GetTypeFieldOwnedVars())
-    std::cout << Mngr.nregistry.Nameof(field.ID) << ": " << var << std::endl;
+    std::cout << field.name.GetView() << ": " << var << std::endl;
 
   return 0;
 }

@@ -8,8 +8,7 @@ INIT_MYCMAKE(VERSION 0.6.4)
 
 INIT_PROJECT()
 
-ADD_DEP(MyContainer 0.0.9)
-ADD_DEP(MyTemplate 0.6.0)
+ADD_DEP(MyTemplate 0.7.0)
 
 INCLUDE(cmake/Platform.cmake)
 

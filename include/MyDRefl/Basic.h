@@ -1,12 +1,8 @@
-//
-// Created by Admin on 4/04/2025.
-//
-
 #pragma once
 
 #include "Util.h"
 
-#include <MyTemplate/TypeID.h>
+#include <MyTemplate/Type.h>
 
 #include <cassert>
 #include <memory>
@@ -14,26 +10,15 @@
 namespace My::MyDRefl {
 using SharedBuffer = std::shared_ptr<void>;
 
-enum class ConstReferenceMode {
-  None = 0b000,
-  Left = 0b001,
-  Right = 0b010,
-  Const = 0b100,
-  ConstLeft = 0b101,
-  ConstRight = 0b110,
-};
-
 struct ResultDesc {
-  TypeID typeID{TypeID_of<void>};
+  Type type{Type_of<void>};
   size_t size{0};
   size_t alignment{1};
-
-  constexpr bool IsVoid() const noexcept { return typeID == TypeID_of<void>; }
 };
 
 struct InvokeResult {
   bool success{false};
-  TypeID resultID;
+  Type type;
   Destructor destructor;
 
   template <typename T>
@@ -46,10 +31,10 @@ struct InvokeResult {
 
     if constexpr (!std::is_reference_v<T> &&
                   std::is_default_constructible_v<T>) {
-      if (!success || resultID != TypeID_of<T>)
+      if (!success || type != Type_of<T>)
         return {};
     } else
-      assert(success && resultID == TypeID_of<T>);
+      assert(success && type == Type_of<T>);
 
     if constexpr (std::is_reference_v<T>) {
       assert(!destructor);
@@ -61,8 +46,6 @@ struct InvokeResult {
       return rst;
     }
   }
-
-  constexpr bool IsVoid() const noexcept { return resultID.Is<void>(); }
 
   constexpr operator bool() const noexcept { return success; }
 };
@@ -79,17 +62,17 @@ struct FieldInfo;
 struct MethodInfo;
 
 struct TypeRef {
-  TypeID ID;
+  Type type;
   TypeInfo& info;
 };
 
 struct FieldRef {
-  StrID ID;
+  Name name;
   FieldInfo& info;
 };
 
 struct MethodRef {
-  StrID ID;
+  Name name;
   MethodInfo& info;
 };
 
