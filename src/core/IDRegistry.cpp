@@ -150,12 +150,12 @@ TypeIDRegistry::TypeIDRegistry() {
 }
 
 void TypeIDRegistry::RegisterUnmanaged(TypeID ID, std::string_view name) {
-  assert(!type_name_is_const(name) && !type_name_is_volatile(name));
+  assert(!type_name_is_volatile(name));
   IDRegistry<TypeID>::RegisterUnmanaged(ID, name);
 }
 
 TypeID TypeIDRegistry::RegisterUnmanaged(std::string_view name) {
-  assert(!type_name_is_const(name) && !type_name_is_volatile(name));
+  assert(!type_name_is_volatile(name));
   return IDRegistry<TypeID>::RegisterUnmanaged(name);
 }
 
@@ -181,6 +181,21 @@ TypeID TypeIDRegistry::Register(std::string_view name) {
 // Type Computation
 /////////////////////
 
+TypeID TypeIDRegistry::RegisterAddConst(TypeID ID) {
+  std::string_view name = Nameof(ID);
+  if (name.empty())
+    return {};
+
+  TypeID ref_ID{type_name_add_const_hash(name)};
+  if (IsRegistered(ref_ID))
+    return ref_ID;
+
+  auto rst_name = type_name_add_const(name, get_allocator());
+
+  RegisterUnmanaged(ref_ID, rst_name);
+  return ref_ID;
+}
+
 TypeID TypeIDRegistry::RegisterAddLValueReference(TypeID ID) {
   std::string_view name = Nameof(ID);
   if (name.empty())
@@ -192,7 +207,24 @@ TypeID TypeIDRegistry::RegisterAddLValueReference(TypeID ID) {
 
   auto rst_name = type_name_add_lvalue_reference(name, get_allocator());
 
-  return RegisterUnmanaged(rst_name);
+  RegisterUnmanaged(ref_ID, rst_name);
+  return ref_ID;
+}
+
+TypeID TypeIDRegistry::RegisterAddLValueReferenceWeak(TypeID ID) {
+  std::string_view name = Nameof(ID);
+  if (name.empty())
+    return {};
+
+  TypeID ref_ID{type_name_add_lvalue_reference_weak_hash(name)};
+  if (IsRegistered(ref_ID))
+    return ref_ID;
+
+  auto rst_name = type_name_add_lvalue_reference_weak(name, get_allocator());
+
+  RegisterUnmanaged(ref_ID, rst_name);
+
+  return ref_ID;
 }
 
 TypeID TypeIDRegistry::RegisterAddConstLValueReference(TypeID ID) {
@@ -206,7 +238,9 @@ TypeID TypeIDRegistry::RegisterAddConstLValueReference(TypeID ID) {
 
   auto rst_name = type_name_add_const_lvalue_reference(name, get_allocator());
 
-  return RegisterUnmanaged(rst_name);
+  RegisterUnmanaged(ref_ID, rst_name);
+
+  return ref_ID;
 }
 
 TypeID TypeIDRegistry::RegisterAddRValueReference(TypeID ID) {
@@ -220,7 +254,9 @@ TypeID TypeIDRegistry::RegisterAddRValueReference(TypeID ID) {
 
   auto rst_name = type_name_add_rvalue_reference(name, get_allocator());
 
-  return RegisterUnmanaged(rst_name);
+  RegisterUnmanaged(ref_ID, rst_name);
+
+  return ref_ID;
 }
 
 TypeID TypeIDRegistry::RegisterAddConstRValueReference(TypeID ID) {
@@ -234,5 +270,6 @@ TypeID TypeIDRegistry::RegisterAddConstRValueReference(TypeID ID) {
 
   auto rst_name = type_name_add_const_rvalue_reference(name, get_allocator());
 
-  return RegisterUnmanaged(rst_name);
+  RegisterUnmanaged(ref_ID, rst_name);
+  return ref_ID;
 }

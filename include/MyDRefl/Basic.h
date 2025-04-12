@@ -13,7 +13,15 @@
 
 namespace My::MyDRefl {
 using SharedBuffer = std::shared_ptr<void>;
-using SharedConstBuffer = std::shared_ptr<const void>;
+
+enum class ConstReferenceMode {
+  None = 0b000,
+  Left = 0b001,
+  Right = 0b010,
+  Const = 0b100,
+  ConstLeft = 0b101,
+  ConstRight = 0b110,
+};
 
 struct ResultDesc {
   TypeID typeID{TypeID_of<void>};
@@ -32,26 +40,25 @@ struct InvokeResult {
   T Move(void* result_buffer) noexcept(
       std::is_reference_v<T> || std::is_nothrow_destructible_v<T> &&
                                     std::is_nothrow_move_constructible_v<T>) {
-    if constexpr (!std::is_void_v<T>) {
-      assert(result_buffer);
+    static_assert(!std::is_void_v<T>);
 
-      if constexpr (!std::is_reference_v<T> &&
-                    std::is_default_constructible_v<T>) {
-        if (!success || resultID != TypeID_of<T>)
-          return {};
-      } else
-        assert(success && resultID == TypeID_of<T>);
+    assert(result_buffer);
 
-      if constexpr (std::is_reference_v<T>) {
-        assert(!destructor);
-        return std::forward<T>(
-            *buffer_as<std::add_pointer_t<T>>(result_buffer));
-      } else {
-        T rst = std::move(buffer_as<T>(result_buffer));
-        if (destructor)
-          destructor(result_buffer);
-        return rst;
-      }
+    if constexpr (!std::is_reference_v<T> &&
+                  std::is_default_constructible_v<T>) {
+      if (!success || resultID != TypeID_of<T>)
+        return {};
+    } else
+      assert(success && resultID == TypeID_of<T>);
+
+    if constexpr (std::is_reference_v<T>) {
+      assert(!destructor);
+      return std::forward<T>(*buffer_as<std::add_pointer_t<T>>(result_buffer));
+    } else {
+      T rst = std::move(buffer_as<T>(result_buffer));
+      if (destructor)
+        destructor(result_buffer);
+      return rst;
     }
   }
 
@@ -95,15 +102,4 @@ struct TypeMethodRef {
   TypeRef type;
   MethodRef method;
 };
-
-enum class DereferenceProperty {
-  NotReference,
-  Variable,
-  Const,
-};
-
-constexpr bool DereferenceProperty_IsReference(
-    DereferenceProperty prop) noexcept {
-  return prop != DereferenceProperty::NotReference;
-}
 }  // namespace My::MyDRefl

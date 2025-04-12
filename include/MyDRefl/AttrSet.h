@@ -15,15 +15,15 @@ struct AttrLess {
   using is_transparent = int;
 
   bool operator()(const Attr& lhs, const Attr& rhs) const noexcept {
-    return lhs.GetID() < rhs.GetID();
+    return lhs.GetTypeID() < rhs.GetTypeID();
   }
 
   bool operator()(const Attr& lhs, const TypeID& rhs) const noexcept {
-    return lhs.GetID() < rhs;
+    return lhs.GetTypeID() < rhs;
   }
 
   bool operator()(const TypeID& lhs, const Attr& rhs) const noexcept {
-    return lhs < rhs.GetID();
+    return lhs < rhs.GetTypeID();
   }
 };
 

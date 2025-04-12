@@ -10,7 +10,7 @@
 #include <functional>
 
 namespace My::MyDRefl {
-using Offsetor = std::function<const void*(const void*)>;
+using Offsetor = std::function<void*(void*)>;
 using Destructor = std::function<void(const void*)>;
 using FreeFunc = std::function<void(void*)>;
 using DeleteFunc = std::function<void(void*)>;  // Destructor + FreeFunc
@@ -31,8 +31,8 @@ struct field_offsetor_impl<fieldptr> {
   static_assert(!std::is_function_v<T>);
 
   static constexpr auto get() noexcept {
-    return [](const void* ptr) noexcept -> const void* {
-      return &(reinterpret_cast<const Obj*>(ptr)->*fieldptr);
+    return [](void* ptr) noexcept -> void* {
+      return &(reinterpret_cast<Obj*>(ptr)->*fieldptr);
     };
   }
 };
@@ -46,8 +46,8 @@ constexpr auto field_offsetor() noexcept {
 template <typename T, typename Obj>
 constexpr auto field_offsetor(T Obj::* fieldptr) noexcept {
   static_assert(!std::is_function_v<T>);
-  return [fieldptr](const void* ptr) noexcept -> const void* {
-    return &(reinterpret_cast<const Obj*>(ptr)->*fieldptr);
+  return [fieldptr](void* ptr) noexcept -> void* {
+    return &(reinterpret_cast<Obj*>(ptr)->*fieldptr);
   };
 }
 
@@ -60,8 +60,8 @@ struct InheritCastFunctions {
 template <typename From, typename To>
 constexpr auto static_cast_functor() noexcept {
   static_assert(!is_virtual_base_of_v<From, To>);
-  return [](const void* obj) noexcept -> const void* {
-    return static_cast<const To*>(reinterpret_cast<const From*>(obj));
+  return [](void* obj) noexcept -> void* {
+    return static_cast<To*>(reinterpret_cast<From*>(obj));
   };
 }
 
@@ -69,8 +69,8 @@ template <typename Base, typename Derived>
 constexpr auto dynamic_cast_function() noexcept {
   static_assert(std::is_base_of_v<Base, Derived>);
   if constexpr (std::is_polymorphic_v<Base>) {
-    return [](const void* obj) noexcept -> const void* {
-      return dynamic_cast<const Derived*>(reinterpret_cast<const Base*>(obj));
+    return [](void* obj) noexcept -> void* {
+      return dynamic_cast<Derived*>(reinterpret_cast<Base*>(obj));
     };
   } else
     return static_cast_functor<Base, Derived>();
@@ -154,12 +154,16 @@ constexpr const T& buffer_as(const void* buffer) noexcept {
   return buffer_get<T>(buffer, 0);
 }
 
+template <typename T>
+constexpr T* ptr_const_cast(const T* ptr) noexcept {
+  return const_cast<T*>(ptr);
+}
+
 //
 // Wrap
 /////////
 //
 // - if result is reference, function will store a pointer in the result buffer
-// - return type can't be const/volatile
 //
 
 // pointer const array type (pointer is const, and pointer to non - const / referenced object)

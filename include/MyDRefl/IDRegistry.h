@@ -350,7 +350,8 @@ class TypeIDRegistry : public IDRegistry<TypeID> {
   TypeID Register(std::string_view name);
 
   // unmanaged
-  // non-const, non-volatile
+  // U = std::remove_cvref_t<T>
+  // register: U, const U, U&, U&&, const U&, const U&&
   template <typename T>
   void Register();
 
@@ -361,7 +362,9 @@ class TypeIDRegistry : public IDRegistry<TypeID> {
   // Type Computation
   /////////////////////
 
+  TypeID RegisterAddConst(TypeID ID);
   TypeID RegisterAddLValueReference(TypeID ID);
+  TypeID RegisterAddLValueReferenceWeak(TypeID ID);
   TypeID RegisterAddConstLValueReference(TypeID ID);
   TypeID RegisterAddRValueReference(TypeID ID);
   TypeID RegisterAddConstRValueReference(TypeID ID);
