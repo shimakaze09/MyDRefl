@@ -131,17 +131,22 @@ SharedObject ObjectView::MInvoke(Name method_name,
     constexpr std::array argTypes = {Type_of<decltype(args)>...};
     const std::array argptr_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return MInvoke(method_name, std::span<const Type>{argTypes},
-                   static_cast<ArgPtrBuffer>(argptr_buffer.data()), rst_rsrc);
+    return MInvoke(method_name, rst_rsrc, std::span<const Type>{argTypes},
+                   static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
-    return MInvoke(method_name, std::span<const Type>{},
-                   static_cast<ArgPtrBuffer>(nullptr), rst_rsrc);
+    return MInvoke(method_name, rst_rsrc);
 }
 
 template <typename... Args>
 SharedObject ObjectView::DMInvoke(Name method_name, Args&&... args) const {
-  return MInvoke(method_name, std::pmr::get_default_resource(),
-                 std::forward<Args>(args)...);
+  if constexpr (sizeof...(Args) > 0) {
+    constexpr std::array argTypes = {Type_of<decltype(args)>...};
+    const std::array argptr_buffer{
+        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
+    return DMInvoke(method_name, std::span<const Type>{argTypes},
+                    static_cast<ArgPtrBuffer>(argptr_buffer.data()));
+  } else
+    return DMInvoke(method_name);
 }
 
 template <typename T, typename... Args>
@@ -162,11 +167,10 @@ SharedObject ObjectView::AMInvoke(Name method_name,
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypes = {details::ArgType<decltype(args)>(args)...};
     const std::array argptr_buffer{details::ArgPtr(args)...};
-    return MInvoke(method_name, std::span<const Type>{argTypes},
-                   static_cast<ArgPtrBuffer>(argptr_buffer.data()), rst_rsrc);
+    return MInvoke(method_name, rst_rsrc, std::span<const Type>{argTypes},
+                   static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
-    return MInvoke(method_name, std::span<const Type>{},
-                   static_cast<ArgPtrBuffer>(nullptr), rst_rsrc);
+    return MInvoke(method_name, rst_rsrc);
 }
 
 template <typename... Args>

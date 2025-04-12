@@ -1003,16 +1003,13 @@ FieldPtr ReflMngr::GenerateDynamicFieldPtr(Args&&... args) {
   static_assert(!std::is_reference_v<T> && !std::is_volatile_v<T>);
   using RawT = std::remove_const_t<T>;
   RegisterType<RawT>();
+  AddConstructor<RawT, Args...>();
   if constexpr (FieldPtr::IsBufferable<RawT>()) {
     FieldPtr::Buffer buffer =
         FieldPtr::ConvertToBuffer(T{std::forward<Args>(args)...});
     return FieldPtr{Type_of<T>, buffer};
-  } else {
-    static_assert(alignof(RawT) <= alignof(max_align_t));
-    SharedObject obj{Type_of<T>,
-                     std::make_shared<RawT>(std::forward<Args>(args)...)};
-    return FieldPtr{std::move(obj)};
-  }
+  } else
+    return MakeShared(Type_of<T>, std::forward<Args>(args)...);
 }
 
 template <typename T, typename Alloc, typename... Args>
@@ -1343,8 +1340,7 @@ bool ReflMngr::Construct(ObjectView obj, Args&&... args) const {
     return Construct(obj, std::span<const Type>{argTypes},
                      static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
-    return Construct(obj, std::span<const Type>{},
-                     static_cast<ArgPtrBuffer>(nullptr));
+    return Construct(obj);
 }
 
 template <typename... Args>
@@ -1356,8 +1352,7 @@ ObjectView ReflMngr::New(Type type, Args&&... args) const {
     return New(type, std::span<const Type>{argTypes},
                static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
-    return New(type, std::span<const Type>{},
-               static_cast<ArgPtrBuffer>(nullptr));
+    return New(type);
 }
 
 template <typename T, typename... Args>
@@ -1378,8 +1373,7 @@ SharedObject ReflMngr::MakeShared(Type type, Args&&... args) const {
     return MakeShared(type, std::span<const Type>{argTypes},
                       static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
-    return MakeShared(type, std::span<const Type>{},
-                      static_cast<ArgPtrBuffer>(nullptr));
+    return MakeShared(type);
 }
 
 template <typename T, typename... Args>
@@ -1403,11 +1397,10 @@ SharedObject ReflMngr::MInvoke(Type type, Name method_name,
     constexpr std::array argTypes = {Type_of<decltype(args)>...};
     const std::array argptr_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return MInvoke(type, method_name, std::span<const Type>{argTypes},
-                   static_cast<ArgPtrBuffer>(argptr_buffer.data()), rst_rsrc);
+    return MInvoke(type, method_name, rst_rsrc, std::span<const Type>{argTypes},
+                   static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
-    return MInvoke(type, method_name, std::span<const Type>{},
-                   static_cast<ArgPtrBuffer>(nullptr), rst_rsrc);
+    return MInvoke(type, method_name, rst_rsrc);
 }
 
 template <typename... Args>
@@ -1418,25 +1411,36 @@ SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
     constexpr std::array argTypes = {Type_of<decltype(args)>...};
     const std::array argptr_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return MInvoke(obj, method_name, std::span<const Type>{argTypes},
-                   static_cast<ArgPtrBuffer>(argptr_buffer.data()), rst_rsrc);
+    return MInvoke(obj, method_name, rst_rsrc, std::span<const Type>{argTypes},
+                   static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
-    return MInvoke(obj, method_name, std::span<const Type>{},
-                   static_cast<ArgPtrBuffer>(nullptr), rst_rsrc);
+    return MInvoke(obj, method_name, rst_rsrc);
 }
 
 template <typename... Args>
 SharedObject ReflMngr::DMInvoke(Type type, Name method_name,
                                 Args&&... args) const {
-  return MInvoke(type, method_name, std::pmr::get_default_resource(),
-                 std::forward<Args>(args)...);
+  if constexpr (sizeof...(Args) > 0) {
+    constexpr std::array argTypes = {Type_of<decltype(args)>...};
+    const std::array argptr_buffer{
+        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
+    return DMInvoke(type, method_name, std::span<const Type>{argTypes},
+                    static_cast<ArgPtrBuffer>(argptr_buffer.data()));
+  } else
+    return DMInvoke(type, method_name);
 }
 
 template <typename... Args>
 SharedObject ReflMngr::DMInvoke(ObjectView obj, Name method_name,
                                 Args&&... args) const {
-  return MInvoke(obj, method_name, std::pmr::get_default_resource(),
-                 std::forward<Args>(args)...);
+  if constexpr (sizeof...(Args) > 0) {
+    constexpr std::array argTypes = {Type_of<decltype(args)>...};
+    const std::array argptr_buffer{
+        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
+    return DMInvoke(obj, method_name, std::span<const Type>{argTypes},
+                    static_cast<ArgPtrBuffer>(argptr_buffer.data()));
+  } else
+    return DMInvoke(obj, method_name);
 }
 
 template <typename... Args>
@@ -1449,7 +1453,6 @@ ObjectView ReflMngr::MNew(Type type, std::pmr::memory_resource* rsrc,
     return MNew(type, rsrc, std::span<const Type>{argTypes},
                 static_cast<ArgPtrBuffer>(argptr_buffer.data()));
   } else
-    return MNew(type, rsrc, std::span<const Type>{},
-                static_cast<ArgPtrBuffer>(nullptr));
+    return MNew(type, rsrc);
 }
 }  // namespace My::MyDRefl

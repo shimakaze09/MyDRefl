@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "Basic.h"
@@ -130,10 +129,12 @@ class ObjectView {
   template <typename T, typename... Args>
   T Invoke(Name method_name, Args&&... args) const;
 
-  SharedObject MInvoke(Name method_name, std::span<const Type> argTypes = {},
-                       ArgPtrBuffer argptr_buffer = nullptr,
-                       std::pmr::memory_resource* rst_rsrc =
-                           std::pmr::get_default_resource()) const;
+  SharedObject MInvoke(Name method_name, std::pmr::memory_resource* rst_rsrc,
+                       std::span<const Type> argTypes = {},
+                       ArgPtrBuffer argptr_buffer = nullptr) const;
+
+  SharedObject DMInvoke(Name method_name, std::span<const Type> argTypes = {},
+                        ArgPtrBuffer argptr_buffer = nullptr) const;
 
   template <typename... Args>
   SharedObject MInvoke(Name method_name, std::pmr::memory_resource* rst_rsrc,
@@ -201,9 +202,7 @@ class ObjectView {
   bool ContainsBase(Type base) const;
   bool ContainsField(Name field_name) const;
   bool ContainsMethod(Name method_name) const;
-  bool ContainsVariableMethod(Name method_name) const;
-  bool ContainsConstMethod(Name method_name) const;
-  bool ContainsStaticMethod(Name method_name) const;
+  bool ContainsMethod(Name method_name, FuncMode mode) const;
 
   //
   // Type

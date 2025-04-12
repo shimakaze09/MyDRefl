@@ -7,6 +7,10 @@
 - 0.8.0
     - remove `ConstObjectPtr` and `SharedConstObject` 
     - `TypeID` -> `Type`, `StrID` -> `Name` 
+    - simplify API
+        - `IsInvocable` 
+    - remove `malloc` and `free` 
+    
 ## 0.7
 
 - 0.7.3

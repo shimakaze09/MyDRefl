@@ -637,9 +637,10 @@ static InvokeResult Invoke(bool is_priority,
 
 static SharedObject MInvoke(bool is_priority,
                             std::pmr::memory_resource* args_rsrc, Type type,
-                            Name method_name, std::span<const Type> argTypes,
-                            ArgPtrBuffer argptr_buffer,
-                            std::pmr::memory_resource* rst_rsrc) {
+                            Name method_name,
+                            std::pmr::memory_resource* rst_rsrc,
+                            std::span<const Type> argTypes,
+                            ArgPtrBuffer argptr_buffer) {
   assert(type.CVRefMode() == CVRefMode::None);
 
   auto typetarget = Mngr.typeinfos.find(type);
@@ -683,8 +684,8 @@ static SharedObject MInvoke(bool is_priority,
   }
 
   for (const auto& [base, baseinfo] : typeinfo.baseinfos) {
-    auto rst = MInvoke(is_priority, args_rsrc, base, method_name, argTypes,
-                       argptr_buffer, rst_rsrc);
+    auto rst = MInvoke(is_priority, args_rsrc, base, method_name, rst_rsrc,
+                       argTypes, argptr_buffer);
     if (rst.GetType())
       return rst;
   }
@@ -695,9 +696,9 @@ static SharedObject MInvoke(bool is_priority,
 static SharedObject MInvoke(bool is_priority,
                             std::pmr::memory_resource* args_rsrc,
                             ObjectView obj, bool is_const, Name method_name,
+                            std::pmr::memory_resource* rst_rsrc,
                             std::span<const Type> argTypes,
-                            ArgPtrBuffer argptr_buffer,
-                            std::pmr::memory_resource* rst_rsrc) {
+                            ArgPtrBuffer argptr_buffer) {
   assert(rst_rsrc);
   assert(obj.GetType().CVRefMode() == CVRefMode::None);
   auto typetarget = Mngr.typeinfos.find(obj.GetType());
@@ -781,7 +782,7 @@ static SharedObject MInvoke(bool is_priority,
     auto rst = MInvoke(
         is_priority, args_rsrc,
         ObjectView{base, baseinfo.StaticCast_DerivedToBase(obj.GetPtr())},
-        is_const, method_name, argTypes, argptr_buffer, rst_rsrc);
+        is_const, method_name, rst_rsrc, argTypes, argptr_buffer);
     if (rst.GetType())
       return rst;
   }
@@ -1511,9 +1512,9 @@ InvokeResult ReflMngr::Invoke(ObjectView obj, Name method_name,
 }
 
 SharedObject ReflMngr::MInvoke(Type type, Name method_name,
+                               std::pmr::memory_resource* rst_rsrc,
                                std::span<const Type> argTypes,
-                               ArgPtrBuffer argptr_buffer,
-                               std::pmr::memory_resource* rst_rsrc) const {
+                               ArgPtrBuffer argptr_buffer) const {
   assert(rst_rsrc);
 
   Type rawType;
@@ -1540,18 +1541,18 @@ SharedObject ReflMngr::MInvoke(Type type, Name method_name,
 
   if (auto priority_rst =
           details::MInvoke(true, &temporary_resource, rawType, method_name,
-                           argTypes, argptr_buffer, rst_rsrc);
+                           rst_rsrc, argTypes, argptr_buffer);
       priority_rst.GetType().Valid())
     return priority_rst;
 
   return details::MInvoke(false, &temporary_resource, rawType, method_name,
-                          argTypes, argptr_buffer, rst_rsrc);
+                          rst_rsrc, argTypes, argptr_buffer);
 }
 
 SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
+                               std::pmr::memory_resource* rst_rsrc,
                                std::span<const Type> argTypes,
-                               ArgPtrBuffer argptr_buffer,
-                               std::pmr::memory_resource* rst_rsrc) const {
+                               ArgPtrBuffer argptr_buffer) const {
   assert(rst_rsrc);
 
   ObjectView rawObj;
@@ -1583,12 +1584,12 @@ SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
 
   if (auto priority_rst =
           details::MInvoke(true, &temporary_resource, rawObj, is_const,
-                           method_name, argTypes, argptr_buffer, rst_rsrc);
+                           method_name, rst_rsrc, argTypes, argptr_buffer);
       priority_rst.GetType().Valid())
     return priority_rst;
 
   return details::MInvoke(false, &temporary_resource, rawObj, is_const,
-                          method_name, argTypes, argptr_buffer, rst_rsrc);
+                          method_name, rst_rsrc, argTypes, argptr_buffer);
 }
 
 ObjectView ReflMngr::NonArgCopyMNew(Type type, std::pmr::memory_resource* rsrc,
