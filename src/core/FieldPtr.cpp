@@ -6,9 +6,9 @@
 
 using namespace My::MyDRefl;
 
-ObjectPtr FieldPtr::Var() noexcept {
+ObjectView FieldPtr::Var() noexcept {
   return std::visit(
-      [this]<typename T>(T& value) -> ObjectPtr {
+      [this]<typename T>(T& value) -> ObjectView {
         if constexpr (std::is_same_v<T, size_t>) {
           assert(false);
           return nullptr;
@@ -27,9 +27,9 @@ ObjectPtr FieldPtr::Var() noexcept {
       data);
 }
 
-ObjectPtr FieldPtr::Var(void* obj) {
+ObjectView FieldPtr::Var(void* obj) {
   return std::visit(
-      [obj, this]<typename T>(T& value) -> ObjectPtr {
+      [obj, this]<typename T>(T& value) -> ObjectView {
         if constexpr (std::is_same_v<T, size_t>) {
           assert(obj);
           return {valueID, forward_offset(obj, value)};

@@ -89,7 +89,7 @@ Rst runtime_get_impl(T&& obj, std::size_t i) {
     return nullptr;
   else {
     if (i == TargetIdx)
-      return ObjectPtr{std::get<TargetIdx>(std::forward<T>(obj))};
+      return ObjectView{std::get<TargetIdx>(std::forward<T>(obj))};
     else
       return runtime_get_impl<Rst, TargetIdx + 1>(std::forward<T>(obj), i);
   }
@@ -416,11 +416,11 @@ struct TypeAutoRegister_Default {
                            []() { return std::tuple_size_v<T>; });
       mngr.AddMemberMethod(StrIDRegistry::Meta::tuple_get,
                            [](T& t, const std::size_t& i) {
-                             return runtime_get<ObjectPtr>(t, i);
+                             return runtime_get<ObjectView>(t, i);
                            });
       mngr.AddMemberMethod(StrIDRegistry::Meta::tuple_get,
                            [](const T& t, const std::size_t& i) {
-                             return runtime_get<ObjectPtr>(t, i);
+                             return runtime_get<ObjectView>(t, i);
                            });
       if constexpr (!IsArray_v<T>)
         register_tuple_elements<T>(
@@ -1294,7 +1294,7 @@ T ReflMngr::InvokeRet(TypeID typeID, StrID methodID,
 }
 
 template <typename T>
-T ReflMngr::InvokeRet(ObjectPtr obj, StrID methodID,
+T ReflMngr::InvokeRet(ObjectView obj, StrID methodID,
                       std::span<const TypeID> argTypeIDs,
                       ArgPtrBuffer argptr_buffer) const {
   if constexpr (!std::is_void_v<T>) {
@@ -1324,7 +1324,7 @@ InvokeResult ReflMngr::InvokeArgs(TypeID typeID, StrID methodID,
 }
 
 template <typename... Args>
-InvokeResult ReflMngr::InvokeArgs(ObjectPtr obj, StrID methodID,
+InvokeResult ReflMngr::InvokeArgs(ObjectView obj, StrID methodID,
                                   void* result_buffer, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
@@ -1350,7 +1350,7 @@ T ReflMngr::Invoke(TypeID typeID, StrID methodID, Args&&... args) const {
 }
 
 template <typename T, typename... Args>
-T ReflMngr::Invoke(ObjectPtr obj, StrID methodID, Args&&... args) const {
+T ReflMngr::Invoke(ObjectView obj, StrID methodID, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array argptr_buffer{
@@ -1372,7 +1372,7 @@ bool ReflMngr::IsConstructible(TypeID typeID) const {
 }
 
 template <typename... Args>
-bool ReflMngr::Construct(ObjectPtr obj, Args&&... args) const {
+bool ReflMngr::Construct(ObjectView obj, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array argptr_buffer{
@@ -1385,7 +1385,7 @@ bool ReflMngr::Construct(ObjectPtr obj, Args&&... args) const {
 }
 
 template <typename... Args>
-ObjectPtr ReflMngr::New(TypeID typeID, Args&&... args) const {
+ObjectView ReflMngr::New(TypeID typeID, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array argptr_buffer{
@@ -1398,7 +1398,7 @@ ObjectPtr ReflMngr::New(TypeID typeID, Args&&... args) const {
 }
 
 template <typename T, typename... Args>
-ObjectPtr ReflMngr::NewAuto(Args... args) {
+ObjectView ReflMngr::NewAuto(Args... args) {
   static_assert(!std::is_const_v<T> && !std::is_volatile_v<T> &&
                 !std::is_reference_v<T>);
   RegisterType<T>();
@@ -1448,7 +1448,7 @@ SharedObject ReflMngr::MInvoke(TypeID typeID, StrID methodID,
 }
 
 template <typename... Args>
-SharedObject ReflMngr::MInvoke(ObjectPtr obj, StrID methodID,
+SharedObject ReflMngr::MInvoke(ObjectView obj, StrID methodID,
                                std::pmr::memory_resource* rst_rsrc,
                                Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
@@ -1470,15 +1470,15 @@ SharedObject ReflMngr::DMInvoke(TypeID typeID, StrID methodID,
 }
 
 template <typename... Args>
-SharedObject ReflMngr::DMInvoke(ObjectPtr obj, StrID methodID,
+SharedObject ReflMngr::DMInvoke(ObjectView obj, StrID methodID,
                                 Args&&... args) const {
   return MInvoke(obj, methodID, std::pmr::get_default_resource(),
                  std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-ObjectPtr ReflMngr::MNew(TypeID typeID, std::pmr::memory_resource* rsrc,
-                         Args&&... args) const {
+ObjectView ReflMngr::MNew(TypeID typeID, std::pmr::memory_resource* rsrc,
+                          Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypeIDs = {TypeID_of<decltype(args)>...};
     const std::array argptr_buffer{

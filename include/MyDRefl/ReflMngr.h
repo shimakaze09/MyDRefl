@@ -339,11 +339,11 @@ class ReflMngr {
   // Cast
   /////////
 
-  ObjectPtr StaticCast_DerivedToBase(ObjectPtr obj, TypeID typeID) const;
-  ObjectPtr StaticCast_BaseToDerived(ObjectPtr obj, TypeID typeID) const;
-  ObjectPtr DynamicCast_BaseToDerived(ObjectPtr obj, TypeID typeID) const;
-  ObjectPtr StaticCast(ObjectPtr obj, TypeID typeID) const;
-  ObjectPtr DynamicCast(ObjectPtr obj, TypeID typeID) const;
+  ObjectView StaticCast_DerivedToBase(ObjectView obj, TypeID typeID) const;
+  ObjectView StaticCast_BaseToDerived(ObjectView obj, TypeID typeID) const;
+  ObjectView DynamicCast_BaseToDerived(ObjectView obj, TypeID typeID) const;
+  ObjectView StaticCast(ObjectView obj, TypeID typeID) const;
+  ObjectView DynamicCast(ObjectView obj, TypeID typeID) const;
 
   //
   // Field
@@ -353,11 +353,11 @@ class ReflMngr {
   //
 
   // object
-  ObjectPtr Var(TypeID typeID, StrID fieldID);
+  ObjectView Var(TypeID typeID, StrID fieldID);
   // all
-  ObjectPtr Var(ObjectPtr obj, StrID fieldID);
+  ObjectView Var(ObjectView obj, StrID fieldID);
   // all, for diamond inheritance
-  ObjectPtr Var(ObjectPtr obj, TypeID baseID, StrID fieldID);
+  ObjectView Var(ObjectView obj, TypeID baseID, StrID fieldID);
 
   //
   // Invoke
@@ -397,7 +397,7 @@ class ReflMngr {
                       std::span<const TypeID> argTypeIDs = {},
                       ArgPtrBuffer argptr_buffer = nullptr) const;
 
-  InvokeResult Invoke(ObjectPtr obj, StrID methodID,
+  InvokeResult Invoke(ObjectView obj, StrID methodID,
                       void* result_buffer = nullptr,
                       std::span<const TypeID> argTypeIDs = {},
                       ArgPtrBuffer argptr_buffer = nullptr) const;
@@ -416,7 +416,7 @@ class ReflMngr {
               std::span<const TypeID> argTypeIDs = {},
               ArgPtrBuffer argptr_buffer = nullptr) const;
   template <typename T>
-  T InvokeRet(ObjectPtr obj, StrID methodID,
+  T InvokeRet(ObjectView obj, StrID methodID,
               std::span<const TypeID> argTypeIDs = {},
               ArgPtrBuffer argptr_buffer = nullptr) const;
 
@@ -424,13 +424,13 @@ class ReflMngr {
   InvokeResult InvokeArgs(TypeID typeID, StrID methodID, void* result_buffer,
                           Args&&... args) const;
   template <typename... Args>
-  InvokeResult InvokeArgs(ObjectPtr obj, StrID methodID, void* result_buffer,
+  InvokeResult InvokeArgs(ObjectView obj, StrID methodID, void* result_buffer,
                           Args&&... args) const;
 
   template <typename T, typename... Args>
   T Invoke(TypeID typeID, StrID methodID, Args&&... args) const;
   template <typename T, typename... Args>
-  T Invoke(ObjectPtr obj, StrID methodID, Args&&... args) const;
+  T Invoke(ObjectView obj, StrID methodID, Args&&... args) const;
 
   //
   // Meta
@@ -443,11 +443,11 @@ class ReflMngr {
   bool IsCopyConstructible(TypeID typeID) const;
   bool IsMoveConstructible(TypeID typeID) const;
 
-  bool NonArgConstruct(ObjectPtr obj, std::span<const TypeID> argTypeIDs,
+  bool NonArgConstruct(ObjectView obj, std::span<const TypeID> argTypeIDs,
                        ArgPtrBuffer argptr_buffer) const;
-  bool Construct(ObjectPtr obj, std::span<const TypeID> argTypeIDs,
+  bool Construct(ObjectView obj, std::span<const TypeID> argTypeIDs,
                  ArgPtrBuffer argptr_buffer) const;
-  bool Destruct(ObjectPtr obj) const;
+  bool Destruct(ObjectView obj) const;
 
   void* Malloc(size_t size) const;
   bool Free(void* ptr) const;
@@ -455,11 +455,11 @@ class ReflMngr {
   void* AlignedMalloc(size_t size, size_t alignment) const;
   bool AlignedFree(void* ptr) const;
 
-  ObjectPtr NonArgCopyNew(TypeID typeID, std::span<const TypeID> argTypeIDs,
-                          ArgPtrBuffer argptr_buffer) const;
-  ObjectPtr New(TypeID typeID, std::span<const TypeID> argTypeIDs,
-                ArgPtrBuffer argptr_buffer) const;
-  bool Delete(ObjectPtr obj) const;
+  ObjectView NonArgCopyNew(TypeID typeID, std::span<const TypeID> argTypeIDs,
+                           ArgPtrBuffer argptr_buffer) const;
+  ObjectView New(TypeID typeID, std::span<const TypeID> argTypeIDs,
+                 ArgPtrBuffer argptr_buffer) const;
+  bool Delete(ObjectView obj) const;
 
   SharedObject MakeShared(TypeID typeID, std::span<const TypeID> argTypeIDs,
                           ArgPtrBuffer argptr_buffer) const;
@@ -470,10 +470,10 @@ class ReflMngr {
   bool IsConstructible(TypeID typeID) const;
 
   template <typename... Args>
-  bool Construct(ObjectPtr obj, Args&&... args) const;
+  bool Construct(ObjectView obj, Args&&... args) const;
 
   template <typename... Args>
-  ObjectPtr New(TypeID typeID, Args&&... args) const;
+  ObjectView New(TypeID typeID, Args&&... args) const;
 
   template <typename... Args>
   SharedObject MakeShared(TypeID typeID, Args&&... args) const;
@@ -481,7 +481,7 @@ class ReflMngr {
   // - if T is not register, call RegisterType<T>()
   // - call AddConstructor<T, Args...>()
   template <typename T, typename... Args>
-  ObjectPtr NewAuto(Args... args);
+  ObjectView NewAuto(Args... args);
 
   // - if T is not register, call RegisterType<T>()
   // - call AddConstructor<T, Args...>()
@@ -513,17 +513,17 @@ class ReflMngr {
   // self object vars and all bases' object vars
   void ForEachVar(
       TypeID typeID,
-      const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const;
+      const std::function<bool(TypeRef, FieldRef, ObjectView)>& func) const;
 
   // self vars and all bases' vars
   void ForEachVar(
-      ObjectPtr obj,
-      const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const;
+      ObjectView obj,
+      const std::function<bool(TypeRef, FieldRef, ObjectView)>& func) const;
 
   // self owned vars and all bases' owned vars
   void ForEachOwnedVar(
-      ObjectPtr obj,
-      const std::function<bool(TypeRef, FieldRef, ObjectPtr)>& func) const;
+      ObjectView obj,
+      const std::function<bool(TypeRef, FieldRef, ObjectView)>& func) const;
 
   // Gather (DFS)
 
@@ -533,15 +533,15 @@ class ReflMngr {
   std::vector<FieldRef> GetFields(TypeID typeID);
   std::vector<TypeMethodRef> GetTypeMethods(TypeID typeID);
   std::vector<MethodRef> GetMethods(TypeID typeID);
-  std::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>> GetTypeFieldVars(
+  std::vector<std::tuple<TypeRef, FieldRef, ObjectView>> GetTypeFieldVars(
       TypeID typeID);
-  std::vector<ObjectPtr> GetVars(TypeID typeID);
-  std::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>> GetTypeFieldVars(
-      ObjectPtr obj);
-  std::vector<ObjectPtr> GetVars(ObjectPtr obj);
-  std::vector<std::tuple<TypeRef, FieldRef, ObjectPtr>> GetTypeFieldOwnedVars(
-      ObjectPtr obj);
-  std::vector<ObjectPtr> GetOwnedVars(ObjectPtr obj);
+  std::vector<ObjectView> GetVars(TypeID typeID);
+  std::vector<std::tuple<TypeRef, FieldRef, ObjectView>> GetTypeFieldVars(
+      ObjectView obj);
+  std::vector<ObjectView> GetVars(ObjectView obj);
+  std::vector<std::tuple<TypeRef, FieldRef, ObjectView>> GetTypeFieldOwnedVars(
+      ObjectView obj);
+  std::vector<ObjectView> GetOwnedVars(ObjectView obj);
 
   // Find (DFS)
 
@@ -553,12 +553,12 @@ class ReflMngr {
       TypeID typeID, const std::function<bool(FieldRef)>& func) const;
   std::optional<MethodRef> FindMethod(
       TypeID typeID, const std::function<bool(MethodRef)>& func) const;
-  ObjectPtr FindVar(TypeID typeID,
-                    const std::function<bool(ObjectPtr)>& func) const;
-  ObjectPtr FindVar(ObjectPtr obj,
-                    const std::function<bool(ObjectPtr)>& func) const;
-  ObjectPtr FindOwnedVar(ObjectPtr obj,
-                         const std::function<bool(ObjectPtr)>& func) const;
+  ObjectView FindVar(TypeID typeID,
+                     const std::function<bool(ObjectView)>& func) const;
+  ObjectView FindVar(ObjectView obj,
+                     const std::function<bool(ObjectView)>& func) const;
+  ObjectView FindOwnedVar(ObjectView obj,
+                          const std::function<bool(ObjectView)>& func) const;
 
   // Contains (DFS)
 
@@ -588,7 +588,7 @@ class ReflMngr {
                        std::pmr::memory_resource* result_rsrc =
                            std::pmr::get_default_resource()) const;
 
-  SharedObject MInvoke(ObjectPtr obj, StrID methodID,
+  SharedObject MInvoke(ObjectView obj, StrID methodID,
                        std::span<const TypeID> argTypeIDs = {},
                        ArgPtrBuffer argptr_buffer = nullptr,
                        std::pmr::memory_resource* result_rsrc =
@@ -600,7 +600,7 @@ class ReflMngr {
                        Args&&... args) const;
 
   template <typename... Args>
-  SharedObject MInvoke(ObjectPtr obj, StrID methodID,
+  SharedObject MInvoke(ObjectView obj, StrID methodID,
                        std::pmr::memory_resource* result_rsrc,
                        Args&&... args) const;
 
@@ -608,19 +608,19 @@ class ReflMngr {
   SharedObject DMInvoke(TypeID typeID, StrID methodID, Args&&... args) const;
 
   template <typename... Args>
-  SharedObject DMInvoke(ObjectPtr obj, StrID methodID, Args&&... args) const;
+  SharedObject DMInvoke(ObjectView obj, StrID methodID, Args&&... args) const;
 
-  ObjectPtr NonArgCopyMNew(TypeID typeID, std::pmr::memory_resource* rsrc,
-                           std::span<const TypeID> argTypeIDs,
-                           ArgPtrBuffer argptr_buffer) const;
-  ObjectPtr MNew(TypeID typeID, std::pmr::memory_resource* rsrc,
-                 std::span<const TypeID> argTypeIDs,
-                 ArgPtrBuffer argptr_buffer) const;
-  bool MDelete(ObjectPtr obj, std::pmr::memory_resource* rsrc) const;
+  ObjectView NonArgCopyMNew(TypeID typeID, std::pmr::memory_resource* rsrc,
+                            std::span<const TypeID> argTypeIDs,
+                            ArgPtrBuffer argptr_buffer) const;
+  ObjectView MNew(TypeID typeID, std::pmr::memory_resource* rsrc,
+                  std::span<const TypeID> argTypeIDs,
+                  ArgPtrBuffer argptr_buffer) const;
+  bool MDelete(ObjectView obj, std::pmr::memory_resource* rsrc) const;
 
   template <typename... Args>
-  ObjectPtr MNew(TypeID typeID, std::pmr::memory_resource* rsrc,
-                 Args&&... args) const;
+  ObjectView MNew(TypeID typeID, std::pmr::memory_resource* rsrc,
+                  Args&&... args) const;
 
   //
   // Type
@@ -656,7 +656,7 @@ class ReflMngr {
   mutable std::pmr::synchronized_pool_resource temporary_resource;
 };
 
-inline static std::add_const_t<ReflMngr*> Mngr = &ReflMngr::Instance();
+inline static ReflMngr& Mngr = ReflMngr::Instance();
 }  // namespace My::MyDRefl
 
 #include "details/ReflMngr.inl"

@@ -21,7 +21,7 @@ class ArgsView {
 
   const ParamList& GetParamList() const noexcept { return paramList; }
 
-  ObjectPtr At(size_t idx) const noexcept {
+  ObjectView At(size_t idx) const noexcept {
     assert(idx < paramList.size());
     return {paramList[idx], buffer[idx]};
   }

@@ -3,7 +3,6 @@
 //
 
 #include <MyDRefl/MyDRefl.h>
-
 #include <iostream>
 
 using namespace My;
@@ -14,24 +13,22 @@ struct Point {
 };
 
 int main() {
-  ReflMngr::Instance().RegisterType<Point>();
-  ReflMngr::Instance().AddField<&Point::x>("x");
-  ReflMngr::Instance().AddField<&Point::y>("y");
+  Mngr.RegisterType<Point>();
+  Mngr.AddField<&Point::x>("x");
+  Mngr.AddField<&Point::y>("y");
 
-  SharedObject p = ReflMngr::Instance().MakeShared(TypeID_of<Point>);
+  SharedObject p = Mngr.MakeShared(TypeID_of<Point>);
 
-  ReflMngr::Instance().Var(p, "x") = 1.f;
-  ReflMngr::Instance().Var(p, "y") = 2.f;
+  Mngr.Var(p, "x") = 1.f;
+  Mngr.Var(p, "y") = 2.f;
 
-  for (const auto& [type, field, var] : p->GetTypeFieldVars()) {
-    std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": " << var
-              << std::endl;
+  for (const auto& [type, field, var] : p.GetTypeFieldVars()) {
+    std::cout << Mngr.nregistry.Nameof(field.ID) << ": " << var << std::endl;
   }
 
   const Point q{3.f, 4.f};
 
-  for (const auto& [type, field, var] : ObjectPtr{q}->GetTypeFieldVars()) {
-    std::cout << ReflMngr::Instance().nregistry.Nameof(field.ID) << ": " << var
-              << std::endl;
+  for (const auto& [type, field, var] : ObjectView{q}.GetTypeFieldVars()) {
+    std::cout << Mngr.nregistry.Nameof(field.ID) << ": " << var << std::endl;
   }
 }
