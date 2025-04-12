@@ -9,7 +9,6 @@
 #include <iostream>
 #include <sstream>
 
-
 namespace My::MyDRefl::details {
 template <typename ArgList>
 struct GenerateMethodPtr_Helper;
@@ -105,9 +104,6 @@ Rst runtime_get(T&& obj, std::size_t i) {
 template <typename T, std::size_t... Ns>
 void register_tuple_elements(ReflMngr& mngr, std::index_sequence<Ns...>) {
   (mngr.RegisterType<std::tuple_element_t<Ns, T>>(), ...);
-  (mngr.AddField(concat(TSTR("__"), constexpr_value_name<Ns>()).View(),
-                 [](T* obj) { return &std::get<Ns>(*obj); }),
-   ...);
 }
 
 template <typename T>

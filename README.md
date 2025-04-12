@@ -16,7 +16,7 @@
 
 > **My** **D**ynamic **R**eflection
 
-Extremely **fast** C++20 dynamic reflection library
+Extremely **fast** and **powerful** C++20 dynamic reflection library
 
 ## Documentation [->](doc)
 
