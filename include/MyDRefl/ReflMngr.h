@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "attrs/ContainerType.h"
@@ -316,12 +315,6 @@ class ReflMngr {
                  ArgPtrBuffer argptr_buffer) const;
   bool Destruct(ObjectView obj) const;
 
-  void* Malloc(size_t size) const;
-  bool Free(void* ptr) const;
-
-  void* AlignedMalloc(size_t size, size_t alignment) const;
-  bool AlignedFree(void* ptr) const;
-
   ObjectView NonArgCopyNew(Type type, std::span<const Type> argTypes,
                            ArgPtrBuffer argptr_buffer) const;
   ObjectView New(Type type, std::span<const Type> argTypes,
@@ -425,9 +418,7 @@ class ReflMngr {
   bool ContainsBase(Type type, Type base) const;
   bool ContainsField(Type type, Name field_name) const;
   bool ContainsMethod(Type type, Name method_name) const;
-  bool ContainsVariableMethod(Type type, Name method_name) const;
-  bool ContainsConstMethod(Type type, Name method_name) const;
-  bool ContainsStaticMethod(Type type, Name method_name) const;
+  bool ContainsMethod(Type type, Name method_name, FuncMode mode) const;
 
   //
   // Memory
@@ -504,6 +495,10 @@ class ReflMngr {
   // - argument copy
   // - user argument buffer
   mutable std::pmr::synchronized_pool_resource temporary_resource;
+
+  // for
+  // - New
+  mutable std::pmr::synchronized_pool_resource object_resource;
 };
 
 inline static ReflMngr& Mngr = ReflMngr::Instance();

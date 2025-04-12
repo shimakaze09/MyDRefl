@@ -48,20 +48,6 @@ class IDRegistry {
 class NameIDRegistry : public IDRegistry<NameID> {
  public:
   struct Meta {
-
-    //
-    // Global
-    ///////////
-
-    static constexpr Name malloc{"MyDRefl::malloc"};
-    static constexpr Name free{"MyDRefl::free"};
-    static constexpr Name aligned_malloc{"MyDRefl::aligned_malloc"};
-    static constexpr Name aligned_free{"MyDRefl::aligned_free"};
-
-    //
-    // Member
-    ///////////
-
     static constexpr Name ctor{"MyDRefl::ctor"};
     static constexpr Name dtor{"MyDRefl::dtor"};
 
