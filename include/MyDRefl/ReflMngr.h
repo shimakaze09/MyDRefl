@@ -35,6 +35,8 @@ class ReflMngr {
   // - type attrs
   // - type dynamic shared field
   // - typeinfos
+  // - temporary_resource
+  // - object_resource
   void Clear() noexcept;
 
   //
@@ -251,29 +253,29 @@ class ReflMngr {
 
   InvocableResult IsInvocable(Type type, Name method_name,
                               std::span<const Type> argTypes = {},
-                              FuncFlag flag = FuncFlag::All) const;
+                              MethodFlag flag = MethodFlag::All) const;
 
   InvokeResult Invoke(ObjectView obj, Name method_name,
                       void* result_buffer = nullptr,
                       std::span<const Type> argTypes = {},
                       ArgPtrBuffer argptr_buffer = nullptr,
-                      FuncFlag flag = FuncFlag::All) const;
+                      MethodFlag flag = MethodFlag::All) const;
 
   // -- template --
 
   template <typename... Args>
   InvocableResult IsInvocable(Type type, Name method_name,
-                              FuncFlag flag = FuncFlag::All) const;
+                              MethodFlag flag = MethodFlag::All) const;
 
   template <typename T>
   T InvokeRet(Type type, Name method_name, std::span<const Type> argTypes = {},
               ArgPtrBuffer argptr_buffer = nullptr,
-              FuncFlag flag = FuncFlag::All) const;
+              MethodFlag flag = MethodFlag::All) const;
   template <typename T>
   T InvokeRet(ObjectView obj, Name method_name,
               std::span<const Type> argTypes = {},
               ArgPtrBuffer argptr_buffer = nullptr,
-              FuncFlag flag = FuncFlag::All) const;
+              MethodFlag flag = MethodFlag::All) const;
 
   template <typename... Args>
   InvokeResult InvokeArgs(Type type, Name method_name, void* result_buffer,
@@ -358,7 +360,7 @@ class ReflMngr {
   // self methods and all bases' methods
   void ForEachMethod(Type type,
                      const std::function<bool(TypeRef, MethodRef)>& func,
-                     FuncFlag flag = FuncFlag ::All) const;
+                     MethodFlag flag = MethodFlag ::All) const;
 
   // self vars and all bases' vars
   void ForEachVar(
@@ -373,8 +375,9 @@ class ReflMngr {
                                           FieldFlag flag = FieldFlag::All);
   std::vector<FieldRef> GetFields(Type type, FieldFlag flag = FieldFlag::All);
   std::vector<TypeMethodRef> GetTypeMethods(Type type,
-                                            FuncFlag flag = FuncFlag ::All);
-  std::vector<MethodRef> GetMethods(Type type, FuncFlag flag = FuncFlag ::All);
+                                            MethodFlag flag = MethodFlag ::All);
+  std::vector<MethodRef> GetMethods(Type type,
+                                    MethodFlag flag = MethodFlag ::All);
   std::vector<std::tuple<TypeRef, FieldRef, ObjectView>> GetTypeFieldVars(
       ObjectView obj, FieldFlag flag = FieldFlag::All);
   std::vector<ObjectView> GetVars(ObjectView obj,
@@ -389,7 +392,7 @@ class ReflMngr {
                                     FieldFlag flag = FieldFlag::All) const;
   std::optional<MethodRef> FindMethod(
       Type type, const std::function<bool(MethodRef)>& func,
-      FuncFlag flag = FuncFlag ::All) const;
+      MethodFlag flag = MethodFlag ::All) const;
   ObjectView FindVar(ObjectView obj,
                      const std::function<bool(ObjectView)>& func,
                      FieldFlag flag = FieldFlag::All) const;
@@ -400,7 +403,7 @@ class ReflMngr {
   bool ContainsField(Type type, Name field_name,
                      FieldFlag flag = FieldFlag::All) const;
   bool ContainsMethod(Type type, Name method_name,
-                      FuncFlag flag = FuncFlag ::All) const;
+                      MethodFlag flag = MethodFlag ::All) const;
 
   //
   // Memory
@@ -420,19 +423,19 @@ class ReflMngr {
                        std::pmr::memory_resource* result_rsrc,
                        std::span<const Type> argTypes = {},
                        ArgPtrBuffer argptr_buffer = nullptr,
-                       FuncFlag flag = FuncFlag::All) const;
+                       MethodFlag flag = MethodFlag::All) const;
 
   SharedObject DMInvoke(ObjectView obj, Name method_name,
                         std::span<const Type> argTypes = {},
                         ArgPtrBuffer argptr_buffer = nullptr,
-                        FuncFlag flag = FuncFlag::All) const {
+                        MethodFlag flag = MethodFlag::All) const {
     return MInvoke(obj, method_name, &object_resource, argTypes, argptr_buffer,
                    flag);
   }
 
   template <typename... Args>
   SharedObject MInvoke(ObjectView obj, Name method_name,
-                       std::pmr::memory_resource* result_rsrc, FuncFlag flag,
+                       std::pmr::memory_resource* result_rsrc, MethodFlag flag,
                        Args&&... args) const;
 
   template <typename... Args>

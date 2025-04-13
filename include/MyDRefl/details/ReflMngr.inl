@@ -1216,7 +1216,7 @@ bool ReflMngr::AddBases() {
 
 template <typename... Args>
 InvocableResult ReflMngr::IsInvocable(Type type, Name method_name,
-                                      FuncFlag flag) const {
+                                      MethodFlag flag) const {
   constexpr std::array argTypes = {Type_of<Args>...};
   return IsInvocable(type, method_name, std::span<const Type>{argTypes}, flag);
 }
@@ -1224,7 +1224,7 @@ InvocableResult ReflMngr::IsInvocable(Type type, Name method_name,
 template <typename T>
 T ReflMngr::InvokeRet(Type type, Name method_name,
                       std::span<const Type> argTypes,
-                      ArgPtrBuffer argptr_buffer, FuncFlag flag) const {
+                      ArgPtrBuffer argptr_buffer, MethodFlag flag) const {
   if constexpr (!std::is_void_v<T>) {
     using U =
         std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
@@ -1240,7 +1240,7 @@ T ReflMngr::InvokeRet(Type type, Name method_name,
 template <typename T>
 T ReflMngr::InvokeRet(ObjectView obj, Name method_name,
                       std::span<const Type> argTypes,
-                      ArgPtrBuffer argptr_buffer, FuncFlag flag) const {
+                      ArgPtrBuffer argptr_buffer, MethodFlag flag) const {
   if constexpr (!std::is_void_v<T>) {
     using U =
         std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
@@ -1376,7 +1376,7 @@ SharedObject ReflMngr::MakeSharedAuto(Args... args) {
 template <typename... Args>
 SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
                                std::pmr::memory_resource* rst_rsrc,
-                               FuncFlag flag, Args&&... args) const {
+                               MethodFlag flag, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypes = {Type_of<decltype(args)>...};
     const std::array argptr_buffer{

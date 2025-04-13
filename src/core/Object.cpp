@@ -20,7 +20,7 @@ ObjectView ObjectView::Var(Type base, Name field_name, FieldFlag flag) const {
 InvokeResult ObjectView::Invoke(Name method_name, void* result_buffer,
                                 std::span<const Type> argTypes,
                                 ArgPtrBuffer argptr_buffer,
-                                FuncFlag flag) const {
+                                MethodFlag flag) const {
   return Mngr.Invoke(*this, method_name, result_buffer, argTypes, argptr_buffer,
                      flag);
 }
@@ -29,7 +29,7 @@ SharedObject ObjectView::MInvoke(Name method_name,
                                  std::pmr::memory_resource* rst_rsrc,
                                  std::span<const Type> argTypes,
                                  ArgPtrBuffer argptr_buffer,
-                                 FuncFlag flag) const {
+                                 MethodFlag flag) const {
   return Mngr.MInvoke(*this, method_name, rst_rsrc, argTypes, argptr_buffer,
                       flag);
 }
@@ -37,7 +37,7 @@ SharedObject ObjectView::MInvoke(Name method_name,
 SharedObject ObjectView::DMInvoke(Name method_name,
                                   std::span<const Type> argTypes,
                                   ArgPtrBuffer argptr_buffer,
-                                  FuncFlag flag) const {
+                                  MethodFlag flag) const {
   return Mngr.DMInvoke(*this, method_name, argTypes, argptr_buffer, flag);
 }
 
@@ -59,11 +59,11 @@ std::vector<FieldRef> ObjectView::GetFields(FieldFlag flag) const {
   return Mngr.GetFields(type);
 }
 
-std::vector<TypeMethodRef> ObjectView::GetTypeMethods(FuncFlag flag) const {
+std::vector<TypeMethodRef> ObjectView::GetTypeMethods(MethodFlag flag) const {
   return Mngr.GetTypeMethods(type);
 }
 
-std::vector<MethodRef> ObjectView::GetMethods(FuncFlag flag) const {
+std::vector<MethodRef> ObjectView::GetMethods(MethodFlag flag) const {
   return Mngr.GetMethods(type);
 }
 
@@ -87,7 +87,7 @@ std::optional<FieldRef> ObjectView::FindField(
 }
 
 std::optional<MethodRef> ObjectView::FindMethod(
-    const std::function<bool(MethodRef)>& func, FuncFlag flag) const {
+    const std::function<bool(MethodRef)>& func, MethodFlag flag) const {
   return Mngr.FindMethod(type, func, flag);
 }
 
@@ -104,7 +104,7 @@ bool ObjectView::ContainsField(Name field_name, FieldFlag flag) const {
   return Mngr.ContainsField(type, field_name, flag);
 }
 
-bool ObjectView::ContainsMethod(Name method_name, FuncFlag flag) const {
+bool ObjectView::ContainsMethod(Name method_name, MethodFlag flag) const {
   return Mngr.ContainsMethod(type, method_name, flag);
 }
 
@@ -146,7 +146,7 @@ ObjectView ObjectView::AddRValueReference() const {
 
 InvocableResult ObjectView::IsInvocable(Name method_name,
                                         std::span<const Type> argTypes,
-                                        FuncFlag flag) const {
+                                        MethodFlag flag) const {
   return Mngr.IsInvocable(type, method_name, argTypes, flag);
 }
 

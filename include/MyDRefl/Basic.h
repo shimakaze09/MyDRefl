@@ -8,7 +8,7 @@
 #include <memory>
 
 namespace My::MyDRefl {
-enum class FuncFlag {
+enum class MethodFlag {
   Variable = 0b001,
   Const = 0b010,
   Static = 0b100,
@@ -16,7 +16,7 @@ enum class FuncFlag {
   None = 0b000,
   All = 0b111
 };
-MY_MYDREFL_ENUM_BOOL_OPERATOR_DEFINE(FuncFlag)
+MY_MYDREFL_ENUM_BOOL_OPERATOR_DEFINE(MethodFlag)
 
 enum class FieldFlag {
   Basic = 0b00001,
