@@ -1162,63 +1162,28 @@ ObjectView ReflMngr::DynamicCast(ObjectView obj, Type type) const {
   return nullptr;
 }
 
-ObjectView ReflMngr::Var(Type type, Name field_name) {
-  const CVRefMode cvref_mode = type.CVRefMode();
-  assert(!CVRefMode_IsVolatile(cvref_mode));
-  switch (cvref_mode) {
-    case CVRefMode::Left:
-      return Var(type.RemoveReference(), field_name).AddLValueReference();
-    case CVRefMode::Right:
-      return Var(type.RemoveReference(), field_name).AddRValueReference();
-    case CVRefMode::Const:
-      return Var(type.RemoveConst(), field_name).AddConst();
-    case CVRefMode::ConstLeft:
-      return Var(type.RemoveCVRef(), field_name).AddConstLValueReference();
-    case CVRefMode::ConstRight:
-      return Var(type.RemoveCVRef(), field_name).AddConstRValueReference();
-    default:
-      break;
-  }
-
-  auto ttarget = typeinfos.find(type);
-  if (ttarget == typeinfos.end())
-    return nullptr;
-
-  auto& typeinfo = ttarget->second;
-
-  auto ftarget = typeinfo.fieldinfos.find(field_name);
-  if (ftarget != typeinfo.fieldinfos.end() &&
-      ftarget->second.fieldptr.IsUnowned())
-    return ftarget->second.fieldptr.Var();
-
-  for (const auto& [base, baseinfo] : typeinfo.baseinfos) {
-    auto bptr = Var(base, field_name);
-    if (bptr.GetType())
-      return bptr;
-  }
-
-  return nullptr;
-}
-
-ObjectView ReflMngr::Var(ObjectView obj, Name field_name) {
+ObjectView ReflMngr::Var(ObjectView obj, Name field_name, FieldFlag flag) {
   const CVRefMode cvref_mode = obj.GetType().CVRefMode();
   assert(!CVRefMode_IsVolatile(cvref_mode));
   switch (cvref_mode) {
     case CVRefMode::Left:
-      return Var(obj.RemoveReference(), field_name).AddLValueReference();
+      return Var(obj.RemoveReference(), field_name, flag).AddLValueReference();
     case CVRefMode::Right:
-      return Var(obj.RemoveReference(), field_name).AddRValueReference();
+      return Var(obj.RemoveReference(), field_name, flag).AddRValueReference();
     case CVRefMode::Const:
-      return Var(obj.RemoveConst(), field_name).AddConst();
+      return Var(obj.RemoveConst(), field_name, flag).AddConst();
     case CVRefMode::ConstLeft:
-      return Var(obj.RemoveConstReference(), field_name)
+      return Var(obj.RemoveConstReference(), field_name, flag)
           .AddConstLValueReference();
     case CVRefMode::ConstRight:
-      return Var(obj.RemoveConstReference(), field_name)
+      return Var(obj.RemoveConstReference(), field_name, flag)
           .AddConstRValueReference();
     default:
       break;
   }
+
+  if (!obj.GetPtr())
+    flag = enum_within(flag, FieldFlag::Unowned);
 
   auto ttarget = typeinfos.find(obj.GetType());
   if (ttarget == typeinfos.end())
@@ -1227,7 +1192,8 @@ ObjectView ReflMngr::Var(ObjectView obj, Name field_name) {
   auto& typeinfo = ttarget->second;
 
   auto ftarget = typeinfo.fieldinfos.find(field_name);
-  if (ftarget != typeinfo.fieldinfos.end())
+  if (ftarget != typeinfo.fieldinfos.end() &&
+      enum_contain(flag, ftarget->second.fieldptr.GetFieldFlag()))
     return ftarget->second.fieldptr.Var(obj.GetPtr());
 
   for (const auto& [base, baseinfo] : typeinfo.baseinfos) {
@@ -1241,7 +1207,8 @@ ObjectView ReflMngr::Var(ObjectView obj, Name field_name) {
   return nullptr;
 }
 
-ObjectView ReflMngr::Var(ObjectView obj, Type base, Name field_name) {
+ObjectView ReflMngr::Var(ObjectView obj, Type base, Name field_name,
+                         FieldFlag flag) {
   auto base_obj = StaticCast_DerivedToBase(obj, base);
   if (!base_obj.GetType())
     return nullptr;
@@ -1375,7 +1342,7 @@ InvokeResult ReflMngr::Invoke(ObjectView obj, Name method_name,
   }
 
   if (!obj.GetPtr())
-    flag = enum_remove(flag, FuncFlag::Variable | FuncFlag::Const);
+    flag = enum_within(flag, FuncFlag::Static);
 
   if (auto priority_rst =
           details::Invoke(true, &temporary_resource, rawObj, method_name,
@@ -1418,7 +1385,7 @@ SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
   }
 
   if (!obj.GetPtr())
-    flag = enum_remove(flag, FuncFlag::Variable | FuncFlag::Const);
+    flag = enum_within(flag, FuncFlag::Static);
 
   if (auto priority_rst =
           details::MInvoke(true, &temporary_resource, rawObj, method_name,
@@ -2007,7 +1974,7 @@ bool ReflMngr::ContainsMethod(Type type, Name method_name) const {
 }
 
 bool ReflMngr::ContainsMethod(Type type, Name method_name,
-                              FuncFlag mode) const {
+                              FuncFlag flag) const {
   auto target = typeinfos.find(type);
   if (target == typeinfos.end())
     return false;
@@ -2015,12 +1982,12 @@ bool ReflMngr::ContainsMethod(Type type, Name method_name,
   const auto& info = target->second;
   auto [begin_iter, end_iter] = info.methodinfos.equal_range(method_name);
   for (auto iter = begin_iter; iter != end_iter; ++iter) {
-    if (iter->second.methodptr.GetFuncFlag() == mode)
+    if (iter->second.methodptr.GetFuncFlag() == flag)
       return true;
   }
 
   for (const auto& [basetype, baseinfo] : info.baseinfos) {
-    if (ContainsMethod(basetype, method_name, mode))
+    if (ContainsMethod(basetype, method_name, flag))
       return true;
   }
 

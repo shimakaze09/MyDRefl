@@ -107,7 +107,7 @@ class ObjectView {
 
   InvocableResult IsInvocable(Name method_name,
                               std::span<const Type> argTypes = {},
-                              FuncFlag mode = FuncFlag::All) const;
+                              FuncFlag flag = FuncFlag::All) const;
 
   InvokeResult Invoke(Name method_name, void* result_buffer = nullptr,
                       std::span<const Type> argTypes = {},
@@ -116,7 +116,7 @@ class ObjectView {
 
   template <typename... Args>
   InvocableResult IsInvocable(Name method_name,
-                              FuncFlag mode = FuncFlag::All) const;
+                              FuncFlag flag = FuncFlag::All) const;
 
   template <typename T>
   T InvokeRet(Name method_name, std::span<const Type> argTypes = {},
@@ -163,11 +163,10 @@ class ObjectView {
   // Fields
   ///////////
 
-  // all
-  ObjectView Var(Name field_name) const;
-
-  // all, for diamond inheritance
-  ObjectView Var(Type base, Name field_name) const;
+  ObjectView Var(Name field_name, FieldFlag flag = FieldFlag::All) const;
+  // for diamond inheritance
+  ObjectView Var(Type base, Name field_name,
+                 FieldFlag flag = FieldFlag::All) const;
 
   // self vars and all bases' vars
   void ForEachVar(
@@ -205,7 +204,7 @@ class ObjectView {
   bool ContainsBase(Type base) const;
   bool ContainsField(Name field_name) const;
   bool ContainsMethod(Name method_name) const;
-  bool ContainsMethod(Name method_name, FuncFlag mode) const;
+  bool ContainsMethod(Name method_name, FuncFlag flag) const;
 
   //
   // Type

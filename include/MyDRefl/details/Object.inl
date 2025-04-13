@@ -78,9 +78,9 @@ inline ObjectView::operator bool() const noexcept {
 }
 
 template <typename... Args>
-InvocableResult ObjectView::IsInvocable(Name method_name, FuncFlag mode) const {
+InvocableResult ObjectView::IsInvocable(Name method_name, FuncFlag flag) const {
   constexpr std::array argTypes = {Type_of<Args>...};
-  return IsInvocable(method_name, std::span<const Type>{argTypes}, mode);
+  return IsInvocable(method_name, std::span<const Type>{argTypes}, flag);
 }
 
 template <typename T>

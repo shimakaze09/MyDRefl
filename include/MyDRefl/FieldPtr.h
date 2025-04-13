@@ -84,6 +84,8 @@ class FieldPtr {
 
   constexpr bool IsDyanmicBuffer() const noexcept { return data.index() == 4; }
 
+  constexpr FieldFlag GetFieldFlag() const noexcept;
+
   constexpr bool IsOwned() const noexcept { return data.index() < 2; }
 
   constexpr bool IsUnowned() const noexcept { return data.index() >= 2; }
@@ -99,3 +101,5 @@ class FieldPtr {
   Data data;
 };
 }  // namespace My::MyDRefl
+
+#include "details/FieldPtr.inl"

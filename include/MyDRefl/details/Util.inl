@@ -279,6 +279,13 @@ requires std::is_enum_v<Enum> constexpr Enum My::MyDRefl::enum_remove(
   return static_cast<Enum>(static_cast<T>(e) & (~static_cast<T>(flag)));
 }
 
+template <typename Enum>
+requires std::is_enum_v<Enum> constexpr Enum My::MyDRefl::enum_within(
+    const Enum& e, const Enum& flag) noexcept {
+  using T = std::underlying_type_t<Enum>;
+  return static_cast<Enum>(static_cast<T>(e) & (static_cast<T>(flag)));
+}
+
 template <typename Func>
 constexpr auto My::MyDRefl::wrap_static_function(Func&& func) noexcept {
   using Traits = FuncTraits<std::decay_t<Func>>;
