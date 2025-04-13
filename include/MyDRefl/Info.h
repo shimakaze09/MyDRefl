@@ -28,6 +28,8 @@ using AttrSet = std::set<Attr, AttrLess>;
 
 class BaseInfo {
  public:
+  BaseInfo() noexcept = default;
+
   BaseInfo(InheritCastFunctions funcs, bool is_polymorphic = false,
            bool is_virtual = false)
       : is_polymorphic{is_polymorphic},

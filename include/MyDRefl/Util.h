@@ -29,7 +29,7 @@
     return lhs;                                                          \
   }
 
-#include <MyTemplate/Func.h>
+#include <UTemplate/Func.h>
 
 #include <cstdint>
 #include <functional>
@@ -430,8 +430,9 @@ concept operator_ge =
   {lhs >= rhs}->std::convertible_to<bool>;
 };
 
-template <typename T, typename U = std::size_t>
-concept operator_subscript = requires(T lhs, const U& rhs) {
+template <typename T, typename U>
+concept operator_subscript =
+    !std::is_void_v<std::remove_pointer_t<T>> && requires(T lhs, const U& rhs) {
   lhs[rhs];
 };
 template <typename T>
@@ -540,7 +541,7 @@ concept container_key_compare = requires {
   typename T::key_compare;
 };
 template <typename T>
-concept container_value_coompare = requires {
+concept container_value_compare = requires {
   typename T::value_coompare;
 };
 template <typename T>
@@ -897,29 +898,6 @@ template <typename T>
 concept container_equal_range =
     container_key_type<T> && requires(T t, const typename T::key_type& u) {
   t.equal_range(u);
-};
-
-// - observers
-
-template <typename T>
-concept container_key_comp = requires(T t) {
-  t.key_comp();
-};
-template <typename T>
-concept container_value_comp = requires(T t) {
-  t.value_comp();
-};
-template <typename T>
-concept container_hash_function = requires(T t) {
-  t.hash_function();
-};
-template <typename T>
-concept container_key_eq = requires(T t) {
-  t.key_eq();
-};
-template <typename T>
-concept container_get_allocator = requires(T t) {
-  t.get_allocator();
 };
 
 // - list operations (TODO)

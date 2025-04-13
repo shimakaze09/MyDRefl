@@ -2,7 +2,7 @@
 
 #include "Util.h"
 
-#include <MyTemplate/Type.h>
+#include <UTemplate/Type.h>
 
 #include <cassert>
 #include <memory>
@@ -102,28 +102,28 @@ struct TypeInfo;
 struct FieldInfo;
 struct MethodInfo;
 
-struct TypeRef {
+struct InfoTypePair {
   Type type;
-  TypeInfo& info;
+  TypeInfo* info;
 };
 
-struct FieldRef {
+struct InfoFieldPair {
   Name name;
-  FieldInfo& info;
+  FieldInfo* info;
 };
 
-struct MethodRef {
+struct InfoMethodPair {
   Name name;
-  MethodInfo& info;
+  MethodInfo* info;
 };
 
-struct TypeFieldRef {
-  TypeRef type;
-  FieldRef field;
+struct InfoTypeFieldPair {
+  InfoTypePair type;
+  InfoFieldPair field;
 };
 
-struct TypeMethodRef {
-  TypeRef type;
-  MethodRef method;
+struct InfoTypeMethodPair {
+  InfoTypePair type;
+  InfoMethodPair method;
 };
 }  // namespace My::MyDRefl

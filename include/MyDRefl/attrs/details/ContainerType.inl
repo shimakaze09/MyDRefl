@@ -10,7 +10,7 @@ struct My::MyDRefl::SpecializeIsSet<std::set<Key, Compare, Allocator>>
 
 namespace My::MyDRefl {
 template <typename T>
-concept IsArray =
+concept IsRawArray =
     true && container_begin<T> && container_begin<const T> &&
     container_cbegin<T>
 
@@ -26,13 +26,15 @@ concept IsArray =
 
     && container_data<T> && container_data<const T>
 
-    && container_front<T> && container_front<const T>
-
-    && container_back<T> && container_back<const T>
-
     && container_empty<T> && container_size<T>
 
     && container_swap<T>;
+
+template <typename T>
+concept IsArray =
+    IsRawArray<T> && container_front<T> && container_front<const T>
+
+    && container_back<T> && container_back<const T>;
 
 template <typename T>
 concept IsVector =
@@ -43,9 +45,7 @@ concept IsVector =
     container_insert_citer_rvalue<T> && container_insert_citer_size_value<T> &&
     container_erase_citer<T> && container_erase_range_citer<T> &&
     container_push_back_clvalue<T> && container_push_back_rvalue<T> &&
-    container_pop_back<T>
-
-    && container_get_allocator<T>;
+    container_pop_back<T>;
 
 template <typename T>
 concept IsDeque =
@@ -77,9 +77,7 @@ concept IsDeque =
     container_push_back_clvalue<T> && container_push_back_rvalue<T> &&
     container_pop_back<T>
 
-    && container_swap<T>
-
-    && container_get_allocator<T>;
+    && container_swap<T>;
 
 // TODO : list
 
@@ -117,11 +115,7 @@ concept IsMultiSet =
     container_contains<T> && container_lower_bound<T> &&
     container_lower_bound<const T> && container_upper_bound<T> &&
     container_upper_bound<const T> && container_equal_range<T> &&
-    container_equal_range<const T>
-
-    && container_key_comp<T> && container_value_comp<T>
-
-    && container_get_allocator<T>;
+    container_equal_range<const T>;
 
 template <typename T>
 concept IsSet = IsMultiSet<T> && SpecializeIsSet<T>::value;
@@ -147,7 +141,7 @@ concept IsUnorderedMultiSet =
     && container_clear<T> && container_insert_clvalue<T> &&
     container_insert_rvalue<T> && container_insert_rnode<T> &&
     container_insert_citer_clvalue<T> && container_insert_citer_rvalue<T> &&
-    container_insert_citer_size_value<T> && container_insert_citer_rnode<T>
+    container_insert_citer_rnode<T>
 
     && container_erase_citer<T> && container_erase_key<T> &&
     container_erase_range_citer<T>
@@ -157,11 +151,7 @@ concept IsUnorderedMultiSet =
 
     && container_count<T> && container_find<T> && container_find<const T> &&
     container_contains<T> && container_equal_range<T> &&
-    container_equal_range<const T>
-
-    && container_hash_function<T> && container_key_eq<T>
-
-    && container_get_allocator<T>;
+    container_equal_range<const T>;
 
 template <typename T>
 concept IsUnorderedSet = IsUnorderedMultiSet<T>;
@@ -177,7 +167,7 @@ concept IsUnorderedMap =
     container_subscript_key_r<T>;
 
 template <typename T>
-concept IsTuple = true && tuple_size<T> && container_swap<T>;
+concept IsTuple = true && tuple_size<T>;
 
 template <typename T>
 concept IsPair = IsTuple<T> && pair_first<T> && pair_second<T>;
@@ -189,4 +179,10 @@ concept IsStack = false;
 
 template <typename T>
 concept IsQueue = false;
+
+template <typename T>
+concept IsContainerType =
+    false || IsRawArray<T> || IsDeque<T> || IsForwardList<T> || IsList<T> ||
+    IsMultiSet<T> || IsUnorderedMultiSet<T> || IsStack<T> || IsQueue<T> ||
+    IsTuple<T>;
 }  // namespace My::MyDRefl

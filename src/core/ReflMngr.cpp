@@ -259,7 +259,8 @@ static SharedObject MInvoke(bool is_priority,
   return nullptr;
 }
 
-static bool ForEachTypeInfo(Type type, const std::function<bool(TypeRef)>& func,
+static bool ForEachTypeInfo(Type type,
+                            const std::function<bool(InfoTypePair)>& func,
                             std::set<TypeID>& visitedVBs) {
   assert(type.GetCVRefMode() == CVRefMode::None);
   auto target = Mngr.typeinfos.find(type);
@@ -269,7 +270,7 @@ static bool ForEachTypeInfo(Type type, const std::function<bool(TypeRef)>& func,
 
   auto& typeinfo = target->second;
 
-  if (!func({type, typeinfo}))
+  if (!func({type, &typeinfo}))
     return false;
 
   for (auto& [base, baseinfo] : typeinfo.baseinfos) {
@@ -288,7 +289,7 @@ static bool ForEachTypeInfo(Type type, const std::function<bool(TypeRef)>& func,
 
 static bool ForEachVar(
     ObjectView obj,
-    const std::function<bool(TypeRef, FieldRef, ObjectView)>& func,
+    const std::function<bool(InfoTypePair, InfoFieldPair, ObjectView)>& func,
     FieldFlag flag, std::set<TypeID>& visitedVBs) {
   assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
@@ -303,7 +304,7 @@ static bool ForEachVar(
     if (!enum_contain(flag, fieldInfo.fieldptr.GetFieldFlag()))
       continue;
 
-    if (!func({obj.GetType(), typeinfo}, {field, fieldInfo},
+    if (!func({obj.GetType(), &typeinfo}, {field, &fieldInfo},
               fieldInfo.fieldptr.Var(obj.GetPtr())))
       return false;
   }
@@ -329,6 +330,7 @@ ReflMngr::ReflMngr() {
   RegisterType(GlobalType, 0, 0);
 
   RegisterType<ContainerType>();
+  AddField<ContainerType::RawArray>("RawArray");
   AddField<ContainerType::Array>("Array");
   AddField<ContainerType::Vector>("Vector");
   AddField<ContainerType::Deque>("Deque");
@@ -1143,21 +1145,21 @@ bool ReflMngr::Destruct(ObjectView obj) const {
   return false;
 }
 
-void ReflMngr::ForEachTypeInfo(Type type,
-                               const std::function<bool(TypeRef)>& func) const {
+void ReflMngr::ForEachTypeInfo(
+    Type type, const std::function<bool(InfoTypePair)>& func) const {
   std::set<TypeID> visitedVBs;
   details::ForEachTypeInfo(type.RemoveCVRef(), func, visitedVBs);
 }
 
-void ReflMngr::ForEachField(Type type,
-                            const std::function<bool(TypeRef, FieldRef)>& func,
-                            FieldFlag flag) const {
-  ForEachTypeInfo(type, [flag, &func](TypeRef type) {
-    for (auto& [field, fieldInfo] : type.info.fieldinfos) {
+void ReflMngr::ForEachField(
+    Type type, const std::function<bool(InfoTypePair, InfoFieldPair)>& func,
+    FieldFlag flag) const {
+  ForEachTypeInfo(type, [flag, &func](InfoTypePair type) {
+    for (auto& [field, fieldInfo] : type.info->fieldinfos) {
       if (!enum_contain(flag, fieldInfo.fieldptr.GetFieldFlag()))
         continue;
 
-      if (!func(type, {field, fieldInfo}))
+      if (!func(type, {field, &fieldInfo}))
         return false;
     }
     return true;
@@ -1165,14 +1167,14 @@ void ReflMngr::ForEachField(Type type,
 }
 
 void ReflMngr::ForEachMethod(
-    Type type, const std::function<bool(TypeRef, MethodRef)>& func,
+    Type type, const std::function<bool(InfoTypePair, InfoMethodPair)>& func,
     MethodFlag flag) const {
-  ForEachTypeInfo(type, [flag, &func](TypeRef type) {
-    for (auto& [method_name, methodInfo] : type.info.methodinfos) {
+  ForEachTypeInfo(type, [flag, &func](InfoTypePair type) {
+    for (auto& [method_name, methodInfo] : type.info->methodinfos) {
       if (!enum_contain(flag, methodInfo.methodptr.GetMethodFlag()))
         continue;
 
-      if (!func(type, {method_name, methodInfo}))
+      if (!func(type, {method_name, &methodInfo}))
         return false;
     }
     return true;
@@ -1181,7 +1183,7 @@ void ReflMngr::ForEachMethod(
 
 void ReflMngr::ForEachVar(
     ObjectView obj,
-    const std::function<bool(TypeRef, FieldRef, ObjectView)>& func,
+    const std::function<bool(InfoTypePair, InfoFieldPair, ObjectView)>& func,
     FieldFlag flag) const {
   if (!obj.GetPtr())
     flag = enum_within(flag, FieldFlag::Unowned);
@@ -1193,7 +1195,7 @@ void ReflMngr::ForEachVar(
     case CVRefMode::Left:
       details::ForEachVar(
           obj.RemoveLValueReference(),
-          [&func](TypeRef t, FieldRef f, ObjectView o) {
+          [&func](InfoTypePair t, InfoFieldPair f, ObjectView o) {
             return func(t, f, o.AddLValueReference());
           },
           flag, visitedVBs);
@@ -1201,7 +1203,7 @@ void ReflMngr::ForEachVar(
     case CVRefMode::Right:
       details::ForEachVar(
           obj.RemoveRValueReference(),
-          [&func](TypeRef t, FieldRef f, ObjectView o) {
+          [&func](InfoTypePair t, InfoFieldPair f, ObjectView o) {
             return func(t, f, o.AddRValueReference());
           },
           flag, visitedVBs);
@@ -1209,7 +1211,7 @@ void ReflMngr::ForEachVar(
     case CVRefMode::Const:
       details::ForEachVar(
           obj.RemoveConst(),
-          [&func](TypeRef t, FieldRef f, ObjectView o) {
+          [&func](InfoTypePair t, InfoFieldPair f, ObjectView o) {
             return func(t, f, o.AddConst());
           },
           flag, visitedVBs);
@@ -1217,7 +1219,7 @@ void ReflMngr::ForEachVar(
     case CVRefMode::ConstLeft:
       details::ForEachVar(
           obj.RemoveConstReference(),
-          [&func](TypeRef t, FieldRef f, ObjectView o) {
+          [&func](InfoTypePair t, InfoFieldPair f, ObjectView o) {
             return func(t, f, o.AddConstLValueReference());
           },
           flag, visitedVBs);
@@ -1225,7 +1227,7 @@ void ReflMngr::ForEachVar(
     case CVRefMode::ConstRight:
       details::ForEachVar(
           obj.RemoveConstReference(),
-          [&func](TypeRef t, FieldRef f, ObjectView o) {
+          [&func](InfoTypePair t, InfoFieldPair f, ObjectView o) {
             return func(t, f, o.AddConstRValueReference());
           },
           flag, visitedVBs);
@@ -1236,32 +1238,33 @@ void ReflMngr::ForEachVar(
   }
 }
 
-std::vector<TypeRef> ReflMngr::GetTypes(Type type) {
-  std::vector<TypeRef> rst;
-  ForEachTypeInfo(type, [&rst](TypeRef type) {
+std::vector<InfoTypePair> ReflMngr::GetTypes(Type type) {
+  std::vector<InfoTypePair> rst;
+  ForEachTypeInfo(type, [&rst](InfoTypePair type) {
     rst.push_back(type);
     return true;
   });
   return rst;
 }
 
-std::vector<TypeFieldRef> ReflMngr::GetTypeFields(Type type, FieldFlag flag) {
-  std::vector<TypeFieldRef> rst;
+std::vector<InfoTypeFieldPair> ReflMngr::GetTypeFields(Type type,
+                                                       FieldFlag flag) {
+  std::vector<InfoTypeFieldPair> rst;
   ForEachField(
       type,
-      [&rst](TypeRef type, FieldRef field) {
-        rst.emplace_back(TypeFieldRef{type, field});
+      [&rst](InfoTypePair type, InfoFieldPair field) {
+        rst.emplace_back(InfoTypeFieldPair{type, field});
         return true;
       },
       flag);
   return rst;
 }
 
-std::vector<FieldRef> ReflMngr::GetFields(Type type, FieldFlag flag) {
-  std::vector<FieldRef> rst;
+std::vector<InfoFieldPair> ReflMngr::GetFields(Type type, FieldFlag flag) {
+  std::vector<InfoFieldPair> rst;
   ForEachField(
       type,
-      [&rst](TypeRef type, FieldRef field) {
+      [&rst](InfoTypePair type, InfoFieldPair field) {
         rst.push_back(field);
         return true;
       },
@@ -1269,24 +1272,24 @@ std::vector<FieldRef> ReflMngr::GetFields(Type type, FieldFlag flag) {
   return rst;
 }
 
-std::vector<TypeMethodRef> ReflMngr::GetTypeMethods(Type type,
-                                                    MethodFlag flag) {
-  std::vector<TypeMethodRef> rst;
+std::vector<InfoTypeMethodPair> ReflMngr::GetTypeMethods(Type type,
+                                                         MethodFlag flag) {
+  std::vector<InfoTypeMethodPair> rst;
   ForEachMethod(
       type,
-      [&rst](TypeRef type, MethodRef field) {
-        rst.emplace_back(TypeMethodRef{type, field});
+      [&rst](InfoTypePair type, InfoMethodPair field) {
+        rst.emplace_back(InfoTypeMethodPair{type, field});
         return true;
       },
       flag);
   return rst;
 }
 
-std::vector<MethodRef> ReflMngr::GetMethods(Type type, MethodFlag flag) {
-  std::vector<MethodRef> rst;
+std::vector<InfoMethodPair> ReflMngr::GetMethods(Type type, MethodFlag flag) {
+  std::vector<InfoMethodPair> rst;
   ForEachMethod(
       type,
-      [&rst](TypeRef type, MethodRef field) {
+      [&rst](InfoTypePair type, InfoMethodPair field) {
         rst.push_back(field);
         return true;
       },
@@ -1294,12 +1297,12 @@ std::vector<MethodRef> ReflMngr::GetMethods(Type type, MethodFlag flag) {
   return rst;
 }
 
-std::vector<std::tuple<TypeRef, FieldRef, ObjectView>>
+std::vector<std::tuple<InfoTypePair, InfoFieldPair, ObjectView>>
 ReflMngr::GetTypeFieldVars(ObjectView obj, FieldFlag flag) {
-  std::vector<std::tuple<TypeRef, FieldRef, ObjectView>> rst;
+  std::vector<std::tuple<InfoTypePair, InfoFieldPair, ObjectView>> rst;
   ForEachVar(
       obj,
-      [&rst](TypeRef type, FieldRef field, ObjectView var) {
+      [&rst](InfoTypePair type, InfoFieldPair field, ObjectView var) {
         rst.emplace_back(std::tuple{type, field, var});
         return true;
       },
@@ -1311,7 +1314,7 @@ std::vector<ObjectView> ReflMngr::GetVars(ObjectView obj, FieldFlag flag) {
   std::vector<ObjectView> rst;
   ForEachVar(
       obj,
-      [&rst](TypeRef type, FieldRef field, ObjectView var) {
+      [&rst](InfoTypePair type, InfoFieldPair field, ObjectView var) {
         rst.push_back(var);
         return true;
       },
@@ -1319,10 +1322,10 @@ std::vector<ObjectView> ReflMngr::GetVars(ObjectView obj, FieldFlag flag) {
   return rst;
 }
 
-std::optional<TypeRef> ReflMngr::FindType(
-    Type type, const std::function<bool(TypeRef)>& func) const {
-  std::optional<TypeRef> rst;
-  ForEachTypeInfo(type, [&rst, func](TypeRef type) {
+std::optional<InfoTypePair> ReflMngr::FindType(
+    Type type, const std::function<bool(InfoTypePair)>& func) const {
+  std::optional<InfoTypePair> rst;
+  ForEachTypeInfo(type, [&rst, func](InfoTypePair type) {
     if (!func(type))
       return true;
 
@@ -1332,13 +1335,13 @@ std::optional<TypeRef> ReflMngr::FindType(
   return rst;
 }
 
-std::optional<FieldRef> ReflMngr::FindField(
-    Type type, const std::function<bool(FieldRef)>& func,
+std::optional<InfoFieldPair> ReflMngr::FindField(
+    Type type, const std::function<bool(InfoFieldPair)>& func,
     FieldFlag flag) const {
-  std::optional<FieldRef> rst;
+  std::optional<InfoFieldPair> rst;
   ForEachField(
       type,
-      [&rst, func](TypeRef type, FieldRef field) {
+      [&rst, func](InfoTypePair type, InfoFieldPair field) {
         if (!func(field))
           return true;
 
@@ -1349,13 +1352,13 @@ std::optional<FieldRef> ReflMngr::FindField(
   return rst;
 }
 
-std::optional<MethodRef> ReflMngr::FindMethod(
-    Type type, const std::function<bool(MethodRef)>& func,
+std::optional<InfoMethodPair> ReflMngr::FindMethod(
+    Type type, const std::function<bool(InfoMethodPair)>& func,
     MethodFlag flag) const {
-  std::optional<MethodRef> rst;
+  std::optional<InfoMethodPair> rst;
   ForEachMethod(
       type,
-      [&rst, func](TypeRef type, MethodRef method) {
+      [&rst, func](InfoTypePair type, InfoMethodPair method) {
         if (!func(method))
           return true;
 
@@ -1372,7 +1375,7 @@ ObjectView ReflMngr::FindVar(ObjectView obj,
   ObjectView rst;
   ForEachVar(
       obj,
-      [&rst, func](TypeRef type, FieldRef field, ObjectView obj) {
+      [&rst, func](InfoTypePair type, InfoFieldPair field, ObjectView obj) {
         if (!func(obj))
           return true;
 

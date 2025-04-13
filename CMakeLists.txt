@@ -12,6 +12,8 @@ ADD_DEP(MyTemplate 0.7.0)
 
 INCLUDE(cmake/Platform.cmake)
 
+OPTION(My_MyDRefl_Build_BootStrap "build boot strap" OFF)
+
 ADD_SUB_DIRS_REC(include)
 ADD_SUB_DIRS_REC(src)
 
