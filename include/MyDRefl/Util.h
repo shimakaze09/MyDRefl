@@ -244,6 +244,10 @@ requires std::is_enum_v<Enum> constexpr Enum enum_within(
 // Traits //
 ////////////
 
+//
+// operation
+//////////////
+
 template <typename T>
 using operator_bool = decltype(static_cast<bool>(std::declval<const T&>()));
 
