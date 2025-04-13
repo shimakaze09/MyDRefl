@@ -353,6 +353,7 @@ class ObjectView {
 class SharedObject : public ObjectView {
  public:
   using ObjectView::ObjectView;
+  using ObjectView::operator=;
 
   SharedObject(Type type, SharedBuffer buffer) noexcept
       : ObjectView{type}, buffer{std::move(buffer)} {
