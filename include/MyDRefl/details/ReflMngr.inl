@@ -104,11 +104,9 @@ struct TypeAutoRegister_Default {
   static void run(ReflMngr& mngr) {
     if constexpr (std::is_pointer_v<T>) {
       mngr.RegisterType<std::remove_pointer_t<T>>();
-      mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_assign,
-          [](const T& obj, const std::nullptr_t&) -> decltype(auto) {
-            return static_cast<T>(nullptr);
-          });
+      if constexpr (std::is_const_v<std::remove_pointer_t<T>>)
+        mngr.AddConstructor<T, const std::add_pointer_t<std::remove_const_t<
+                                   std::remove_pointer_t<T>>>&>();
     }
 
     if constexpr (is_valid_v<operator_plus, T>)
@@ -120,6 +118,14 @@ struct TypeAutoRegister_Default {
                              if constexpr (std::is_signed_v<T>)
                                return -lhs;
                            });
+
+    if constexpr (std::is_array_v<T> && std::rank_v<T> == 0) {
+      using Ele = std::remove_extent_t<T>;
+      mngr.AddConstructor<T, const std::add_pointer_t<Ele>&>();
+      if constexpr (std::is_const_v<Ele>)
+        mngr.AddConstructor<
+            T, const std::add_pointer_t<std::remove_const_t<Ele>>&>();
+    }
 
     if constexpr (is_valid_v<operator_bool, T>)
       mngr.AddMemberMethod(NameIDRegistry::Meta::operator_bool,

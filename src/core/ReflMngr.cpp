@@ -2,6 +2,8 @@
 
 #include "InvokeUtil.h"
 
+#include <string>
+
 using namespace My;
 using namespace My::MyDRefl;
 
@@ -363,6 +365,18 @@ ReflMngr::ReflMngr() {
   details::RegisterArithmeticConvertion<std::uint64_t>(*this);
   details::RegisterArithmeticConvertion<float>(*this);
   details::RegisterArithmeticConvertion<double>(*this);
+
+  // string
+  RegisterType<std::string_view>();
+  AddConstructor<std::string_view, const char* const&>();
+  AddConstructor<std::string_view, const char* const&,
+                 const std::string_view::size_type&>();
+  AddConstructor<std::string_view, std::string>();
+  RegisterType<std::string>();
+  AddConstructor<std::string, const std::string_view&>();
+  AddConstructor<std::string, const char* const&>();
+  AddConstructor<std::string, const char* const&,
+                 const std::string::size_type&>();
 }
 
 TypeInfo* ReflMngr::GetTypeInfo(Type type) {
@@ -758,7 +772,7 @@ bool ReflMngr::IsCompatible(std::span<const Type> params,
       const auto unref_lhs = lhs.Name_RemoveLValueReference();  // T | const{T}
       if (type_name_is_const(unref_lhs)) {                      // &{const{T}}
         if (unref_lhs == rhs.Name_RemoveRValueReference())
-          continue;  // &{const{T}} <- &&{const{T}}
+          continue;  // &{const{T}} <- &&{const{T}} / const{T}
 
         const auto raw_lhs = type_name_remove_const(unref_lhs);  // T
 
@@ -775,8 +789,8 @@ bool ReflMngr::IsCompatible(std::span<const Type> params,
       if (type_name_is_const(unref_lhs)) {                       // &&{const{T}}
         const auto raw_lhs = type_name_remove_const(unref_lhs);  // T
 
-        if (rhs.Is(raw_lhs))
-          continue;  // &&{const{T}} <- T
+        if (raw_lhs == type_name_remove_const(rhs))
+          continue;  // &&{const{T}} <- T / const{T}
 
         if (raw_lhs == rhs.Name_RemoveRValueReference())  // &&{const{T}}
           continue;  // &&{const{T}} <- &&{T}
@@ -796,15 +810,14 @@ bool ReflMngr::IsCompatible(std::span<const Type> params,
       if (lhs.Is(rhs.Name_RemoveRValueReference()))
         continue;  // T <- &&{T}
 
-      if ((lhs.IsPointer() || IsCopyConstructible(lhs)) &&
-          (lhs.Is(rhs.Name_RemoveLValueReference()) ||
-           lhs.Is(rhs.Name_RemoveCVRef()))) {
-        continue;  // T <- T{arg} [copy]
-      }
-
       if (IsNonCopiedArgConstructible(lhs, std::span<const Type>{&rhs, 1}))
         continue;  // T <- T{arg}
     }
+
+    if (!(lhs.IsLValueReference() && !lhs.IsReadOnly()) &&
+        details::IsPointerAndArrayCompatible(lhs.Name_RemoveCVRef(),
+                                             rhs.Name_RemoveCVRef()))
+      continue;
 
     return false;
   }

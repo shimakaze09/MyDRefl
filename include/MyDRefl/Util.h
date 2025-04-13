@@ -17,7 +17,7 @@
     return static_cast<Name>(~static_cast<T>(e));                        \
   }
 
-#include <UTemplate/Func.h>
+#include <MyTemplate/Func.h>
 
 #include <cstdint>
 #include <functional>
