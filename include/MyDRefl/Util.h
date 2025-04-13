@@ -17,10 +17,11 @@
     return static_cast<Name>(~static_cast<T>(e));                        \
   }
 
-#include <MyTemplate/Func.h>
+#include <UTemplate/Func.h>
 
 #include <cstdint>
 #include <functional>
+#include <iterator>
 
 namespace My::MyDRefl {
 using Offsetor = std::function<void*(void*)>;
@@ -239,9 +240,9 @@ template <typename Enum>
 requires std::is_enum_v<Enum> constexpr Enum enum_within(
     const Enum& e, const Enum& flag) noexcept;
 
-//
-// Traits
-///////////
+////////////
+// Traits //
+////////////
 
 template <typename T>
 using operator_bool = decltype(static_cast<bool>(std::declval<const T&>()));
@@ -348,17 +349,29 @@ using operator_assign_rshift =
                      decltype(std::declval<T&>() >>= std::declval<U>())>;
 
 template <typename T, typename U = const T&>
-using operator_eq = decltype(std::declval<const T&>() == std::declval<U>());
+using operator_eq =
+    std::enable_if_t<!std::is_array_v<T>,
+                     decltype(std::declval<const T&>() == std::declval<U>())>;
 template <typename T, typename U = const T&>
-using operator_ne = decltype(std::declval<const T&>() != std::declval<U>());
+using operator_ne =
+    std::enable_if_t<!std::is_array_v<T>,
+                     decltype(std::declval<const T&>() != std::declval<U>())>;
 template <typename T, typename U = const T&>
-using operator_lt = decltype(std::declval<const T&>() < std::declval<U>());
+using operator_lt =
+    std::enable_if_t<!std::is_array_v<T>,
+                     decltype(std::declval<const T&>() < std::declval<U>())>;
 template <typename T, typename U = const T&>
-using operator_le = decltype(std::declval<const T&>() <= std::declval<U>());
+using operator_le =
+    std::enable_if_t<!std::is_array_v<T>,
+                     decltype(std::declval<const T&>() <= std::declval<U>())>;
 template <typename T, typename U = const T&>
-using operator_gt = decltype(std::declval<const T&>() > std::declval<U>());
+using operator_gt =
+    std::enable_if_t<!std::is_array_v<T>,
+                     decltype(std::declval<const T&>() > std::declval<U>())>;
 template <typename T, typename U = const T&>
-using operator_ge = decltype(std::declval<const T&>() >= std::declval<U>());
+using operator_ge =
+    std::enable_if_t<!std::is_array_v<T>,
+                     decltype(std::declval<const T&>() >= std::declval<U>())>;
 
 template <typename T, typename U = const T&>
 using operator_and = decltype(std::declval<const T&>() && std::declval<U>());
@@ -391,19 +404,41 @@ template <typename T, typename U>
 using operator_member_of_pointer_const =
     decltype(std::declval<const T&>().operator->*(std::declval<U>()));
 
+//
 // iterator
+/////////////
 
 template <typename T>
 struct is_iterator;
 template <typename T>
 constexpr bool is_iterator_v = is_iterator<T>::value;
 
-template <typename T, typename U = std::size_t>
-using iterator_add = decltype(std::declval<const T&>() + std::declval<U>);
-template <typename T, typename U = std::size_t>
-using iterator_sub = decltype(std::declval<const T&>() - std::declval<U>);
+template <typename T,
+          typename U = const typename std::iterator_traits<T>::difference_type&>
+using iterator_add = decltype(std::declval<const T&>() + std::declval<U>());
+template <typename T,
+          typename U = const typename std::iterator_traits<T>::difference_type&>
+using iterator_sub = decltype(std::declval<const T&>() - std::declval<U>());
 
-// - pair
+template <typename T,
+          typename U = const typename std::iterator_traits<T>::difference_type&>
+using iterator_advance =
+    decltype(std::advance(std::declval<T&>(), std::declval<U>()));
+template <typename T>
+using iterator_distance =
+    decltype(std::distance(std::declval<const T&>(), std::declval<const T&>()));
+template <typename T>
+using iterator_next = decltype(std::next(
+    std::declval<const T&>(),
+    std::declval<typename std::iterator_traits<T>::difference_type>()));
+template <typename T>
+using iterator_prev = decltype(std::prev(
+    std::declval<const T&>(),
+    std::declval<typename std::iterator_traits<T>::difference_type>()));
+
+//
+// pair
+///////////
 
 template <typename T>
 using pair_first_type = typename T::first_type;
@@ -414,14 +449,18 @@ using pair_first = decltype(std::declval<const T&>().first);
 template <typename T>
 using pair_second = decltype(std::declval<const T&>().second);
 
-// - tuple
+//
+// tuple
+//////////
 
 template <typename T>
 using tuple_size = decltype(std::tuple_size<T>{});
 template <typename T, std::size_t Idx>
 using tuple_element = typename std::tuple_element<Idx, T>::type;
 
+//
 // container
+//////////////
 
 template <typename T, typename U = typename T::size_type,
           typename V = const typename T::value_type&>
@@ -431,32 +470,32 @@ using container_assign =
 // - iterator
 
 template <typename T>
-using container_begin = decltype(std::declval<T&>().begin());
+using container_begin = decltype(std::begin(std::declval<T&>()));
 template <typename T>
-using container_begin_const = decltype(std::declval<const T&>().begin());
+using container_begin_const = decltype(std::begin(std::declval<const T&>()));
 template <typename T>
-using container_cbegin = decltype(std::declval<const T&>().cbegin());
+using container_cbegin = decltype(std::cbegin(std::declval<const T&>()));
 
 template <typename T>
-using container_end = decltype(std::declval<T&>().end());
+using container_end = decltype(std::end(std::declval<T&>()));
 template <typename T>
-using container_end_const = decltype(std::declval<const T&>().end());
+using container_end_const = decltype(std::begin(std::declval<const T&>()));
 template <typename T>
-using container_cend = decltype(std::declval<const T&>().cend());
+using container_cend = decltype(std::cbegin(std::declval<const T&>()));
 
 template <typename T>
-using container_rbegin = decltype(std::declval<T&>().rbegin());
+using container_rbegin = decltype(std::rbegin(std::declval<T&>()));
 template <typename T>
-using container_rbegin_const = decltype(std::declval<const T&>().rbegin());
+using container_rbegin_const = decltype(std::rbegin(std::declval<const T&>()));
 template <typename T>
-using container_crbegin = decltype(std::declval<const T&>().crbegin());
+using container_crbegin = decltype(std::crbegin(std::declval<const T&>()));
 
 template <typename T>
-using container_rend = decltype(std::declval<T&>().rend());
+using container_rend = decltype(std::rend(std::declval<T&>()));
 template <typename T>
-using container_rend_const = decltype(std::declval<const T&>().rend());
+using container_rend_const = decltype(std::rend(std::declval<const T&>()));
 template <typename T>
-using container_crend = decltype(std::declval<const T&>().crend());
+using container_crend = decltype(std::crend(std::declval<const T&>()));
 
 // - element access
 
@@ -486,9 +525,9 @@ using container_subscript_const =
     decltype(std::declval<const T&>()[std::declval<U>()]);
 
 template <typename T>
-using container_data = decltype(std::declval<T&>().data());
+using container_data = decltype(std::data(std::declval<T&>()));
 template <typename T>
-using container_data_const = decltype(std::declval<const T&>().data());
+using container_data_const = decltype(std::data(std::declval<const T&>()));
 
 template <typename T>
 using container_front = decltype(std::declval<T&>().front());
@@ -503,13 +542,13 @@ using container_back_const = decltype(std::declval<const T&>().back());
 // - capacity
 
 template <typename T>
-using container_empty = decltype(std::declval<const T&>().empty());
+using container_empty = decltype(std::empty(std::declval<const T&>()));
 
 template <typename T>
-using container_size = decltype(std::declval<const T&>().size());
+using container_size = decltype(std::size(std::declval<const T&>()));
 
-template <typename T>
-using container_max_size = decltype(std::declval<const T&>().max_size());
+//template<typename T>
+//using container_max_size = decltype(std::declval<const T&>().max_size());
 
 template <typename T, typename U = typename T::size_type>
 using container_resize_0 =
@@ -701,6 +740,8 @@ using container_get_allocator =
 // - > allocator_type
 // - > size_type
 // - > difference_type
+// - > pointer
+// - > const_pointer
 // - > key_compare
 // - > value_coompare
 // - > iterator
@@ -727,6 +768,10 @@ template <typename T>
 using container_size_type = typename T::size_type;
 template <typename T>
 using container_difference_type = typename T::difference_type;
+template <typename T>
+using container_pointer_type = typename T::pointer;
+template <typename T>
+using container_const_pointer_type = typename T::const_pointer;
 template <typename T>
 using container_key_compare = typename T::key_compare;
 template <typename T>

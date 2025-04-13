@@ -27,12 +27,12 @@
     return AddLValueReference();                         \
   }
 
-#define OBJECT_VIEW_DECLARE_CONTAINER(name) \
-  template <typename Arg>                   \
+#define OBJECT_VIEW_DECLARE_META(name) \
+  template <typename Arg>              \
   SharedObject name(Arg&& rhs) const
 
-#define OBJECT_VIEW_DECLARE_CONTAINER_VARS(name) \
-  template <typename... Args>                    \
+#define OBJECT_VIEW_DECLARE_META_VARS(name) \
+  template <typename... Args>               \
   SharedObject name(Args&&... args) const
 
 namespace My::MyDRefl {
@@ -280,10 +280,22 @@ class ObjectView {
   ObjectView tuple_get(std::size_t i) const;
 
   //
+  // Iterator
+  /////////////
+
+  template <typename Arg>
+  void advance(Arg&& rhs) const;
+  OBJECT_VIEW_DECLARE_META(distance);
+  OBJECT_VIEW_DECLARE_META(next);
+  OBJECT_VIEW_DECLARE_META(prev);
+  SharedObject next() const;
+  SharedObject prev() const;
+
+  //
   // container
   //////////////
 
-  OBJECT_VIEW_DECLARE_CONTAINER_VARS(assign);
+  OBJECT_VIEW_DECLARE_META_VARS(assign);
 
   // - iterator
 
@@ -304,38 +316,38 @@ class ObjectView {
   //SharedObject max_size() const;
   SharedObject capacity() const;
   SharedObject bucket_count() const;
-  OBJECT_VIEW_DECLARE_CONTAINER(resize);
+  OBJECT_VIEW_DECLARE_META(resize);
   void reserve(std::size_t n) const;
   void shrink_to_fit() const;
 
   // - element access
 
-  OBJECT_VIEW_DECLARE_CONTAINER(at);
+  OBJECT_VIEW_DECLARE_META(at);
   SharedObject front() const;
   SharedObject back() const;
   SharedObject data() const;
 
   // - lookup
 
-  OBJECT_VIEW_DECLARE_CONTAINER(count);
-  OBJECT_VIEW_DECLARE_CONTAINER(find);
-  OBJECT_VIEW_DECLARE_CONTAINER(lower_bound);
-  OBJECT_VIEW_DECLARE_CONTAINER(upper_bound);
-  OBJECT_VIEW_DECLARE_CONTAINER(equal_range);
+  OBJECT_VIEW_DECLARE_META(count);
+  OBJECT_VIEW_DECLARE_META(find);
+  OBJECT_VIEW_DECLARE_META(lower_bound);
+  OBJECT_VIEW_DECLARE_META(upper_bound);
+  OBJECT_VIEW_DECLARE_META(equal_range);
 
   // - modifiers
 
   void clear() const;
-  OBJECT_VIEW_DECLARE_CONTAINER_VARS(insert);
-  OBJECT_VIEW_DECLARE_CONTAINER_VARS(insert_or_assign);
-  OBJECT_VIEW_DECLARE_CONTAINER(erase);
-  OBJECT_VIEW_DECLARE_CONTAINER(push_front);
-  OBJECT_VIEW_DECLARE_CONTAINER(push_back);
+  OBJECT_VIEW_DECLARE_META_VARS(insert);
+  OBJECT_VIEW_DECLARE_META_VARS(insert_or_assign);
+  OBJECT_VIEW_DECLARE_META(erase);
+  OBJECT_VIEW_DECLARE_META(push_front);
+  OBJECT_VIEW_DECLARE_META(push_back);
   void pop_front() const;
   void pop_back() const;
-  OBJECT_VIEW_DECLARE_CONTAINER(swap);
-  OBJECT_VIEW_DECLARE_CONTAINER(merge);
-  OBJECT_VIEW_DECLARE_CONTAINER(extract);
+  OBJECT_VIEW_DECLARE_META(swap);
+  OBJECT_VIEW_DECLARE_META(merge);
+  OBJECT_VIEW_DECLARE_META(extract);
 
   // - observers
 
@@ -402,7 +414,7 @@ class SharedObject : public ObjectView {
 #undef OBJECT_VIEW_DECLARE_OPERATOR
 #undef OBJECT_VIEW_DEFINE_CMP_OPERATOR
 #undef OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR
-#undef OBJECT_VIEW_DECLARE_CONTAINER
-#undef OBJECT_VIEW_DECLARE_CONTAINER_VARS
+#undef OBJECT_VIEW_DECLARE_META
+#undef OBJECT_VIEW_DECLARE_META_VARS
 
 #include "details/Object.inl"

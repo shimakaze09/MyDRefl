@@ -111,6 +111,13 @@ class NameIDRegistry : public IDRegistry<NameID> {
     static constexpr Name tuple_size{"MyDRefl::tuple_size"};
     static constexpr Name tuple_get{"MyDRefl::tuple_get"};
 
+    // iterator
+
+    static constexpr Name iterator_advance{"MyDRefl::iterator_advance"};
+    static constexpr Name iterator_distance{"MyDRefl::iterator_distance"};
+    static constexpr Name iterator_next{"MyDRefl::iterator_next"};
+    static constexpr Name iterator_prev{"MyDRefl::iterator_prev"};
+
     // container
 
     static constexpr Name container_assign{"MyDRefl::container_assign"};

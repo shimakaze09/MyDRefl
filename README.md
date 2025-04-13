@@ -104,9 +104,9 @@ for (auto&& [type, field, var] : v.GetTypeFieldVars())
 - [serialize](src/test/15_serializer/main.cpp)
 - [container](src/test/16_container/main.cpp)
 
-## Feature
+## Features
 
-- reflect global fields, methods or enums
+- global fields, methods or enums
 - classes with **single**-, **multiple**- and **virtual**-inheritance
 - constructors (arbitrary argument count) and destructors
 - methods (**virtual**, **abstract**, **overloaded**, arbitrary argument count) : you can pass arguments by a buffer (on
@@ -117,9 +117,12 @@ for (auto&& [type, field, var] : v.GetTypeFieldVars())
 - working with custom types without the need of having the declaration of the type available at compile time (useful for
   plugins)
 - possibility to add additional **attribute** to all reflection objects
-- reference/pointer
-- standard container
-- **meta** function: `operator +`, `operator-`, etc
+- reference
+- pointer, array
+- standard container, iterator
+- **meta** function
+    - operations: `operator +`, `operator-`, ...
+    - container: `begin`, `end`, `empty`, `size`, ...
 - **no** macro usage
 - **no** rtti required
 - **no** exceptions (this feature come with cost and is also regularly disabled on consoles)
