@@ -1,5 +1,7 @@
 #include "InvokeUtil.h"
 
+#include <MyDRefl/MyDRefl.h>
+
 using namespace My::MyDRefl;
 
 bool details::IsPriorityCompatible(std::span<const Type> params,
