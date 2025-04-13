@@ -29,6 +29,8 @@ int main() {
   Mngr.RegisterType<Funcs>();
   Mngr.AddMethod<MemFuncOf<Funcs, void(double)>::get(&Funcs::f)>("f");
   Mngr.AddMethod<MemFuncOf<Funcs, void(std::uint8_t&)>::get(&Funcs::f)>("f");
+  Mngr.AddMethod<MemFuncOf<Funcs, void(const std::uint8_t&&)>::get(&Funcs::f)>(
+      "f");
   Mngr.AddMethod<MemFuncOf<Funcs, void(const std::uint8_t&)>::get(&Funcs::f)>(
       "f");
   Mngr.AddMethod<MemFuncOf<Funcs, void(std::uint8_t&&)>::get(&Funcs::f)>("f");

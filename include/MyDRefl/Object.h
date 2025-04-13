@@ -31,6 +31,10 @@
   template <typename Arg>              \
   SharedObject name(Arg&& rhs) const
 
+#define OBJECT_VIEW_DECLARE_META_RET(name, ret) \
+  template <typename Arg>                       \
+  ret name(Arg&& rhs) const
+
 #define OBJECT_VIEW_DECLARE_META_VARS(name) \
   template <typename... Args>               \
   SharedObject name(Args&&... args) const
@@ -257,7 +261,6 @@ class ObjectView {
   SharedObject operator*() const;
 
   OBJECT_VIEW_DECLARE_OPERATOR([], subscript);
-  OBJECT_VIEW_DECLARE_OPERATOR(->*, member_of_pointer);
   SharedObject operator[](std::size_t n) const;
 
   template <typename... Args>
@@ -265,7 +268,7 @@ class ObjectView {
 
   template <typename T>
   T& operator>>(T& out) const {
-    ADMInvoke(NameIDRegistry::Meta::operator_rshift, out);
+    Invoke<void>(NameIDRegistry::Meta::operator_rshift, out);
     return out;
   }
 
@@ -283,9 +286,8 @@ class ObjectView {
   // Iterator
   /////////////
 
-  template <typename Arg>
-  void advance(Arg&& rhs) const;
-  OBJECT_VIEW_DECLARE_META(distance);
+  OBJECT_VIEW_DECLARE_META_RET(advance, void);
+  OBJECT_VIEW_DECLARE_META_RET(distance, std::size_t);
   OBJECT_VIEW_DECLARE_META(next);
   OBJECT_VIEW_DECLARE_META(prev);
   SharedObject next() const;
@@ -294,8 +296,6 @@ class ObjectView {
   //
   // container
   //////////////
-
-  OBJECT_VIEW_DECLARE_META_VARS(assign);
 
   // - iterator
 
@@ -311,12 +311,11 @@ class ObjectView {
 
   // - capacity
 
-  SharedObject empty() const;
-  SharedObject size() const;
-  //SharedObject max_size() const;
-  SharedObject capacity() const;
-  SharedObject bucket_count() const;
-  OBJECT_VIEW_DECLARE_META(resize);
+  bool empty() const;
+  std::size_t size() const;
+  std::size_t capacity() const;
+  std::size_t bucket_count() const;
+  OBJECT_VIEW_DECLARE_META_RET(resize, void);
   void reserve(std::size_t n) const;
   void shrink_to_fit() const;
 
@@ -328,8 +327,7 @@ class ObjectView {
   SharedObject data() const;
 
   // - lookup
-
-  OBJECT_VIEW_DECLARE_META(count);
+  OBJECT_VIEW_DECLARE_META_RET(count, std::size_t);
   OBJECT_VIEW_DECLARE_META(find);
   OBJECT_VIEW_DECLARE_META(lower_bound);
   OBJECT_VIEW_DECLARE_META(upper_bound);
@@ -341,12 +339,12 @@ class ObjectView {
   OBJECT_VIEW_DECLARE_META_VARS(insert);
   OBJECT_VIEW_DECLARE_META_VARS(insert_or_assign);
   OBJECT_VIEW_DECLARE_META(erase);
-  OBJECT_VIEW_DECLARE_META(push_front);
-  OBJECT_VIEW_DECLARE_META(push_back);
+  OBJECT_VIEW_DECLARE_META_RET(push_front, void);
+  OBJECT_VIEW_DECLARE_META_RET(push_back, void);
   void pop_front() const;
   void pop_back() const;
-  OBJECT_VIEW_DECLARE_META(swap);
-  OBJECT_VIEW_DECLARE_META(merge);
+  OBJECT_VIEW_DECLARE_META_RET(swap, void);
+  OBJECT_VIEW_DECLARE_META_RET(merge, void);
   OBJECT_VIEW_DECLARE_META(extract);
 
   // - observers
