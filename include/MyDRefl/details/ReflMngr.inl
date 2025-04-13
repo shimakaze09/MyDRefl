@@ -1009,7 +1009,7 @@ FieldPtr ReflMngr::GenerateDynamicFieldPtr(Args&&... args) {
         FieldPtr::ConvertToBuffer(T{std::forward<Args>(args)...});
     return FieldPtr{Type_of<T>, buffer};
   } else
-    return FieldPtr{MakeShared(Type_of<T>, std::forward<Args>(args)...)};
+    return FieldPtr{MakeShared(Type_of<RawT>, std::forward<Args>(args)...)};
 }
 
 template <typename Return>
