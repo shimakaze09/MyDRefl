@@ -6,5 +6,5 @@ ADD_TARGET(
         TEST
         MODE EXE
         LIB
-        My::MyDRefl_core
+        My::MyDRefl_boostrap
 )

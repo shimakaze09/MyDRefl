@@ -1114,7 +1114,7 @@ void ReflMngr::RegisterType() {
       auto target = typeinfos.find(Type_of<T>);
       if (target != typeinfos.end())
         return;
-
+      tregistry.Register<T>();
       typeinfos.emplace_hint(target, Type_of<T>,
                              TypeInfo{sizeof(T), alignof(T)});
 
