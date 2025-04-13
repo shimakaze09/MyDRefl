@@ -191,7 +191,7 @@ static SharedObject MInvoke(bool is_priority,
 
         if (rst_desc.type.Is<void>()) {
           iter->second.methodptr.Invoke(obj.GetPtr(), nullptr, argptr_buffer);
-          return SharedObject{rst_desc.type};
+          return SharedObject{Type_of<void>};
         } else if (rst_desc.type.IsReference()) {
           std::aligned_storage_t<sizeof(void*)> buffer;
           iter->second.methodptr.Invoke(obj.GetPtr(), &buffer,

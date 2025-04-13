@@ -128,11 +128,11 @@ constexpr auto My::MyDRefl::wrap_member_function() noexcept {
           return destructor<NonCVReturn>();
         }
       } else
-        return destructor<void>();
+        return {};
     } else {
       details::wrap_function_call<ArgList>::template run<Obj, func_ptr>(
           obj, argptr_buffer);
-      return destructor<void>();
+      return {};
     }
   };
   return wrapped_function;
@@ -163,11 +163,11 @@ constexpr auto My::MyDRefl::wrap_member_function(Func&& func) noexcept {
           return destructor<NonCVReturn>();
         }
       } else
-        return destructor<void>();
+        return {};
     } else {
       details::wrap_function_call<ArgList>::template run<Obj>(
           obj, std::forward<Func>(f), argptr_buffer);
-      return destructor<void>();
+      return {};
     }
   };
   return wrapped_function;
@@ -196,11 +196,11 @@ constexpr auto My::MyDRefl::wrap_static_function() noexcept {
           return destructor<NonCVReturn>();
         }
       } else
-        return destructor<void>();
+        return {};
     } else {
       details::wrap_function_call<ArgList>::template run<func_ptr>(
           argptr_buffer);
-      return destructor<void>();
+      return {};
     }
   };
   return wrapped_function;
@@ -300,11 +300,11 @@ constexpr auto My::MyDRefl::wrap_static_function(Func&& func) noexcept {
           return destructor<NonCVReturn>();
         }
       } else
-        return destructor<void>();
+        return {};
     } else {
       details::wrap_function_call<ArgList>::template run(std::forward<Func>(f),
                                                          argptr_buffer);
-      return destructor<void>();
+      return {};
     }
   };
   return wrapped_function;
