@@ -19,7 +19,6 @@ class ReflMngr {
   // Data
   /////////
   //
-  // <typeinfos> does't contain reference/pointer/const/volatile type
   // enum is a special type (all member is static)
   //
 
@@ -109,7 +108,9 @@ class ReflMngr {
   Name AddField(Type type, Name field_name, FieldInfo fieldinfo);
   Name AddMethod(Type type, Name method_name, MethodInfo methodinfo);
   Type AddBase(Type derived, Type base, BaseInfo baseinfo);
-  bool AddAttr(Type type, Attr attr);
+  bool AddTypeAttr(Type type, Attr attr);
+  bool AddFieldAttr(Type type, Name field_name, Attr attr);
+  bool AddMethodAttr(Type type, Name method_name, Attr attr);
 
   // -- template --
 
@@ -289,7 +290,7 @@ class ReflMngr {
   T Invoke(ObjectView obj, Name method_name, Args&&... args) const;
 
   //
-  // Meta
+  // Make
   /////////
 
   bool IsNonCopiedArgConstructible(Type type,
@@ -307,13 +308,11 @@ class ReflMngr {
   bool Construct(ObjectView obj, std::span<const Type> argTypes = {},
                  ArgPtrBuffer argptr_buffer = nullptr) const;
   bool Destruct(ObjectView obj) const;
-
   ObjectView NonArgCopyNew(Type type, std::span<const Type> argTypes = {},
                            ArgPtrBuffer argptr_buffer = nullptr) const;
   ObjectView New(Type type, std::span<const Type> argTypes = {},
                  ArgPtrBuffer argptr_buffer = nullptr) const;
   bool Delete(ObjectView obj) const;
-
   SharedObject MakeShared(Type type, std::span<const Type> argTypes = {},
                           ArgPtrBuffer argptr_buffer = nullptr) const;
 
@@ -347,25 +346,18 @@ class ReflMngr {
 
   // ForEach (DFS)
 
-  // self typeinfo and all bases' typeinfo
   void ForEachTypeInfo(Type type,
                        const std::function<bool(InfoTypePair)>& func) const;
-
-  // self fields and all bases' fields
   void ForEachField(
       Type type, const std::function<bool(InfoTypePair, InfoFieldPair)>& func,
-      FieldFlag flag = FieldFlag::All) const;
-
-  // self methods and all bases' methods
+      FieldFlag flag = FieldFlag ::All) const;
   void ForEachMethod(
       Type type, const std::function<bool(InfoTypePair, InfoMethodPair)>& func,
-      MethodFlag flag = MethodFlag ::All) const;
-
-  // self vars and all bases' vars
+      MethodFlag flag = MethodFlag::All) const;
   void ForEachVar(
       ObjectView obj,
       const std::function<bool(InfoTypePair, InfoFieldPair, ObjectView)>& func,
-      FieldFlag flag = FieldFlag::All) const;
+      FieldFlag flag = FieldFlag ::All) const;
 
   // Gather (DFS)
 
@@ -401,9 +393,9 @@ class ReflMngr {
 
   bool ContainsBase(Type type, Type base) const;
   bool ContainsField(Type type, Name field_name,
-                     FieldFlag flag = FieldFlag::All) const;
+                     FieldFlag flag = FieldFlag ::All) const;
   bool ContainsMethod(Type type, Name method_name,
-                      MethodFlag flag = MethodFlag ::All) const;
+                      MethodFlag flag = MethodFlag::All) const;
 
   //
   // Memory

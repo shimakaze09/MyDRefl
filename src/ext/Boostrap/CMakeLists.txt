@@ -1,4 +1,4 @@
-IF (NOT My_MyDRefl_Build_BootStrap)
+IF (NOT My_MyDRefl_Build_ext_Bootstrap)
    RETURN()
 ENDIF ()
  
@@ -14,13 +14,12 @@ ENDIF ()
 ADD_TARGET(
         MODE STATIC
         SOURCE
-        "${PROJECT_SOURCE_DIR}/include/MyDRefl_bootstrap.h"
+        "${PROJECT_SOURCE_DIR}/include/MyDRefl_ext/Bootstrap.h"
         INC
         "${PROJECT_SOURCE_DIR}/include"
         LIB
         My::MyDRefl_core
         C_OPTION_PRIVATE
         ${c_options_private}
-        PCH
-        "${PROJECT_SOURCE_DIR}/include/MyDRefl/MyDRefl.h"
+        PCH_REUSE_FROM MyDRefl_core
  )

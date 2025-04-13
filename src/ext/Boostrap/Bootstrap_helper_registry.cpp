@@ -1,4 +1,4 @@
-#include "bootstrap_helper.h"
+#include "Bootstrap_helper.h"
 
 using namespace My;
 using namespace My::MyDRefl;
@@ -21,7 +21,7 @@ void RegisterIDRegistry() {
   Mngr.AddMethod<&W::Clear>("Clear");
 }
 
-void My::MyDRefl::details::bootstrap_helper_registry() {
+void My::MyDRefl::ext::details::Bootstrap_helper_registry() {
   RegisterIDRegistry<NameID, Name>();
   Mngr.RegisterType<NameIDRegistry>();
   Mngr.AddBases<NameIDRegistry, IDRegistry<NameID, Name>>();

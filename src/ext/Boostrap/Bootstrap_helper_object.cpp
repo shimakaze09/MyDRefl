@@ -1,9 +1,9 @@
-#include "bootstrap_helper.h"
+#include "Bootstrap_helper.h"
 
 using namespace My;
 using namespace My::MyDRefl;
 
-void My::MyDRefl::details::bootstrap_helper_object() {
+void My::MyDRefl::ext::details::Bootstrap_helper_object() {
   Mngr.RegisterType<ObjectView>();
   Mngr.AddConstructor<ObjectView, Type, void*>();
   Mngr.AddConstructor<ObjectView, Type>();

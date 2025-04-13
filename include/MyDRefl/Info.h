@@ -85,3 +85,8 @@ struct TypeInfo {
   AttrSet attrs;
 };
 }  // namespace My::MyDRefl
+
+template <>
+constexpr auto My::type_name<My::MyDRefl::AttrSet>() {
+  return TSTR("My::MyDRefl::AttrSet");
+}
