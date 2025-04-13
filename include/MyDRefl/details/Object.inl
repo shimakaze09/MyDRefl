@@ -78,24 +78,24 @@ inline ObjectView::operator bool() const noexcept {
 }
 
 template <typename... Args>
-InvocableResult ObjectView::IsInvocable(Name method_name, FuncMode mode) const {
+InvocableResult ObjectView::IsInvocable(Name method_name, FuncFlag mode) const {
   constexpr std::array argTypes = {Type_of<Args>...};
   return IsInvocable(method_name, std::span<const Type>{argTypes}, mode);
 }
 
 template <typename T>
 T ObjectView::InvokeRet(Name method_name, std::span<const Type> argTypes,
-                        ArgPtrBuffer argptr_buffer) const {
+                        ArgPtrBuffer argptr_buffer, FuncFlag flag) const {
   if constexpr (!std::is_void_v<T>) {
     using U =
         std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
     std::uint8_t result_buffer[sizeof(U)];
     InvokeResult result =
-        Invoke(method_name, result_buffer, argTypes, argptr_buffer);
+        Invoke(method_name, result_buffer, argTypes, argptr_buffer, flag);
     assert(result.type.Is<T>());
     return result.Move<T>(result_buffer);
   } else
-    Invoke(method_name, (void*)nullptr, argTypes, argptr_buffer);
+    Invoke(method_name, (void*)nullptr, argTypes, argptr_buffer, flag);
 }
 
 template <typename... Args>
@@ -126,15 +126,16 @@ T ObjectView::Invoke(Name method_name, Args&&... args) const {
 template <typename... Args>
 SharedObject ObjectView::MInvoke(Name method_name,
                                  std::pmr::memory_resource* rst_rsrc,
-                                 Args&&... args) const {
+                                 FuncFlag flag, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypes = {Type_of<decltype(args)>...};
     const std::array argptr_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return MInvoke(method_name, rst_rsrc, std::span<const Type>{argTypes},
-                   static_cast<ArgPtrBuffer>(argptr_buffer.data()));
+                   static_cast<ArgPtrBuffer>(argptr_buffer.data()), flag);
   } else
-    return MInvoke(method_name, rst_rsrc);
+    return MInvoke(method_name, rst_rsrc, std::span<const Type>{},
+                   static_cast<ArgPtrBuffer>(nullptr), flag);
 }
 
 template <typename... Args>
@@ -163,20 +164,27 @@ T ObjectView::AInvoke(Name method_name, Args&&... args) const {
 template <typename... Args>
 SharedObject ObjectView::AMInvoke(Name method_name,
                                   std::pmr::memory_resource* rst_rsrc,
-                                  Args&&... args) const {
+                                  FuncFlag flag, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypes = {details::ArgType<decltype(args)>(args)...};
     const std::array argptr_buffer{details::ArgPtr(args)...};
     return MInvoke(method_name, rst_rsrc, std::span<const Type>{argTypes},
-                   static_cast<ArgPtrBuffer>(argptr_buffer.data()));
+                   static_cast<ArgPtrBuffer>(argptr_buffer.data()), flag);
   } else
-    return MInvoke(method_name, rst_rsrc);
+    return MInvoke(method_name, rst_rsrc, std::span<const Type>{},
+                   static_cast<ArgPtrBuffer>(nullptr), flag);
 }
 
 template <typename... Args>
 SharedObject ObjectView::ADMInvoke(Name method_name, Args&&... args) const {
-  return AMInvoke(method_name, std::pmr::get_default_resource(),
-                  std::forward<Args>(args)...);
+  if constexpr (sizeof...(Args) > 0) {
+    std::array argTypes = {details::ArgType<decltype(args)>(args)...};
+    const std::array argptr_buffer{details::ArgPtr(args)...};
+    return DMInvoke(method_name, std::span<const Type>{argTypes},
+                    static_cast<ArgPtrBuffer>(argptr_buffer.data()));
+  } else
+    return DMInvoke(method_name, std::span<const Type>{},
+                    static_cast<ArgPtrBuffer>(nullptr));
 }
 
 OBJECT_VIEW_DEFINE_OPERATOR_T(ObjectView, +, add)

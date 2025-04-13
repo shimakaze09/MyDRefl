@@ -58,7 +58,7 @@ class MethodPtr {
     return func.index() == 2 || func.index() == 5;
   }
 
-  FuncMode GetFuncMode() const noexcept;
+  FuncFlag GetFuncFlag() const noexcept;
 
   const ParamList& GetParamList() const noexcept { return paramList; }
 

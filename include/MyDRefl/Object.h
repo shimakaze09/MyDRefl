@@ -54,8 +54,7 @@ class ObjectView {
 
   constexpr ObjectView(Type type, void* ptr) noexcept : type{type}, ptr{ptr} {}
 
-  explicit constexpr ObjectView(Type type) noexcept
-      : ObjectView{type, nullptr} {}
+  constexpr ObjectView(Type type) noexcept : ObjectView{type, nullptr} {}
 
   template <typename T>
   requires std::negation_v<std::is_same<std::remove_cvref_t<T>, Type>>&&
@@ -108,19 +107,21 @@ class ObjectView {
 
   InvocableResult IsInvocable(Name method_name,
                               std::span<const Type> argTypes = {},
-                              FuncMode mode = FuncMode::Variable) const;
+                              FuncFlag mode = FuncFlag::All) const;
 
   InvokeResult Invoke(Name method_name, void* result_buffer = nullptr,
                       std::span<const Type> argTypes = {},
-                      ArgPtrBuffer argptr_buffer = nullptr) const;
+                      ArgPtrBuffer argptr_buffer = nullptr,
+                      FuncFlag flag = FuncFlag::All) const;
 
   template <typename... Args>
   InvocableResult IsInvocable(Name method_name,
-                              FuncMode mode = FuncMode::Variable) const;
+                              FuncFlag mode = FuncFlag::All) const;
 
   template <typename T>
   T InvokeRet(Name method_name, std::span<const Type> argTypes = {},
-              ArgPtrBuffer argptr_buffer = nullptr) const;
+              ArgPtrBuffer argptr_buffer = nullptr,
+              FuncFlag flag = FuncFlag::All) const;
 
   template <typename... Args>
   InvokeResult InvokeArgs(Name method_name, void* result_buffer,
@@ -131,14 +132,16 @@ class ObjectView {
 
   SharedObject MInvoke(Name method_name, std::pmr::memory_resource* rst_rsrc,
                        std::span<const Type> argTypes = {},
-                       ArgPtrBuffer argptr_buffer = nullptr) const;
+                       ArgPtrBuffer argptr_buffer = nullptr,
+                       FuncFlag flag = FuncFlag::All) const;
 
   SharedObject DMInvoke(Name method_name, std::span<const Type> argTypes = {},
-                        ArgPtrBuffer argptr_buffer = nullptr) const;
+                        ArgPtrBuffer argptr_buffer = nullptr,
+                        FuncFlag flag = FuncFlag::All) const;
 
   template <typename... Args>
   SharedObject MInvoke(Name method_name, std::pmr::memory_resource* rst_rsrc,
-                       Args&&... args) const;
+                       FuncFlag flag, Args&&... args) const;
 
   template <typename... Args>
   SharedObject DMInvoke(Name method_name, Args&&... args) const;
@@ -150,7 +153,7 @@ class ObjectView {
   // 'A' means auto, ObjectView/SharedObject will be transformed as type + ptr
   template <typename... Args>
   SharedObject AMInvoke(Name method_name, std::pmr::memory_resource* rst_rsrc,
-                        Args&&... args) const;
+                        FuncFlag flag, Args&&... args) const;
 
   // 'A' means auto, ObjectView/SharedObject will be transformed as type + ptr
   template <typename... Args>
@@ -202,7 +205,7 @@ class ObjectView {
   bool ContainsBase(Type base) const;
   bool ContainsField(Name field_name) const;
   bool ContainsMethod(Name method_name) const;
-  bool ContainsMethod(Name method_name, FuncMode mode) const;
+  bool ContainsMethod(Name method_name, FuncFlag mode) const;
 
   //
   // Type

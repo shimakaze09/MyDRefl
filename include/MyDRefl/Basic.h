@@ -8,7 +8,14 @@
 #include <memory>
 
 namespace My::MyDRefl {
-enum class FuncMode { Variable, Const, Static };
+enum class FuncFlag {
+  Variable = 0b001,
+  Const = 0b010,
+  Static = 0b100,
+
+  All = 0b111
+};
+MY_MYDREFL_ENUM_BOOL_OPERATOR_DEFINE(FuncFlag)
 
 using SharedBuffer = std::shared_ptr<void>;
 
