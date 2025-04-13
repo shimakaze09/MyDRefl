@@ -36,16 +36,6 @@
   SharedObject name(Args&&... args) const
 
 namespace My::MyDRefl {
-class SharedObject;
-class ObjectView;
-
-template <typename T>
-struct IsObjectOrView;
-template <typename T>
-constexpr bool IsObjectOrView_v = IsObjectOrView<T>::value;
-template <typename T>
-concept NonObjectAndView = !IsObjectOrView_v<T>;
-
 class ObjectView {
  public:
   constexpr ObjectView() noexcept : ptr{nullptr} {}
@@ -59,24 +49,24 @@ class ObjectView {
   template <typename T>
   requires std::negation_v<std::is_same<std::remove_cvref_t<T>, Type>>&&
       std::negation_v<std::is_same<std::remove_cvref_t<T>, std::nullptr_t>>&&
-          NonObjectAndView<T> explicit ObjectView(T&& obj) noexcept
+          NonObjectAndView<T> constexpr explicit ObjectView(T&& obj) noexcept
       : ObjectView{Type_of<decltype(obj)>,
                    const_cast<void*>(static_cast<const void*>(&obj))} {}
 
   constexpr Type GetType() const noexcept { return type; }
 
-  void* GetPtr() const noexcept { return ptr; }
+  constexpr void* GetPtr() const noexcept { return ptr; }
 
   explicit operator bool() const noexcept;
 
   template <typename T>
-  auto* AsPtr() const noexcept {
+  constexpr auto* AsPtr() const noexcept {
     assert(type.Is<T>());
     return reinterpret_cast<std::add_pointer_t<T>>(ptr);
   }
 
   template <typename T>
-  decltype(auto) As() const noexcept {
+  constexpr decltype(auto) As() const noexcept {
     assert(ptr);
     auto* ptr = AsPtr<T>();
     if constexpr (std::is_reference_v<T>)
@@ -365,6 +355,8 @@ class SharedObject : public ObjectView {
       : ObjectView{type}, buffer{std::move(buffer)} {
     ptr = buffer.get();
   }
+
+  constexpr explicit SharedObject(ObjectView obj) noexcept : ObjectView{obj} {}
 
   template <typename T>
   SharedObject(Type type, std::shared_ptr<T> buffer) noexcept

@@ -65,8 +65,8 @@ int main() {
   Mngr.AddConstructor<Vec, float, float>();
   Mngr.AddField<&Vec::x>("x");
   Mngr.AddField<&Vec::y>("y");
-  Mngr.AddMethod<MemFuncOf<Vec(float) const noexcept>::get(&Vec::operator+)>(
-      NameIDRegistry::Meta::operator_add);
+  Mngr.AddMethod<MemFuncOf<Vec, Vec(float) const noexcept>::get(
+      &Vec::operator+)>(NameIDRegistry::Meta::operator_add);
 
   SharedObject v = Mngr.MakeShared(Type_of<Vec>, 3.f, 4.f);
 

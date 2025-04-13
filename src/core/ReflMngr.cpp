@@ -494,7 +494,7 @@ static InvocableResult IsInvocable(bool is_priority, Type type,
                                    Name method_name,
                                    std::span<const Type> argTypes,
                                    FuncFlag flag) {
-  assert(type.CVRefMode() == CVRefMode::None);
+  assert(type.GetCVRefMode() == CVRefMode::None);
   auto typetarget = Mngr.typeinfos.find(type);
 
   if (typetarget == Mngr.typeinfos.end())
@@ -545,7 +545,7 @@ static InvokeResult Invoke(bool is_priority,
                            Name method_name, void* result_buffer,
                            std::span<const Type> argTypes,
                            ArgPtrBuffer argptr_buffer, FuncFlag flag) {
-  assert(obj.GetType().CVRefMode() == CVRefMode::None);
+  assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
   auto typetarget = Mngr.typeinfos.find(obj.GetType());
 
@@ -606,7 +606,7 @@ static SharedObject MInvoke(bool is_priority,
                             std::span<const Type> argTypes,
                             ArgPtrBuffer argptr_buffer, FuncFlag flag) {
   assert(rst_rsrc);
-  assert(obj.GetType().CVRefMode() == CVRefMode::None);
+  assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
   auto typetarget = Mngr.typeinfos.find(obj.GetType());
 
   if (typetarget == Mngr.typeinfos.end())
@@ -760,7 +760,7 @@ static bool ForEachVar(
     ObjectView obj,
     const std::function<bool(TypeRef, FieldRef, ObjectView)>& func,
     FieldFlag flag, std::set<TypeID>& visitedVBs) {
-  assert(obj.GetType().CVRefMode() == CVRefMode::None);
+  assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
   auto target = Mngr.typeinfos.find(obj.GetType());
 
@@ -877,7 +877,7 @@ ReflMngr::~ReflMngr() {
 }
 
 void ReflMngr::RegisterType(Type type, size_t size, size_t alignment) {
-  assert(type.CVRefMode() == CVRefMode::None);
+  assert(type.GetCVRefMode() == CVRefMode::None);
 
   auto target = typeinfos.find(type);
   if (target != typeinfos.end())
@@ -1002,7 +1002,7 @@ SharedObject ReflMngr::MakeShared(Type type, std::span<const Type> argTypes,
 ObjectView ReflMngr::StaticCast_DerivedToBase(ObjectView obj, Type type) const {
   assert(type);
 
-  const CVRefMode cvref_mode = obj.GetType().CVRefMode();
+  const CVRefMode cvref_mode = obj.GetType().GetCVRefMode();
   assert(!CVRefMode_IsVolatile(cvref_mode));
   switch (cvref_mode) {
     case CVRefMode::Left:
@@ -1049,7 +1049,7 @@ ObjectView ReflMngr::StaticCast_DerivedToBase(ObjectView obj, Type type) const {
 ObjectView ReflMngr::StaticCast_BaseToDerived(ObjectView obj, Type type) const {
   assert(type);
 
-  const CVRefMode cvref_mode = obj.GetType().CVRefMode();
+  const CVRefMode cvref_mode = obj.GetType().GetCVRefMode();
   assert(!CVRefMode_IsVolatile(cvref_mode));
   switch (cvref_mode) {
     case CVRefMode::Left:
@@ -1097,7 +1097,7 @@ ObjectView ReflMngr::DynamicCast_BaseToDerived(ObjectView obj,
                                                Type type) const {
   assert(type);
 
-  const CVRefMode cvref_mode = obj.GetType().CVRefMode();
+  const CVRefMode cvref_mode = obj.GetType().GetCVRefMode();
   assert(!CVRefMode_IsVolatile(cvref_mode));
   switch (cvref_mode) {
     case CVRefMode::Left:
@@ -1168,7 +1168,7 @@ ObjectView ReflMngr::DynamicCast(ObjectView obj, Type type) const {
 }
 
 ObjectView ReflMngr::Var(ObjectView obj, Name field_name, FieldFlag flag) {
-  const CVRefMode cvref_mode = obj.GetType().CVRefMode();
+  const CVRefMode cvref_mode = obj.GetType().GetCVRefMode();
   assert(!CVRefMode_IsVolatile(cvref_mode));
   switch (cvref_mode) {
     case CVRefMode::Left:
@@ -1293,7 +1293,7 @@ bool ReflMngr::IsCompatible(std::span<const Type> params,
 InvocableResult ReflMngr::IsInvocable(Type type, Name method_name,
                                       std::span<const Type> argTypes,
                                       FuncFlag flag) const {
-  const CVRefMode cvref_mode = type.CVRefMode();
+  const CVRefMode cvref_mode = type.GetCVRefMode();
   assert(!CVRefMode_IsVolatile(cvref_mode));
   switch (cvref_mode) {
     case CVRefMode::Left:
@@ -1323,7 +1323,7 @@ InvokeResult ReflMngr::Invoke(ObjectView obj, Name method_name,
                               std::span<const Type> argTypes,
                               ArgPtrBuffer argptr_buffer, FuncFlag flag) const {
   ObjectView rawObj;
-  const CVRefMode cvref_mode = obj.GetType().CVRefMode();
+  const CVRefMode cvref_mode = obj.GetType().GetCVRefMode();
   assert(!CVRefMode_IsVolatile(cvref_mode));
   switch (cvref_mode) {
     case CVRefMode::Left:
@@ -1366,7 +1366,7 @@ SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
   assert(rst_rsrc);
 
   ObjectView rawObj;
-  const CVRefMode cvref_mode = obj.GetType().CVRefMode();
+  const CVRefMode cvref_mode = obj.GetType().GetCVRefMode();
   assert(!CVRefMode_IsVolatile(cvref_mode));
   switch (cvref_mode) {
     case CVRefMode::Left:
@@ -1462,7 +1462,7 @@ bool ReflMngr::MDelete(ObjectView obj, std::pmr::memory_resource* rsrc) const {
 
 bool ReflMngr::IsNonCopiedArgConstructible(
     Type type, std::span<const Type> argTypes) const {
-  assert(type.CVRefMode() == CVRefMode::None);
+  assert(type.GetCVRefMode() == CVRefMode::None);
 
   auto target = typeinfos.find(type);
   if (target == typeinfos.end())
@@ -1481,7 +1481,7 @@ bool ReflMngr::IsNonCopiedArgConstructible(
 
 bool ReflMngr::IsNonCopiedArgConstructible(
     Type type, std::span<const TypeID> argTypeIDs) const {
-  assert(type.CVRefMode() == CVRefMode::None);
+  assert(type.GetCVRefMode() == CVRefMode::None);
 
   auto target = typeinfos.find(type);
   if (target == typeinfos.end())
@@ -1500,7 +1500,7 @@ bool ReflMngr::IsNonCopiedArgConstructible(
 
 bool ReflMngr::IsConstructible(Type type,
                                std::span<const Type> argTypes) const {
-  assert(type.CVRefMode() == CVRefMode::None);
+  assert(type.GetCVRefMode() == CVRefMode::None);
 
   auto target = typeinfos.find(type);
   if (target == typeinfos.end())
@@ -1517,21 +1517,21 @@ bool ReflMngr::IsConstructible(Type type,
 }
 
 bool ReflMngr::IsCopyConstructible(Type type) const {
-  assert(type.CVRefMode() == CVRefMode::None);
+  assert(type.GetCVRefMode() == CVRefMode::None);
   const TypeID clref_typeID = type.ID_AddConstLValueReference();
   return IsNonCopiedArgConstructible(type,
                                      std::span<const TypeID>{&clref_typeID, 1});
 }
 
 bool ReflMngr::IsMoveConstructible(Type type) const {
-  assert(type.CVRefMode() == CVRefMode::None);
+  assert(type.GetCVRefMode() == CVRefMode::None);
   const TypeID rref_typeID = type.ID_AddRValueReference();
   return IsNonCopiedArgConstructible(type,
                                      std::span<const TypeID>{&rref_typeID, 1});
 }
 
 bool ReflMngr::IsDestructible(Type type) const {
-  assert(type.CVRefMode() == CVRefMode::None);
+  assert(type.GetCVRefMode() == CVRefMode::None);
 
   auto target = typeinfos.find(type);
   if (target == typeinfos.end())
@@ -1552,7 +1552,7 @@ bool ReflMngr::IsDestructible(Type type) const {
 bool ReflMngr::NonCopiedArgConstruct(ObjectView obj,
                                      std::span<const Type> argTypes,
                                      ArgPtrBuffer argptr_buffer) const {
-  assert(obj.GetType().CVRefMode() == CVRefMode::None);
+  assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
   if (!obj.GetType().Valid())
     return false;
@@ -1577,7 +1577,7 @@ bool ReflMngr::NonCopiedArgConstruct(ObjectView obj,
 
 bool ReflMngr::Construct(ObjectView obj, std::span<const Type> argTypes,
                          ArgPtrBuffer argptr_buffer) const {
-  assert(obj.GetType().CVRefMode() == CVRefMode::None);
+  assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
   if (!obj.GetType().Valid())
     return false;
@@ -1605,7 +1605,7 @@ bool ReflMngr::Construct(ObjectView obj, std::span<const Type> argTypes,
 }
 
 bool ReflMngr::Destruct(ObjectView obj) const {
-  assert(obj.GetType().CVRefMode() == CVRefMode::None);
+  assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
   if (!obj.GetType().Valid())
     return false;
@@ -1671,7 +1671,7 @@ void ReflMngr::ForEachVar(
     flag = enum_within(flag, FieldFlag::Unowned);
 
   std::set<TypeID> visitedVBs;
-  const CVRefMode cvref_mode = obj.GetType().CVRefMode();
+  const CVRefMode cvref_mode = obj.GetType().GetCVRefMode();
   assert(!CVRefMode_IsVolatile(cvref_mode));
   switch (cvref_mode) {
     case CVRefMode::Left:
