@@ -2,7 +2,7 @@
 
 #include "attrs/ContainerType.h"
 
-#include "TypeInfo.h"
+#include "Info.h"
 
 namespace My::MyDRefl {
 constexpr Type Global = TypeIDRegistry::Meta::global;

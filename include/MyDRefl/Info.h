@@ -1,8 +1,31 @@
 #pragma once
 
-#include "Util.h"
+#include "FieldPtr.h"
+#include "MethodPtr.h"
+
+#include <set>
 
 namespace My::MyDRefl {
+using Attr = SharedObject;
+
+struct AttrLess {
+  using is_transparent = int;
+
+  bool operator()(const Attr& lhs, const Attr& rhs) const noexcept {
+    return lhs.GetType() < rhs.GetType();
+  }
+
+  bool operator()(const Attr& lhs, const Type& rhs) const noexcept {
+    return lhs.GetType() < rhs;
+  }
+
+  bool operator()(const Type& lhs, const Attr& rhs) const noexcept {
+    return lhs < rhs.GetType();
+  }
+};
+
+using AttrSet = std::set<Attr, AttrLess>;
+
 class BaseInfo {
  public:
   BaseInfo(InheritCastFunctions funcs, bool is_polymorphic = false,
@@ -22,25 +45,41 @@ class BaseInfo {
   bool IsPolymorphic() const noexcept { return is_virtual; }
 
   void* StaticCast_DerivedToBase(void* ptr) const noexcept {
-    return const_cast<void*>(funcs.static_derived_to_base(ptr));
+    return funcs.static_derived_to_base(ptr);
   }
 
   // require non virtual
   void* StaticCast_BaseToDerived(void* ptr) const noexcept {
-    return IsVirtual() ? nullptr
-                       : const_cast<void*>(funcs.static_base_to_derived(ptr));
+    return IsVirtual() ? nullptr : funcs.static_base_to_derived(ptr);
   }
 
   // require polymorphic
   void* DynamicCast_BaseToDerived(void* ptr) const noexcept {
-    return IsPolymorphic()
-               ? const_cast<void*>(funcs.dynamic_base_to_derived(ptr))
-               : nullptr;
+    return IsPolymorphic() ? funcs.dynamic_base_to_derived(ptr) : nullptr;
   }
 
  private:
   bool is_polymorphic;
   bool is_virtual;
   InheritCastFunctions funcs;
+};
+
+struct FieldInfo {
+  FieldPtr fieldptr;
+  AttrSet attrs;
+};
+
+struct MethodInfo {
+  MethodPtr methodptr;
+  AttrSet attrs;
+};
+
+struct TypeInfo {
+  size_t size;
+  size_t alignment;
+  std::unordered_map<Name, FieldInfo> fieldinfos;
+  std::unordered_multimap<Name, MethodInfo> methodinfos;
+  std::unordered_map<Type, BaseInfo> baseinfos;
+  AttrSet attrs;
 };
 }  // namespace My::MyDRefl

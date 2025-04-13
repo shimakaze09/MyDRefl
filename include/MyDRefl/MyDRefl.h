@@ -1,19 +1,14 @@
-//
-// Created by Admin on 11/03/2025.
-//
-
 #pragma once
 
 #include "AttrSet.h"
-#include "BaseInfo.h"
 #include "Basic.h"
-#include "FieldInfo.h"
+#include "config.h"
 #include "FieldPtr.h"
 #include "IDRegistry.h"
-#include "MethodInfo.h"
+#include "Info.h"
 #include "MethodPtr.h"
 #include "Object.h"
 #include "ReflMngr.h"
-#include "TypeInfo.h"
 #include "Util.h"
-#include "config.h"
+
+#include "attrs/ContainerType.h"

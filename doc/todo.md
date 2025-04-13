@@ -18,13 +18,12 @@
 - [x] improve iteration for multimap
 - [x] combine `IsCompatible` and `ConstructedArgumentsGuard` to improve performance
 - [ ] improve return type
-- [ ] `size()` -> `std::size_t` 
+    - [ ] `size()` -> `std::size_t`
 - [x] `ObjectPtr` -> `ObjectView` and let `SharedObject : public ObjectView` 
-- [x] `TypeID` -> `TypeName` 
-- [ ] improve function wrapper
-- [ ] rename invoke
-- [ ] remove metas: `malloc`, `free`, `aligned_malloc`, `aligned_free` 
-- [ ] compress API
+- [x] `TypeID` -> `Type` 
+- [x] rename invoke
+- [x] remove metas: `malloc`, `free`, `aligned_malloc`, `aligned_free` 
+- [x] compress API
     - [x] IsInvocable
     - [x] move APIs with `Type` to corresponding APIs with `ObjectView` 
-    - [ ] add flags into APIs
+    - [x] add flags into APIs

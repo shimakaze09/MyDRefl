@@ -359,10 +359,6 @@ class ObjectView {
 
 class SharedObject : public ObjectView {
  public:
-  //
-  // Constructor
-  ////////////////
-
   using ObjectView::ObjectView;
 
   SharedObject(Type type, SharedBuffer buffer) noexcept
@@ -381,11 +377,6 @@ class SharedObject : public ObjectView {
   template <typename U, typename Deleter, typename Alloc>
   SharedObject(ObjectView obj, Deleter d, Alloc alloc) noexcept
       : ObjectView{obj}, buffer{obj.GetPtr(), std::move(d), alloc} {}
-
-  /*SharedObject(const SharedObject& obj) noexcept = default;
-		SharedObject(SharedObject&& obj) noexcept = default;
-		SharedObject& operator=(const SharedObject& rhs) noexcept = default;
-		SharedObject& operator=(SharedObject&& rhs) noexcept = default;*/
 
   // set pointer to nullptr
   void Reset() noexcept {
