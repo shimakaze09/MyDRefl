@@ -326,7 +326,7 @@ static bool ForEachVar(
 }  // namespace My::MyDRefl::details
 
 ReflMngr::ReflMngr() {
-  RegisterType(Global, 0, 0);
+  RegisterType(GlobalType, 0, 0);
 
   RegisterType<ContainerType>();
   AddField<ContainerType::Array>("Array");

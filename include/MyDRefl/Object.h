@@ -407,6 +407,9 @@ class SharedObject : public ObjectView {
  private:
   SharedBuffer buffer;  // if type is reference, buffer is empty
 };
+
+template <typename T>
+constexpr ObjectView ObjectView_of = {Type_of<T>};
 }  // namespace My::MyDRefl
 
 #undef OBJECT_VIEW_DECLARE_OPERATOR
