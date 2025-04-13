@@ -198,6 +198,8 @@ class ObjectView {
   /////////
 
   ObjectView RemoveConst() const;
+  ObjectView RemoveLValueReference() const;
+  ObjectView RemoveRValueReference() const;
   ObjectView RemoveReference() const;
   ObjectView RemoveConstReference() const;
 

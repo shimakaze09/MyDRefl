@@ -30,6 +30,10 @@ class ReflMngr {
   // remove cvref
   TypeInfo* GetTypeInfo(Type type);
 
+  const TypeInfo* GetTypeInfo(Type type) const {
+    return const_cast<ReflMngr*>(this)->GetTypeInfo(type);
+  }
+
   // clear order
   // - field attrs
   // - type attrs
@@ -97,7 +101,7 @@ class ReflMngr {
   // Modifier
   /////////////
 
-  void RegisterType(Type type, size_t size, size_t alignment);
+  bool RegisterType(Type type, size_t size, size_t alignment);
   bool AddField(Type type, Name field_name, FieldInfo fieldinfo);
   bool AddMethod(Type type, Name method_name, MethodInfo methodinfo);
   bool AddBase(Type derived, Type base, BaseInfo baseinfo);
@@ -452,20 +456,6 @@ class ReflMngr {
   template <typename... Args>
   ObjectView MNew(Type type, std::pmr::memory_resource* rsrc,
                   Args&&... args) const;
-
-  //
-  // Type
-  /////////
-  //
-  // - 'reference' include lvalue reference and rvalue reference
-  //
-
-  Type AddConst(Type type);
-  Type AddLValueReference(Type type);
-  Type AddLValueReferenceWeak(Type type);
-  Type AddRValueReference(Type type);
-  Type AddConstLValueReference(Type type);
-  Type AddConstRValueReference(Type type);
 
  private:
   ReflMngr();
