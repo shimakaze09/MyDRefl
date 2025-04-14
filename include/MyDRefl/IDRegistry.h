@@ -110,6 +110,7 @@ class NameIDRegistry : public IDRegistry<NameID, Name> {
 
     static constexpr Name tuple_size{"MyDRefl::tuple_size"};
     static constexpr Name tuple_get{"MyDRefl::tuple_get"};
+    static constexpr Name tuple_element{"MyDRefl::tuple_element"};
 
     // iterator
 

@@ -30,12 +30,15 @@ concept IsRawArray =
     && container_swap<T&>;
 
 template <typename T>
-concept IsArray =
-    IsRawArray<T> && container_at_size<T> && container_at_size<const T>
+concept IsTuple = true && tuple_size<T>;
 
-    && container_front<T> && container_front<const T>
+template <typename T>
+concept IsArray = IsRawArray<T> && IsTuple<T> && container_at_size<T> &&
+                  container_at_size<const T>
 
-    && container_back<T> && container_back<const T>;
+                  && container_front<T> && container_front<const T>
+
+                  && container_back<T> && container_back<const T>;
 
 template <typename T>
 concept IsVector =
@@ -215,9 +218,6 @@ concept IsUnorderedMap =
     IsUnorderedMultiMap<T> && container_at_key<T> &&
     container_at_key<const T> && container_subscript_key_cl<T> &&
     container_subscript_key_r<T>;
-
-template <typename T>
-concept IsTuple = true && tuple_size<T>;
 
 template <typename T>
 concept IsPair = IsTuple<T> && pair_first<T> && pair_second<T>;
