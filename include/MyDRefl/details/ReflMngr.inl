@@ -29,9 +29,8 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
       constexpr auto decayed_wrapped_func = DecayLambda(wrapped_func);
       return decayed_wrapped_func;
     } else if constexpr (is_function_pointer_v<FuncPtr>) {
-      constexpr auto wrapped_func = [](void* null_obj, void* result_buffer,
+      constexpr auto wrapped_func = [](void*, void* result_buffer,
                                        ArgsView args) {
-        assert(null_obj == nullptr);
         assert(((args.GetParamList()[Ns] == Type_of<Args>) && ...));
         constexpr auto f = wrap_function<funcptr>();
         f(nullptr, result_buffer, args.GetBuffer());
@@ -61,8 +60,7 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
       Func&& func, std::index_sequence<Ns...>) noexcept {
     /*constexpr*/ auto wrapped_func =
         [wrapped_f = wrap_static_function(std::forward<Func>(func))](
-            void* null_obj, void* result_buffer, ArgsView args) mutable {
-          assert(null_obj == nullptr);
+            void*, void* result_buffer, ArgsView args) mutable {
           assert(((args.GetParamList()[Ns] == Type_of<Args>) && ...));
           wrapped_f(nullptr, result_buffer, args.GetBuffer());
         };
