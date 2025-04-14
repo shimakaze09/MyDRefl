@@ -589,8 +589,8 @@ void ObjectView::splice(Args&&... args) const {
 
 template <typename T>
 std::size_t ObjectView::remove(T&& arg) const {
-  ABInvoke<std::size_t>(NameIDRegistry::Meta::container_remove,
-                        MethodFlag::Variable, std::forward<T>(arg));
+  return ABInvoke<std::size_t>(NameIDRegistry::Meta::container_remove,
+                               MethodFlag::Variable, std::forward<T>(arg));
 };
 
 inline void ObjectView::reverse() const {
@@ -599,8 +599,8 @@ inline void ObjectView::reverse() const {
 
 template <typename T>
 std::size_t ObjectView::unique(T&& arg) const {
-  ABInvoke<std::size_t>(NameIDRegistry::Meta::container_unique,
-                        MethodFlag::Variable, std::forward<T>(arg));
+  return ABInvoke<std::size_t>(NameIDRegistry::Meta::container_unique,
+                               MethodFlag::Variable, std::forward<T>(arg));
 };
 
 inline void ObjectView::sort() const {
