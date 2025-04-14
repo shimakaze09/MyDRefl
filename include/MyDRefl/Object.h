@@ -5,14 +5,6 @@
 
 //#include <span>
 
-#define OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(op, name)           \
-  template <typename Arg>                                         \
-  ObjectView operator op(Arg&& rhs) const {                       \
-    ABInvoke<void>(NameIDRegistry::Meta::operator_##name,         \
-                   MethodFlag::Variable, std::forward<Arg>(rhs)); \
-    return AddLValueReference();                                  \
-  }
-
 namespace My::MyDRefl {
 class ObjectView {
  public:
@@ -187,16 +179,26 @@ class ObjectView {
   requires NonObjectAndView<std::decay_t<Arg>> ObjectView
   operator=(Arg&& rhs) const;
 
-  OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(+=, assign_add);
-  OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(-=, assign_sub);
-  OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(*=, assign_mul);
-  OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(/=, assign_div);
-  OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(%=, assign_mod);
-  OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(&=, assign_band);
-  OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(|=, assign_bor);
-  OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(^=, assign_bxor);
-  OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(<<=, assign_lshift);
-  OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(>>=, assign_rshift);
+  template <typename T>
+  ObjectView operator+=(T&& rhs) const;
+  template <typename T>
+  ObjectView operator-=(T&& rhs) const;
+  template <typename T>
+  ObjectView operator*=(T&& rhs) const;
+  template <typename T>
+  ObjectView operator/=(T&& rhs) const;
+  template <typename T>
+  ObjectView operator%=(T&& rhs) const;
+  template <typename T>
+  ObjectView operator&=(T&& rhs) const;
+  template <typename T>
+  ObjectView operator|=(T&& rhs) const;
+  template <typename T>
+  ObjectView operator^=(T&& rhs) const;
+  template <typename T>
+  ObjectView operator<<=(T&& rhs) const;
+  template <typename T>
+  ObjectView operator>>=(T&& rhs) const;
 
   SharedObject operator++() const;
   SharedObject operator++(int) const;
@@ -417,7 +419,5 @@ class SharedObject : public ObjectView {
 template <typename T>
 constexpr ObjectView ObjectView_of = {Type_of<T>};
 }  // namespace My::MyDRefl
-
-#undef OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR
 
 #include "details/Object.inl"

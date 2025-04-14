@@ -1,6 +1,6 @@
 #pragma once
 
-#include <MyTmplate/Func.h>
+#include <MyTemplate/Func.h>
 
 #include <cstdint>
 #include <functional>
@@ -508,7 +508,7 @@ concept variant_valueless_by_exception = requires(const T& t) {
 
 template <typename T>
 concept optional_has_value = requires(const T& t) {
-  {t.has_value}->static_castable_to<bool>;
+  {t.has_value()}->static_castable_to<bool>;
 };
 template <typename T>
 concept optional_value = requires(T t) {
@@ -640,30 +640,30 @@ concept type_ctor_move =
 
 template <typename T>
 concept container_ctor_cnt =
-    container_size_type<T> && type_ctor<const typename T::size_type&>;
+    container_size_type<T> && type_ctor<T, const typename T::size_type&>;
 
 template <typename T>
 concept container_ctor_clvalue =
-    container_value_type<T> && type_ctor<const typename T::value_type&>;
+    container_value_type<T> && type_ctor<T, const typename T::value_type&>;
 
 template <typename T>
 concept container_ctor_rvalue =
-    container_value_type<T> && type_ctor<typename T::value_type&&>;
+    container_value_type<T> && type_ctor<T, typename T::value_type&&>;
 
 template <typename T>
 concept container_ctor_cnt_value =
     container_size_type<T> && container_value_type<T> &&
-    type_ctor<const typename T::size_type&, const typename T::value_type&>;
+    type_ctor<T, const typename T::size_type&, const typename T::value_type&>;
 
 template <typename T>
 concept container_ctor_ptr_cnt =
     container_pointer_type<T> && container_size_type<T> &&
-    type_ctor<const typename T::pointer_type&, const typename T::size_type&>;
+    type_ctor<T, const typename T::pointer_type&, const typename T::size_type&>;
 
 template <typename T>
 concept container_ctor_ptr_ptr =
-    container_pointer_type<T> &&
-    type_ctor<const typename T::pointer_type&, const typename T::pointer_type&>;
+    container_pointer_type<T> && type_ctor<T, const typename T::pointer_type&,
+                                           const typename T::pointer_type&>;
 
 // assign
 
