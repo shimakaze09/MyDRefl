@@ -242,11 +242,7 @@ class ObjectView {
   SharedObject operator()(Args&&... args) const;
 
   template <typename T>
-  T& operator>>(T& out) const {
-    BInvoke<void>(NameIDRegistry::Meta::operator_rshift, out);
-    return out;
-  }
-
+  T& operator>>(T& out) const;
   template <typename T>
   SharedObject operator<<(T&& in) const;
 
@@ -254,8 +250,13 @@ class ObjectView {
   // Tuple
   //////////
 
-  std::size_t tuple_size() const;
-  ObjectView tuple_get(std::size_t i) const;
+  std::size_t tuple_size() const {
+    return BInvoke<std::size_t>(NameIDRegistry::Meta::tuple_size);
+  }
+
+  ObjectView tuple_get(std::size_t i) const {
+    return BInvoke<ObjectView>(NameIDRegistry::Meta::tuple_get, std::move(i));
+  }
 
   //
   // Iterator
@@ -274,9 +275,9 @@ class ObjectView {
   };
 
   template <typename T>
-  SharedObject next(T&& rhs) const;
+  SharedObject next(T&& arg) const;
   template <typename T>
-  SharedObject prev(T&& rhs) const;
+  SharedObject prev(T&& arg) const;
   SharedObject next() const;
   SharedObject prev() const;
 
@@ -304,10 +305,21 @@ class ObjectView {
 
   // - capacity
 
-  bool empty() const;
-  std::size_t size() const;
-  std::size_t capacity() const;
-  std::size_t bucket_count() const;
+  bool empty() const {
+    return BInvoke<bool>(NameIDRegistry::Meta::container_empty);
+  }
+
+  std::size_t size() const {
+    return BInvoke<std::size_t>(NameIDRegistry::Meta::container_size);
+  }
+
+  std::size_t capacity() const {
+    return BInvoke<std::size_t>(NameIDRegistry::Meta::container_capacity);
+  }
+
+  std::size_t bucket_count() const {
+    return BInvoke<std::size_t>(NameIDRegistry::Meta::container_bucket_count);
+  }
 
   template <typename T>
   void resize(T&& arg) const {
@@ -315,8 +327,13 @@ class ObjectView {
                    std::forward<T>(arg));
   };
 
-  void reserve(std::size_t n) const;
-  void shrink_to_fit() const;
+  void reserve(std::size_t n) const {
+    BInvoke<void>(NameIDRegistry::Meta::container_reserve, std::move(n));
+  }
+
+  void shrink_to_fit() const {
+    BInvoke<void>(NameIDRegistry::Meta::container_shrink_to_fit);
+  }
 
   // - element access
 
@@ -344,7 +361,8 @@ class ObjectView {
 
   // - modifiers
 
-  void clear() const;
+  void clear() const { BInvoke<void>(NameIDRegistry::Meta::container_clear); }
+
   template <typename... Args>
   SharedObject insert(Args&&... args) const;
   template <typename... Args>
@@ -364,8 +382,13 @@ class ObjectView {
                    std::forward<T>(arg));
   };
 
-  void pop_front() const;
-  void pop_back() const;
+  void pop_front() const {
+    BInvoke<void>(NameIDRegistry::Meta::container_pop_front);
+  }
+
+  void pop_back() const {
+    BInvoke<void>(NameIDRegistry::Meta::container_pop_back);
+  }
 
   template <typename T>
   void swap(T&& arg) const {
