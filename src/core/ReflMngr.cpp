@@ -94,10 +94,10 @@ static Type IsInvocable(bool is_priority, Type type, Name method_name,
   return {};
 }
 
-static Type Invoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
-                   ObjectView obj, Name method_name, void* result_buffer,
-                   std::span<const Type> argTypes, ArgPtrBuffer argptr_buffer,
-                   MethodFlag flag) {
+static Type BInvoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
+                    ObjectView obj, Name method_name, void* result_buffer,
+                    std::span<const Type> argTypes, ArgPtrBuffer argptr_buffer,
+                    MethodFlag flag) {
   assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
   auto typetarget = Mngr->typeinfos.find(obj.GetType());
@@ -140,7 +140,7 @@ static Type Invoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
   }
 
   for (const auto& [base, baseinfo] : typeinfo.baseinfos) {
-    auto rst = Invoke(
+    auto rst = BInvoke(
         is_priority, args_rsrc,
         ObjectView{base, baseinfo.StaticCast_DerivedToBase(obj.GetPtr())},
         method_name, result_buffer, argTypes, argptr_buffer, flag);
@@ -886,10 +886,10 @@ Type ReflMngr::IsInvocable(Type type, Name method_name,
   return details::IsInvocable(false, type, method_name, argTypes, flag);
 }
 
-Type ReflMngr::Invoke(ObjectView obj, Name method_name, void* result_buffer,
-                      std::span<const Type> argTypes,
-                      ArgPtrBuffer argptr_buffer, MethodFlag flag,
-                      std::pmr::memory_resource* temp_args_rsrc) const {
+Type ReflMngr::BInvoke(ObjectView obj, Name method_name, void* result_buffer,
+                       std::span<const Type> argTypes,
+                       ArgPtrBuffer argptr_buffer, MethodFlag flag,
+                       std::pmr::memory_resource* temp_args_rsrc) const {
   ObjectView rawObj;
   const CVRefMode cvref_mode = obj.GetType().GetCVRefMode();
   assert(!CVRefMode_IsVolatile(cvref_mode));
@@ -918,12 +918,12 @@ Type ReflMngr::Invoke(ObjectView obj, Name method_name, void* result_buffer,
     flag = enum_within(flag, MethodFlag::Static);
 
   if (auto priority_rst =
-          details::Invoke(true, temp_args_rsrc, rawObj, method_name,
-                          result_buffer, argTypes, argptr_buffer, flag))
+          details::BInvoke(true, temp_args_rsrc, rawObj, method_name,
+                           result_buffer, argTypes, argptr_buffer, flag))
     return priority_rst;
 
-  return details::Invoke(false, temp_args_rsrc, rawObj, method_name,
-                         result_buffer, argTypes, argptr_buffer, flag);
+  return details::BInvoke(false, temp_args_rsrc, rawObj, method_name,
+                          result_buffer, argTypes, argptr_buffer, flag);
 }
 
 SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,

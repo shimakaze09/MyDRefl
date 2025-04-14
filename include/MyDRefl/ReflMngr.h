@@ -231,14 +231,16 @@ class ReflMngr {
   // Invoke
   ///////////
   //
+  // - 'A' means auto, ObjectView/SharedObject will be transformed as type + ptr
+  // - 'B' means basic
+  // - 'D' means default
+  // - 'M' means memory
   // - auto search methods in bases
   // - support overload
   // - require IsCompatible()
-  // - MInvoke's 'M' means 'memory' (use a memory resource)
   // - MInvoke will allocate buffer for result, and move to SharedObject
   // - if result is a reference, SharedObject is a ObjectView actually
   // - if result is ObjectView or SharedObject, then MInvoke's result is it.
-  // - DMInvoke's 'D' means 'default' (use the default memory resource)
   //
 
   // parameter <- argument
@@ -267,12 +269,12 @@ class ReflMngr {
                    std::span<const Type> argTypes = {},
                    MethodFlag flag = MethodFlag::All) const;
 
-  Type Invoke(ObjectView obj, Name method_name, void* result_buffer = nullptr,
-              std::span<const Type> argTypes = {},
-              ArgPtrBuffer argptr_buffer = nullptr,
-              MethodFlag flag = MethodFlag::All,
-              std::pmr::memory_resource* temp_args_rsrc =
-                  Mngr->GetTemporaryResource()) const;
+  Type BInvoke(ObjectView obj, Name method_name, void* result_buffer = nullptr,
+               std::span<const Type> argTypes = {},
+               ArgPtrBuffer argptr_buffer = nullptr,
+               MethodFlag flag = MethodFlag::All,
+               std::pmr::memory_resource* temp_args_rsrc =
+                   Mngr->GetTemporaryResource()) const;
 
   SharedObject MInvoke(ObjectView obj, Name method_name,
                        std::pmr::memory_resource* rst_rsrc,
@@ -281,10 +283,10 @@ class ReflMngr {
                        ArgPtrBuffer argptr_buffer = nullptr,
                        MethodFlag flag = MethodFlag::All) const;
 
-  SharedObject DMInvoke(ObjectView obj, Name method_name,
-                        std::span<const Type> argTypes = {},
-                        ArgPtrBuffer argptr_buffer = nullptr,
-                        MethodFlag flag = MethodFlag::All) const {
+  SharedObject Invoke(ObjectView obj, Name method_name,
+                      std::span<const Type> argTypes = {},
+                      ArgPtrBuffer argptr_buffer = nullptr,
+                      MethodFlag flag = MethodFlag::All) const {
     return MInvoke(obj, method_name, &object_resource, &temporary_resource,
                    argTypes, argptr_buffer, flag);
   }
@@ -296,26 +298,17 @@ class ReflMngr {
                    MethodFlag flag = MethodFlag::All) const;
 
   template <typename T>
-  T InvokeRet(Type type, Name method_name, std::span<const Type> argTypes = {},
-              ArgPtrBuffer argptr_buffer = nullptr,
-              MethodFlag flag = MethodFlag::All) const;
-  template <typename T>
-  T InvokeRet(ObjectView obj, Name method_name,
-              std::span<const Type> argTypes = {},
-              ArgPtrBuffer argptr_buffer = nullptr,
-              MethodFlag flag = MethodFlag::All) const;
+  T BInvokeRet(ObjectView obj, Name method_name,
+               std::span<const Type> argTypes = {},
+               ArgPtrBuffer argptr_buffer = nullptr,
+               MethodFlag flag = MethodFlag::All) const;
 
   template <typename... Args>
-  Type InvokeArgs(Type type, Name method_name, void* result_buffer,
-                  Args&&... args) const;
-  template <typename... Args>
-  Type InvokeArgs(ObjectView obj, Name method_name, void* result_buffer,
-                  Args&&... args) const;
+  Type BInvokeArgs(ObjectView obj, Name method_name, void* result_buffer,
+                   Args&&... args) const;
 
   template <typename T, typename... Args>
-  T Invoke(Type type, Name method_name, Args&&... args) const;
-  template <typename T, typename... Args>
-  T Invoke(ObjectView obj, Name method_name, Args&&... args) const;
+  T BInvoke(ObjectView obj, Name method_name, Args&&... args) const;
 
   template <typename... Args>
   SharedObject MInvoke(ObjectView obj, Name method_name,
@@ -323,7 +316,7 @@ class ReflMngr {
                        Args&&... args) const;
 
   template <typename... Args>
-  SharedObject DMInvoke(ObjectView obj, Name method_name, Args&&... args) const;
+  SharedObject Invoke(ObjectView obj, Name method_name, Args&&... args) const;
 
   //
   // Make
