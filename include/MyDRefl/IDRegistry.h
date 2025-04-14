@@ -149,9 +149,13 @@ class NameIDRegistry : public IDRegistry<NameID, Name> {
 
     static constexpr Name container_clear{"MyDRefl::container_clear"};
     static constexpr Name container_insert{"MyDRefl::container_insert"};
+    static constexpr Name container_insert_after{
+        "MyDRefl::container_insert_after"};
     static constexpr Name container_insert_or_assign{
         "MyDRefl::container_insert_or_assign"};
     static constexpr Name container_erase{"MyDRefl::container_erase"};
+    static constexpr Name container_erase_after{
+        "MyDRefl::container_erase_after"};
     static constexpr Name container_push_front{"MyDRefl::container_push_front"};
     static constexpr Name container_pop_front{"MyDRefl::container_pop_front"};
     static constexpr Name container_push_back{"MyDRefl::container_push_back"};
@@ -159,6 +163,14 @@ class NameIDRegistry : public IDRegistry<NameID, Name> {
     static constexpr Name container_swap{"MyDRefl::container_swap"};
     static constexpr Name container_merge{"MyDRefl::container_merge"};
     static constexpr Name container_extract{"MyDRefl::container_extract"};
+
+    static constexpr Name container_splice_after{
+        "MyDRefl::container_splice_after"};
+    static constexpr Name container_splice{"MyDRefl::container_splice"};
+    static constexpr Name container_remove{"MyDRefl::container_remove"};
+    static constexpr Name container_reverse{"MyDRefl::container_reverse"};
+    static constexpr Name container_unique{"MyDRefl::container_unique"};
+    static constexpr Name container_sort{"MyDRefl::container_sort"};
 
     static constexpr Name container_count{"MyDRefl::container_count"};
     static constexpr Name container_find{"MyDRefl::container_find"};

@@ -524,7 +524,7 @@ concept container_allocator_type = requires {
   typename T::allocator_type;
 };
 template <typename T>
-concept container_size_type = requires {
+concept container_size_type = std::is_array_v<T> || requires {
   typename T::size_type;
 };
 template <typename T>
@@ -581,10 +581,17 @@ concept container_insert_return_type = requires {
 };
 
 template <typename T>
+struct get_container_size_type;
+template <typename T>
+using get_container_size_type_t = typename get_container_size_type<T>::type;
+
+// assign
+
+template <typename T>
 concept container_assign = container_size_type<T> && container_value_type<T> &&
                            requires(T t, const typename T::size_type& s,
                                     const typename T::value_type& v) {
-  t.assgin(s, v);
+  t.assign(s, v);
 };
 
 // - iterator
@@ -640,8 +647,8 @@ concept container_subscript = requires(T t, U key) {
 };
 template <typename T>
 concept container_subscript_size =
-    container_size_type<T> &&
-    container_subscript<T, const typename T::size_type&>;
+    container_size_type<std::remove_reference_t<T>> &&
+    container_subscript<T, const get_container_size_type_t<T>&>;
 template <typename T>
 concept container_subscript_key_cl =
     container_key_type<T> &&
@@ -743,18 +750,15 @@ concept container_insert_citer_rnode =
     container_node_type<T> &&
     container_insert_citer<T, typename T::node_type&&>;
 
-template <typename T, typename S, typename V>
-concept container_insert_citer_size =
-    container_const_iterator<T> &&
-    requires(T t, const typename T::const_iterator& iter, const S& size,
-             const V& value) {
-  t.insert(iter, size, value);
-};
 template <typename T>
-concept container_insert_citer_size_value =
-    container_value_type<T> && container_size_type<T> &&
-    container_insert_citer_size<T, typename T::size_type,
-                                typename T::value_type>;
+concept container_insert_citer_cnt =
+    container_const_iterator<T> && container_value_type<T> &&
+    container_size_type<T> &&
+    requires(T t, const typename T::const_iterator& iter,
+             const typename T::size_type& cnt,
+             const typename T::value_type& value) {
+  t.insert(iter, cnt, value);
+};
 
 template <typename T, typename U, typename V>
 concept container_insert_or_assign = requires(T t, U u, V v) {
@@ -788,6 +792,31 @@ concept container_insert_or_assign_citer_rkey_rmap =
     container_insert_or_assign_citer<T, typename T::key_type&&,
                                      typename T::mapped_type&&>;
 
+template <typename T, typename V>
+concept container_insert_after =
+    container_const_iterator<T> &&
+    requires(T t, const typename T::const_iterator& pos, V value) {
+  t.insert_after(pos, std::forward<V>(value));
+};
+template <typename T>
+concept container_insert_after_clvalue =
+    container_value_type<T> &&
+    container_insert_after<T, const typename T::value_type&>;
+template <typename T>
+concept container_insert_after_rvalue =
+    container_value_type<T> &&
+    container_insert_after<T, typename T::value_type&&>;
+
+template <typename T>
+concept container_insert_after_cnt =
+    container_const_iterator<T> && container_size_type<T> &&
+    container_value_type<T> &&
+    requires(T t, const typename T::const_iterator& pos,
+             const typename T::size_type& cnt,
+             const typename T::value_type& value) {
+  t.insert_after(pos, cnt, value);
+};
+
 template <typename T, typename U>
 concept container_erase = requires(T t, const U& u) {
   t.erase(u);
@@ -807,6 +836,21 @@ template <typename T>
 concept container_erase_range_citer =
     container_const_iterator<T> &&
     container_erase_range<T, typename T::const_iterator>;
+
+template <typename T>
+concept container_erase_after =
+    container_const_iterator<T> &&
+    requires(T t, const typename T::const_iterator& pos) {
+  t.erase_after(pos);
+};
+
+template <typename T>
+concept container_erase_after_range =
+    container_const_iterator<T> &&
+    requires(T t, const typename T::const_iterator& first,
+             const typename T::const_iterator& last) {
+  t.erase_after(first, last);
+};
 
 template <typename T, typename U>
 concept container_push_front = requires(T t, U u) {
@@ -908,7 +952,106 @@ concept container_equal_range =
   t.equal_range(u);
 };
 
-// - list operations (TODO)
+// - list operations
+
+template <typename T, typename Other>
+concept container_splice_after =
+    container_const_iterator<T> &&
+    requires(T t, const typename T::const_iterator& pos, Other other) {
+  t.splice_after(pos, std::forward<Other>(other));
+};
+
+template <typename T>
+concept container_splice_after_l = container_splice_after<T, T&>;
+template <typename T>
+concept container_splice_after_r = container_splice_after<T, T&&>;
+
+template <typename T, typename Other>
+concept container_splice_after_it =
+    container_const_iterator<T> &&
+    requires(T t, const typename T::const_iterator& pos, Other other,
+             const typename T::const_iterator& it) {
+  t.splice_after(pos, std::forward<Other>(other), it);
+};
+
+template <typename T>
+concept container_splice_after_it_l = container_splice_after_it<T, T&>;
+template <typename T>
+concept container_splice_after_it_r = container_splice_after_it<T, T&&>;
+
+template <typename T, typename Other>
+concept container_splice_after_range =
+    container_const_iterator<T> &&
+    requires(T t, const typename T::const_iterator& pos, Other other,
+             const typename T::const_iterator& first,
+             const typename T::const_iterator& last) {
+  t.splice_after(pos, std::forward<Other>(other), first, last);
+};
+
+template <typename T>
+concept container_splice_after_range_l = container_splice_after_range<T, T&>;
+template <typename T>
+concept container_splice_after_range_r = container_splice_after_range<T, T&&>;
+
+template <typename T, typename Other>
+concept container_splice =
+    container_const_iterator<T> &&
+    requires(T t, const typename T::const_iterator& pos, Other other) {
+  t.splice(pos, std::forward<Other>(other));
+};
+
+template <typename T>
+concept container_splice_l = container_splice<T, T&>;
+template <typename T>
+concept container_splice_r = container_splice<T, T&&>;
+
+template <typename T, typename Other>
+concept container_splice_it =
+    container_const_iterator<T> &&
+    requires(T t, const typename T::const_iterator& pos, Other other,
+             const typename T::const_iterator& it) {
+  t.splice(pos, std::forward<Other>(other), it);
+};
+
+template <typename T>
+concept container_splice_it_l = container_splice_it<T, T&>;
+template <typename T>
+concept container_splice_it_r = container_splice_it<T, T&&>;
+
+template <typename T, typename Other>
+concept container_splice_range =
+    container_const_iterator<T> &&
+    requires(T t, const typename T::const_iterator& pos, Other other,
+             const typename T::const_iterator& first,
+             const typename T::const_iterator& last) {
+  t.splice(pos, std::forward<Other>(other), first, last);
+};
+
+template <typename T>
+concept container_splice_range_l = container_splice_range<T, T&>;
+template <typename T>
+concept container_splice_range_r = container_splice_range<T, T&&>;
+
+template <typename T>
+concept container_remove =
+    container_value_type<T> && requires(T t, const typename T::value_type& v) {
+  {t.remove(v)}->std::convertible_to<std::size_t>;
+};
+
+template <typename T>
+concept container_reverse = requires(T t) {
+  t.reverse();
+};
+
+template <typename T>
+concept container_unique = requires(T t) {
+  {t.unique()}->std::convertible_to<std::size_t>;
+};
+
+template <typename T>
+concept container_sort = requires(T t) {
+  t.sort();
+};
 }  // namespace My::MyDRefl
 
 #include "details/Util.inl"

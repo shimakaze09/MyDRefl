@@ -426,8 +426,8 @@ class ReflMngr {
 
   // Gather (DFS)
 
-  std::vector<InfoTypeFieldPair> GetTypeFields(
-      Type type, FieldFlag flag = FieldFlag ::All);
+  std::vector<InfoTypeFieldPair> GetTypeFields(Type type,
+                                               FieldFlag flag = FieldFlag::All);
   std::vector<InfoTypeMethodPair> GetTypeMethods(
       Type type, MethodFlag flag = MethodFlag::All);
   std::vector<std::tuple<InfoTypePair, InfoFieldPair, ObjectView>>
@@ -435,11 +435,11 @@ class ReflMngr {
 
   std::vector<InfoTypePair> GetTypes(Type type);
   std::vector<InfoFieldPair> GetFields(Type type,
-                                       FieldFlag flag = FieldFlag ::All);
+                                       FieldFlag flag = FieldFlag::All);
   std::vector<InfoMethodPair> GetMethods(Type type,
                                          MethodFlag flag = MethodFlag::All);
   std::vector<ObjectView> GetVars(ObjectView obj,
-                                  FieldFlag flag = FieldFlag ::All);
+                                  FieldFlag flag = FieldFlag::All);
 
   // Find (DFS)
 
@@ -447,19 +447,19 @@ class ReflMngr {
                         const std::function<bool(InfoTypePair)>& func) const;
   InfoFieldPair FindField(Type type,
                           const std::function<bool(InfoFieldPair)>& func,
-                          FieldFlag flag = FieldFlag ::All) const;
+                          FieldFlag flag = FieldFlag::All) const;
   InfoMethodPair FindMethod(Type type,
                             const std::function<bool(InfoMethodPair)>& func,
                             MethodFlag flag = MethodFlag::All) const;
   ObjectView FindVar(ObjectView obj,
                      const std::function<bool(ObjectView)>& func,
-                     FieldFlag flag = FieldFlag ::All) const;
+                     FieldFlag flag = FieldFlag::All) const;
 
   // Contains (DFS)
 
   bool ContainsBase(Type type, Type base) const;
   bool ContainsField(Type type, Name field_name,
-                     FieldFlag flag = FieldFlag ::All) const;
+                     FieldFlag flag = FieldFlag::All) const;
   bool ContainsMethod(Type type, Name method_name,
                       MethodFlag flag = MethodFlag::All) const;
 

@@ -264,13 +264,13 @@ class ObjectView {
 
   template <typename T>
   void advance(T&& arg) const {
-    ABInvoke<void>(NameIDRegistry::Meta::container_advance,
+    ABInvoke<void>(NameIDRegistry::Meta::iterator_advance,
                    std::forward<T>(arg));
   };
 
   template <typename T>
   std::size_t distance(T&& arg) const {
-    return ABInvoke<std::size_t>(NameIDRegistry::Meta::container_distance,
+    return ABInvoke<std::size_t>(NameIDRegistry::Meta::iterator_distance,
                                  std::forward<T>(arg));
   };
 
@@ -343,22 +343,6 @@ class ObjectView {
   SharedObject back() const;
   SharedObject data() const;
 
-  // - lookup
-  template <typename T>
-  std::size_t count(T&& arg) const {
-    return ABInvoke<std::size_t>(NameIDRegistry::Meta::container_count,
-                                 std::forward<T>(arg));
-  };
-
-  template <typename T>
-  SharedObject find(T&& rhs) const;
-  template <typename T>
-  SharedObject lower_bound(T&& rhs) const;
-  template <typename T>
-  SharedObject upper_bound(T&& rhs) const;
-  template <typename T>
-  SharedObject equal_range(T&& rhs) const;
-
   // - modifiers
 
   void clear() const { BInvoke<void>(NameIDRegistry::Meta::container_clear); }
@@ -366,9 +350,13 @@ class ObjectView {
   template <typename... Args>
   SharedObject insert(Args&&... args) const;
   template <typename... Args>
+  SharedObject insert_after(Args&&... args) const;
+  template <typename... Args>
   SharedObject insert_or_assign(Args&&... args) const;
-  template <typename T>
-  SharedObject erase(T&& rhs) const;
+  template <typename... Args>
+  SharedObject erase(Args&&... args) const;
+  template <typename... Args>
+  SharedObject erase_after(Args&&... args) const;
 
   template <typename T>
   void push_front(T&& arg) const {
@@ -402,6 +390,54 @@ class ObjectView {
 
   template <typename T>
   SharedObject extract(T&& rhs) const;
+
+  // - list operations
+
+  template <typename... Args>
+  void splice_after(Args&&... args) const {
+    ABInvoke<void>(NameIDRegistry::Meta::container_splice_after,
+                   std::forward<Args>(args)...);
+  };
+
+  template <typename... Args>
+  void splice(Args&&... args) const {
+    ABInvoke<void>(NameIDRegistry::Meta::container_splice,
+                   std::forward<Args>(args)...);
+  };
+
+  template <typename T>
+  std::size_t remove(T&& arg) const {
+    ABInvoke<std::size_t>(NameIDRegistry::Meta::container_remove,
+                          std::forward<T>(arg));
+  };
+
+  void reverse() const {
+    BInvoke<void>(NameIDRegistry::Meta::container_reverse);
+  }
+
+  template <typename T>
+  std::size_t unique(T&& arg) const {
+    ABInvoke<std::size_t>(NameIDRegistry::Meta::container_unique,
+                          std::forward<T>(arg));
+  };
+
+  void sort() const { BInvoke<void>(NameIDRegistry::Meta::container_sort); }
+
+  // - lookup
+  template <typename T>
+  std::size_t count(T&& arg) const {
+    return ABInvoke<std::size_t>(NameIDRegistry::Meta::container_count,
+                                 std::forward<T>(arg));
+  };
+
+  template <typename T>
+  SharedObject find(T&& rhs) const;
+  template <typename T>
+  SharedObject lower_bound(T&& rhs) const;
+  template <typename T>
+  SharedObject upper_bound(T&& rhs) const;
+  template <typename T>
+  SharedObject equal_range(T&& rhs) const;
 
  protected:
   Type type;
