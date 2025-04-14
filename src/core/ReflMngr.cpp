@@ -181,9 +181,9 @@ static Type BInvoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
 
   auto [begin_iter, end_iter] = typeinfo.methodinfos.equal_range(method_name);
 
-  if (enum_contain(flag, MethodFlag::Variable)) {
+  if (enum_contain_any(flag, MethodFlag::Priority)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Variable) {
+      if (enum_contain(flag, iter->second.methodptr.GetMethodFlag())) {
         NewArgsGuard guard{is_priority, args_rsrc,
                            iter->second.methodptr.GetParamList(), argTypes,
                            argptr_buffer};
@@ -195,10 +195,9 @@ static Type BInvoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
       }
     }
   }
-  if (enum_contain_any(flag, MethodFlag::Const | MethodFlag::Static)) {
+  if (enum_contain(flag, MethodFlag::Const)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (iter->second.methodptr.GetMethodFlag() != MethodFlag::Variable &&
-          enum_contain(flag, iter->second.methodptr.GetMethodFlag())) {
+      if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Const) {
         NewArgsGuard guard{is_priority, args_rsrc,
                            iter->second.methodptr.GetParamList(), argTypes,
                            argptr_buffer};
@@ -241,9 +240,9 @@ static SharedObject MInvoke(bool is_priority,
 
   auto [begin_iter, end_iter] = typeinfo.methodinfos.equal_range(method_name);
 
-  if (enum_contain(flag, MethodFlag::Variable)) {
+  if (enum_contain(flag, MethodFlag::Priority)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Variable) {
+      if (enum_contain(flag, iter->second.methodptr.GetMethodFlag())) {
         NewArgsGuard guard{is_priority, args_rsrc,
                            iter->second.methodptr.GetParamList(), argTypes,
                            argptr_buffer};
@@ -287,10 +286,9 @@ static SharedObject MInvoke(bool is_priority,
     }
   }
 
-  if (enum_contain_any(flag, MethodFlag::Const | MethodFlag::Static)) {
+  if (enum_contain_any(flag, MethodFlag::Const)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (iter->second.methodptr.GetMethodFlag() != MethodFlag::Variable &&
-          enum_contain(flag, iter->second.methodptr.GetMethodFlag())) {
+      if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Const) {
         NewArgsGuard guard{is_priority, args_rsrc,
                            iter->second.methodptr.GetParamList(), argTypes,
                            argptr_buffer};

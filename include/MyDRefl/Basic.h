@@ -38,6 +38,8 @@ enum class MethodFlag {
   Static = 0b100,
 
   None = 0b000,
+  Member = 0b011,
+  Priority = 0b101,
   All = 0b111
 };
 MY_MYDREFL_ENUM_BOOL_OPERATOR_DEFINE(MethodFlag)

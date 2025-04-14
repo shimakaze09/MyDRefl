@@ -39,6 +39,10 @@ class ReflMngr {
     return &temporary_resource;
   }
 
+  std::pmr::synchronized_pool_resource* GetObjectResource() const {
+    return &object_resource;
+  }
+
   // clear order
   // - field attrs
   // - type attrs
@@ -120,11 +124,10 @@ class ReflMngr {
 
   // -- template --
 
-  // RegisterType(type_name<T>(), sizeof(T), alignof(T))
-  // AddConstructor<T>()
-  // AddConstructor<T, const T&>()
-  // AddConstructor<T, T&&>()
-  // AddDestructor<T>()
+  // call
+  // - RegisterType(type_name<T>(), sizeof(T), alignof(T))
+  // - details::TypeAutoRegister<T>::run
+  // you can custom type register by specialize details::TypeAutoRegister<T>
   template <typename T>
   void RegisterType();
 
@@ -240,6 +243,7 @@ class ReflMngr {
   // - MInvoke will allocate buffer for result, and move to SharedObject
   // - if result is a reference, SharedObject is a ObjectView actually
   // - if result is ObjectView or SharedObject, then MInvoke's result is it.
+  // - temp_args_rsrc is used for temporary allocation of arguments (release before return)
   //
 
   // parameter <- argument
@@ -314,10 +318,13 @@ class ReflMngr {
   T BInvokeRet(ObjectView obj, Name method_name,
                std::span<const Type> argTypes = {},
                ArgPtrBuffer argptr_buffer = nullptr,
-               MethodFlag flag = MethodFlag::All) const;
+               MethodFlag flag = MethodFlag::All,
+               std::pmr::memory_resource* temp_args_rsrc =
+                   Mngr->GetTemporaryResource()) const;
 
   template <typename T, typename... Args>
-  T BInvoke(ObjectView obj, Name method_name, Args&&... args) const;
+  T BInvoke(ObjectView obj, Name method_name, MethodFlag flag,
+            std::pmr::memory_resource* temp_args_rsrc, Args&&... args) const;
 
   template <typename... Args>
   SharedObject MInvoke(ObjectView obj, Name method_name,

@@ -6,7 +6,7 @@
 #include <functional>
 #include <iterator>
 
-#define UBPA_MyDREFL_ENUM_BOOL_OPERATOR_DEFINE(Name)                     \
+#define MY_MYDREFL_ENUM_BOOL_OPERATOR_DEFINE(Name)                       \
   constexpr Name operator&(const Name& lhs, const Name& rhs) noexcept {  \
     static_assert(std::is_enum_v<Name>);                                 \
     using T = std::underlying_type_t<Name>;                              \
