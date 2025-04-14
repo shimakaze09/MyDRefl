@@ -6,9 +6,11 @@
     - [x] simplify
     - [x]  -> concept
     - [ ] container
-        - [ ] list
+        - [ ] list, forward_list
         - [x] multi set/map
-- [ ] improve test
+        - [ ] stack, queue, priority_queue
+        - [ ] span, variant, optional
+- [x] improve test
 - [ ] introduction
 - [ ] doc
 - [x] `Get{R|RW}OwnedVars`
@@ -25,7 +27,7 @@
     - [x] IsInvocable
     - [x] move APIs with `Type` to corresponding APIs with `ObjectView` 
     - [x] add flags into APIs
-- [ ] special types
+- [x] special types
     - [x] pointer
     - [x] array
     - [x] string
@@ -34,8 +36,6 @@
     - [x] operations: advance, distance, next, prev
     - [x] range access: `[c][l/r]begin`, `[c][l/r]end`
 - [x] type alias for AttrSet
-- [ ] span
 - [ ] speed up `ReflMngr.cpp` compiltation
 - [x] rename invoke APIs
 - [x] simplify `MethodPtr::func`
-- [ ] argument static/dynamic cast to parameter
