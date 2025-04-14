@@ -105,4 +105,6 @@ struct InfoTypeMethodPair {
   InfoTypePair type;
   InfoMethodPair method;
 };
+
+class ReflMngr;
 }  // namespace My::MyDRefl

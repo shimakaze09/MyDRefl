@@ -7,11 +7,15 @@
 using namespace My;
 using namespace My::MyDRefl;
 
+ReflMngr* My::MyDRefl::Mngr = &ReflMngr::Instance();
+const ObjectView My::MyDRefl::MngrView = {Type_of<ReflMngr>,
+                                          &ReflMngr::Instance()};
+
 namespace My::MyDRefl::details {
 DeleteFunc GenerateDeleteFunc(Type type, std::pmr::memory_resource* result_rsrc,
                               size_t size, size_t alignment) {
   return [type, result_rsrc, size, alignment](void* ptr) {
-    Mngr.Destruct(ObjectView{type, ptr});
+    Mngr->Destruct(ObjectView{type, ptr});
     result_rsrc->deallocate(ptr, size, alignment);
   };
 }
@@ -45,9 +49,9 @@ void RegisterArithmeticConvertion(ReflMngr& mngr) {
 static Type IsInvocable(bool is_priority, Type type, Name method_name,
                         std::span<const Type> argTypes, MethodFlag flag) {
   assert(type.GetCVRefMode() == CVRefMode::None);
-  auto typetarget = Mngr.typeinfos.find(type);
+  auto typetarget = Mngr->typeinfos.find(type);
 
-  if (typetarget == Mngr.typeinfos.end())
+  if (typetarget == Mngr->typeinfos.end())
     return {};
 
   const auto& typeinfo = typetarget->second;
@@ -60,8 +64,8 @@ static Type IsInvocable(bool is_priority, Type type, Name method_name,
           (is_priority
                ? IsPriorityCompatible(iter->second.methodptr.GetParamList(),
                                       argTypes)
-               : Mngr.IsCompatible(iter->second.methodptr.GetParamList(),
-                                   argTypes))) {
+               : Mngr->IsCompatible(iter->second.methodptr.GetParamList(),
+                                    argTypes))) {
         return iter->second.methodptr.GetResultType();
       }
     }
@@ -75,8 +79,8 @@ static Type IsInvocable(bool is_priority, Type type, Name method_name,
           (is_priority
                ? IsPriorityCompatible(iter->second.methodptr.GetParamList(),
                                       argTypes)
-               : Mngr.IsCompatible(iter->second.methodptr.GetParamList(),
-                                   argTypes))) {
+               : Mngr->IsCompatible(iter->second.methodptr.GetParamList(),
+                                    argTypes))) {
         return iter->second.methodptr.GetResultType();
       }
     }
@@ -96,9 +100,9 @@ static Type Invoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
                    MethodFlag flag) {
   assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
-  auto typetarget = Mngr.typeinfos.find(obj.GetType());
+  auto typetarget = Mngr->typeinfos.find(obj.GetType());
 
-  if (typetarget == Mngr.typeinfos.end())
+  if (typetarget == Mngr->typeinfos.end())
     return {};
 
   const auto& typeinfo = typetarget->second;
@@ -153,11 +157,12 @@ static SharedObject MInvoke(bool is_priority,
                             std::pmr::memory_resource* rst_rsrc,
                             std::span<const Type> argTypes,
                             ArgPtrBuffer argptr_buffer, MethodFlag flag) {
+  assert(args_rsrc);
   assert(rst_rsrc);
   assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
-  auto typetarget = Mngr.typeinfos.find(obj.GetType());
+  auto typetarget = Mngr->typeinfos.find(obj.GetType());
 
-  if (typetarget == Mngr.typeinfos.end())
+  if (typetarget == Mngr->typeinfos.end())
     return {};
 
   const auto& typeinfo = typetarget->second;
@@ -194,7 +199,7 @@ static SharedObject MInvoke(bool is_priority,
           iter->second.methodptr.Invoke(obj.GetPtr(), &buffer, argptr_buffer);
           return buffer;
         } else {
-          auto* result_typeinfo = Mngr.GetTypeInfo(rst_type);
+          auto* result_typeinfo = Mngr->GetTypeInfo(rst_type);
           if (!result_typeinfo)
             return {};
           void* result_buffer = rst_rsrc->allocate(result_typeinfo->size,
@@ -242,7 +247,7 @@ static SharedObject MInvoke(bool is_priority,
           iter->second.methodptr.Invoke(obj.GetPtr(), &buffer, argptr_buffer);
           return buffer;
         } else {
-          auto* result_typeinfo = Mngr.GetTypeInfo(rst_type);
+          auto* result_typeinfo = Mngr->GetTypeInfo(rst_type);
           if (!result_typeinfo)
             return {};
           void* result_buffer = rst_rsrc->allocate(result_typeinfo->size,
@@ -274,9 +279,9 @@ static bool ForEachTypeInfo(Type type,
                             const std::function<bool(InfoTypePair)>& func,
                             std::set<TypeID>& visitedVBs) {
   assert(type.GetCVRefMode() == CVRefMode::None);
-  auto target = Mngr.typeinfos.find(type);
+  auto target = Mngr->typeinfos.find(type);
 
-  if (target == Mngr.typeinfos.end())
+  if (target == Mngr->typeinfos.end())
     return true;
 
   auto& typeinfo = target->second;
@@ -304,9 +309,9 @@ static bool ForEachVar(
     FieldFlag flag, std::set<TypeID>& visitedVBs) {
   assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
-  auto target = Mngr.typeinfos.find(obj.GetType());
+  auto target = Mngr->typeinfos.find(obj.GetType());
 
-  if (target == Mngr.typeinfos.end())
+  if (target == Mngr->typeinfos.end())
     return true;
 
   auto& typeinfo = target->second;
@@ -554,80 +559,16 @@ bool ReflMngr::AddMethodAttr(Type type, Name name, Attr attr) {
   return true;
 }
 
-ObjectView ReflMngr::NonArgCopyNew(Type type, std::span<const Type> argTypes,
+SharedObject ReflMngr::MMakeShared(Type type, std::pmr::memory_resource* rsrc,
+                                   std::span<const Type> argTypes,
                                    ArgPtrBuffer argptr_buffer) const {
-  if (!IsNonCopiedArgConstructible(type, argTypes))
-    return nullptr;
-
-  const auto& typeinfo = typeinfos.at(type);
-
-  void* buffer = object_resource.allocate(typeinfo.size, typeinfo.alignment);
-
-  if (!buffer)
-    return nullptr;
-
-  ObjectView obj{type, buffer};
-  bool success = NonCopiedArgConstruct(obj, argTypes, argptr_buffer);
-  assert(success);
-
-  return obj;
-}
-
-ObjectView ReflMngr::New(Type type, std::span<const Type> argTypes,
-                         ArgPtrBuffer argptr_buffer) const {
-  if (!IsConstructible(type, argTypes))
-    return nullptr;
-
-  const auto& typeinfo = typeinfos.at(type);
-
-  void* buffer = object_resource.allocate(typeinfo.size, typeinfo.alignment);
-
-  if (!buffer)
-    return nullptr;
-
-  ObjectView obj{type, buffer};
-  bool success = Construct(obj, argTypes, argptr_buffer);
-  assert(success);
-
-  return obj;
-}
-
-void ReflMngr::Delete(ObjectView obj) const {
-  Destruct(obj);
-
-  const auto& typeinfo = typeinfos.at(obj.GetType());
-
-  object_resource.deallocate(obj.GetPtr(), typeinfo.size, typeinfo.alignment);
-}
-
-SharedObject ReflMngr::MakeShared(Type type, std::span<const Type> argTypes,
-                                  ArgPtrBuffer argptr_buffer) const {
-  ObjectView obj = New(type, argTypes, argptr_buffer);
+  ObjectView obj = MNew(type, rsrc, argTypes, argptr_buffer);
 
   if (!obj.GetType().Valid())
     return nullptr;
 
-  return {obj, [type](void* ptr) {
-            Mngr.Delete({type, ptr});
-          }};
-}
-
-SharedObject ReflMngr::AllocateShared(Type type) const {
-  auto target = typeinfos.find(type);
-  if (target == typeinfos.end())
-    return {};
-
-  const auto& typeinfo = target->second;
-
-  void* buffer = object_resource.allocate(typeinfo.size, typeinfo.alignment);
-
-  if (!buffer)
-    return nullptr;
-
-  return {ObjectView{type, buffer},
-          [rsrc = &object_resource, size = typeinfo.size,
-           alignment = typeinfo.alignment](void* ptr) {
-            rsrc->deallocate(ptr, size, alignment);
+  return {obj, [rsrc, type](void* ptr) {
+            Mngr->MDelete({type, ptr}, rsrc);
           }};
 }
 
@@ -947,7 +888,8 @@ Type ReflMngr::IsInvocable(Type type, Name method_name,
 
 Type ReflMngr::Invoke(ObjectView obj, Name method_name, void* result_buffer,
                       std::span<const Type> argTypes,
-                      ArgPtrBuffer argptr_buffer, MethodFlag flag) const {
+                      ArgPtrBuffer argptr_buffer, MethodFlag flag,
+                      std::pmr::memory_resource* temp_args_rsrc) const {
   ObjectView rawObj;
   const CVRefMode cvref_mode = obj.GetType().GetCVRefMode();
   assert(!CVRefMode_IsVolatile(cvref_mode));
@@ -976,20 +918,22 @@ Type ReflMngr::Invoke(ObjectView obj, Name method_name, void* result_buffer,
     flag = enum_within(flag, MethodFlag::Static);
 
   if (auto priority_rst =
-          details::Invoke(true, &temporary_resource, rawObj, method_name,
+          details::Invoke(true, temp_args_rsrc, rawObj, method_name,
                           result_buffer, argTypes, argptr_buffer, flag))
     return priority_rst;
 
-  return details::Invoke(false, &temporary_resource, rawObj, method_name,
+  return details::Invoke(false, temp_args_rsrc, rawObj, method_name,
                          result_buffer, argTypes, argptr_buffer, flag);
 }
 
 SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
                                std::pmr::memory_resource* rst_rsrc,
+                               std::pmr::memory_resource* temp_args_rsrc,
                                std::span<const Type> argTypes,
                                ArgPtrBuffer argptr_buffer,
                                MethodFlag flag) const {
   assert(rst_rsrc);
+  assert(temp_args_rsrc);
 
   ObjectView rawObj;
   const CVRefMode cvref_mode = obj.GetType().GetCVRefMode();
@@ -1019,18 +963,19 @@ SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
     flag = enum_within(flag, MethodFlag::Static);
 
   if (auto priority_rst =
-          details::MInvoke(true, &temporary_resource, rawObj, method_name,
-                           rst_rsrc, argTypes, argptr_buffer, flag);
+          details::MInvoke(true, temp_args_rsrc, rawObj, method_name, rst_rsrc,
+                           argTypes, argptr_buffer, flag);
       priority_rst.GetType().Valid())
     return priority_rst;
 
-  return details::MInvoke(false, &temporary_resource, rawObj, method_name,
-                          rst_rsrc, argTypes, argptr_buffer, flag);
+  return details::MInvoke(false, temp_args_rsrc, rawObj, method_name, rst_rsrc,
+                          argTypes, argptr_buffer, flag);
 }
 
-ObjectView ReflMngr::NonArgCopyMNew(Type type, std::pmr::memory_resource* rsrc,
-                                    std::span<const Type> argTypes,
-                                    ArgPtrBuffer argptr_buffer) const {
+ObjectView ReflMngr::MNonCopiedArgNew(Type type,
+                                      std::pmr::memory_resource* rsrc,
+                                      std::span<const Type> argTypes,
+                                      ArgPtrBuffer argptr_buffer) const {
   assert(rsrc);
 
   if (!IsConstructible(type, argTypes))
@@ -1084,18 +1029,36 @@ bool ReflMngr::MDelete(ObjectView obj, std::pmr::memory_resource* rsrc) const {
   return true;
 }
 
+ObjectView ReflMngr::NonCopiedArgNew(Type type, std::span<const Type> argTypes,
+                                     ArgPtrBuffer argptr_buffer) const {
+  return MNonCopiedArgNew(type, &object_resource, argTypes, argptr_buffer);
+}
+
+ObjectView ReflMngr::New(Type type, std::span<const Type> argTypes,
+                         ArgPtrBuffer argptr_buffer) const {
+  return MNonCopiedArgNew(type, &object_resource, argTypes, argptr_buffer);
+}
+
+bool ReflMngr::Delete(ObjectView obj) const {
+  return MDelete(obj, &object_resource);
+}
+
+SharedObject ReflMngr::MakeShared(Type type, std::span<const Type> argTypes,
+                                  ArgPtrBuffer argptr_buffer) const {
+  return MMakeShared(type, &object_resource, argTypes, argptr_buffer);
+}
+
 bool ReflMngr::IsNonCopiedArgConstructible(
     Type type, std::span<const Type> argTypes) const {
   auto target = typeinfos.find(type);
   if (target == typeinfos.end())
     return false;
   const auto& typeinfo = target->second;
-  constexpr auto ctorID = NameIDRegistry::Meta::ctor;
-  auto mtarget = typeinfo.methodinfos.find(ctorID);
-  size_t num = typeinfo.methodinfos.count(ctorID);
-  for (size_t i = 0; i < num; ++i, ++mtarget) {
+  auto [begin_iter, end_iter] =
+      typeinfo.methodinfos.equal_range(NameIDRegistry::Meta::ctor);
+  for (auto iter = begin_iter; iter != end_iter; ++iter) {
     if (details::IsNonCopiedArgConstructCompatible(
-            mtarget->second.methodptr.GetParamList(), argTypes))
+            iter->second.methodptr.GetParamList(), argTypes))
       return true;
   }
   return false;
@@ -1107,12 +1070,11 @@ bool ReflMngr::IsNonCopiedArgConstructible(
   if (target == typeinfos.end())
     return false;
   const auto& typeinfo = target->second;
-  constexpr auto ctorID = NameIDRegistry::Meta::ctor;
-  auto mtarget = typeinfo.methodinfos.find(ctorID);
-  size_t num = typeinfo.methodinfos.count(ctorID);
-  for (size_t i = 0; i < num; ++i, ++mtarget) {
+  auto [begin_iter, end_iter] =
+      typeinfo.methodinfos.equal_range(NameIDRegistry::Meta::ctor);
+  for (auto iter = begin_iter; iter != end_iter; ++iter) {
     if (details::IsNonCopiedArgConstructCompatible(
-            mtarget->second.methodptr.GetParamList(), argTypeIDs))
+            iter->second.methodptr.GetParamList(), argTypeIDs))
       return true;
   }
   return false;
@@ -1124,11 +1086,10 @@ bool ReflMngr::IsConstructible(Type type,
   if (target == typeinfos.end())
     return false;
   const auto& typeinfo = target->second;
-  constexpr auto ctorID = NameIDRegistry::Meta::ctor;
-  auto mtarget = typeinfo.methodinfos.find(ctorID);
-  size_t num = typeinfo.methodinfos.count(ctorID);
-  for (size_t i = 0; i < num; ++i, ++mtarget) {
-    if (IsCompatible(mtarget->second.methodptr.GetParamList(), argTypes))
+  auto [begin_iter, end_iter] =
+      typeinfo.methodinfos.equal_range(NameIDRegistry::Meta::ctor);
+  for (auto iter = begin_iter; iter != end_iter; ++iter) {
+    if (IsCompatible(iter->second.methodptr.GetParamList(), argTypes))
       return true;
   }
   return false;
@@ -1402,47 +1363,47 @@ std::vector<ObjectView> ReflMngr::GetVars(ObjectView obj, FieldFlag flag) {
   return rst;
 }
 
-std::optional<InfoTypePair> ReflMngr::FindType(
+InfoTypePair ReflMngr::FindType(
     Type type, const std::function<bool(InfoTypePair)>& func) const {
-  std::optional<InfoTypePair> rst;
+  InfoTypePair rst;
   ForEachTypeInfo(type, [&rst, func](InfoTypePair type) {
     if (!func(type))
       return true;
 
-    rst.emplace(type);
+    rst = type;
     return false;  // stop
   });
   return rst;
 }
 
-std::optional<InfoFieldPair> ReflMngr::FindField(
+InfoFieldPair ReflMngr::FindField(
     Type type, const std::function<bool(InfoFieldPair)>& func,
     FieldFlag flag) const {
-  std::optional<InfoFieldPair> rst;
+  InfoFieldPair rst;
   ForEachField(
       type,
       [&rst, func](InfoTypePair type, InfoFieldPair field) {
         if (!func(field))
           return true;
 
-        rst.emplace(field);
+        rst = field;
         return false;  // stop
       },
       flag);
   return rst;
 }
 
-std::optional<InfoMethodPair> ReflMngr::FindMethod(
+InfoMethodPair ReflMngr::FindMethod(
     Type type, const std::function<bool(InfoMethodPair)>& func,
     MethodFlag flag) const {
-  std::optional<InfoMethodPair> rst;
+  InfoMethodPair rst;
   ForEachMethod(
       type,
       [&rst, func](InfoTypePair type, InfoMethodPair method) {
         if (!func(method))
           return true;
 
-        rst.emplace(method);
+        rst = method;
         return false;  // stop
       },
       flag);

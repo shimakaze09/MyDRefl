@@ -1,5 +1,7 @@
 #include "InvokeUtil.h"
 
+#include <MyDRefl/MyDRefl.h>
+
 using namespace My::MyDRefl;
 
 bool details::IsPriorityCompatible(std::span<const Type> params,
@@ -101,7 +103,7 @@ bool details::IsNonCopiedArgConstructCompatible(
 #ifndef NDEBUG
     // because rhs(arg)'s ID maybe have no name in the registry
     // so we use type_name_add_*_hash(...) to avoid it
-    auto rhs = Mngr.tregistry.Nameof(argTypeIDs[i]);
+    auto rhs = Mngr->tregistry.Nameof(argTypeIDs[i]);
 #endif  // !NDEBUG
     const std::size_t rhs_hash = argTypeIDs[i].GetValue();
 
@@ -220,8 +222,8 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
           continue;  // &{const{T}} <- T | &{T} | &&{T}
 
         Type raw_lhs_type{raw_lhs};
-        if (Mngr.IsNonCopiedArgConstructible(raw_lhs_type,
-                                             std::span<const Type>{&rhs, 1})) {
+        if (Mngr->IsNonCopiedArgConstructible(raw_lhs_type,
+                                              std::span<const Type>{&rhs, 1})) {
           auto& info = info_copiedargs[num_copiedargs++];
           assert(num_copiedargs <= MaxArgNum);
 
@@ -250,8 +252,8 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
           continue;  // &&{const{T}} <- &&{T}
 
         Type raw_lhs_type{raw_lhs};
-        if (Mngr.IsNonCopiedArgConstructible(raw_lhs_type,
-                                             std::span<const Type>{&rhs, 1})) {
+        if (Mngr->IsNonCopiedArgConstructible(raw_lhs_type,
+                                              std::span<const Type>{&rhs, 1})) {
           auto& info = info_copiedargs[num_copiedargs++];
           assert(num_copiedargs <= MaxArgNum);
 
@@ -272,8 +274,8 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
       if (lhs.Is(rhs.Name_RemoveRValueReference()))
         continue;  // T <- &&{T}
 
-      if (Mngr.IsNonCopiedArgConstructible(lhs,
-                                           std::span<const Type>{&rhs, 1})) {
+      if (Mngr->IsNonCopiedArgConstructible(lhs,
+                                            std::span<const Type>{&rhs, 1})) {
         auto& info = info_copiedargs[num_copiedargs++];
         assert(num_copiedargs <= MaxArgNum);
 
@@ -319,7 +321,7 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
       alignment = static_cast<std::uint32_t>(alignof(void*));
     } else {
       ++num_copied_nonptr_args;
-      const auto& typeinfo = Mngr.typeinfos.at(info_copiedargs[k].GetType());
+      const auto& typeinfo = Mngr->typeinfos.at(info_copiedargs[k].GetType());
       size = static_cast<std::uint32_t>(typeinfo.size);
       alignment = static_cast<std::uint32_t>(typeinfo.alignment);
     }
@@ -371,7 +373,7 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
     if (info.is_pointer_or_array)
       buffer_as<void*>(arg_buffer) = orig_argptr_buffer[i];
     else {
-      bool success = Mngr.NonCopiedArgConstruct(
+      bool success = Mngr->NonCopiedArgConstruct(
           ObjectView{info.GetType(), arg_buffer},
           std::span<const Type>{&argTypes[i], 1},
           static_cast<ArgPtrBuffer>(&orig_argptr_buffer[i]));
@@ -391,7 +393,7 @@ details::NewArgsGuard::~NewArgsGuard() {
   if (buffer) {
     for (const auto& info : std::span<const ArgInfo>{new_nonptr_arg_info_buffer,
                                                      num_copied_nonptr_args})
-      Mngr.Destruct({info.GetType(), argptr_buffer[info.idx]});
+      Mngr->Destruct({info.GetType(), argptr_buffer[info.idx]});
     rsrc->deallocate(buffer, buffer_size, max_alignment);
   }
 }

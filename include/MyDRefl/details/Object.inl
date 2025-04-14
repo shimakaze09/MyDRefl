@@ -132,16 +132,19 @@ T ObjectView::Invoke(Name method_name, Args&&... args) const {
 template <typename... Args>
 SharedObject ObjectView::MInvoke(Name method_name,
                                  std::pmr::memory_resource* rst_rsrc,
+                                 std::pmr::memory_resource* temp_args_rsrc,
                                  MethodFlag flag, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypes = {Type_of<decltype(args)>...};
     const std::array argptr_buffer{
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return MInvoke(method_name, rst_rsrc, std::span<const Type>{argTypes},
+    return MInvoke(method_name, rst_rsrc, temp_args_rsrc,
+                   std::span<const Type>{argTypes},
                    static_cast<ArgPtrBuffer>(argptr_buffer.data()), flag);
   } else
-    return MInvoke(method_name, rst_rsrc, std::span<const Type>{},
-                   static_cast<ArgPtrBuffer>(nullptr), flag);
+    return MInvoke(method_name, rst_rsrc, temp_args_rsrc,
+                   std::span<const Type>{}, static_cast<ArgPtrBuffer>(nullptr),
+                   flag);
 }
 
 template <typename... Args>
@@ -170,15 +173,18 @@ T ObjectView::AInvoke(Name method_name, Args&&... args) const {
 template <typename... Args>
 SharedObject ObjectView::AMInvoke(Name method_name,
                                   std::pmr::memory_resource* rst_rsrc,
+                                  std::pmr::memory_resource* temp_args_rsrc,
                                   MethodFlag flag, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     std::array argTypes = {details::ArgType<decltype(args)>(args)...};
     const std::array argptr_buffer{details::ArgPtr(args)...};
-    return MInvoke(method_name, rst_rsrc, std::span<const Type>{argTypes},
+    return MInvoke(method_name, rst_rsrc, temp_args_rsrc,
+                   std::span<const Type>{argTypes},
                    static_cast<ArgPtrBuffer>(argptr_buffer.data()), flag);
   } else
-    return MInvoke(method_name, rst_rsrc, std::span<const Type>{},
-                   static_cast<ArgPtrBuffer>(nullptr), flag);
+    return MInvoke(method_name, rst_rsrc, temp_args_rsrc,
+                   std::span<const Type>{}, static_cast<ArgPtrBuffer>(nullptr),
+                   flag);
 }
 
 template <typename... Args>

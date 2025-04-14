@@ -6,7 +6,7 @@ using namespace My;
 using namespace My::MyDRefl;
 
 int main() {
-  Mngr.RegisterType<int**>();
+  Mngr->RegisterType<int**>();
   int i = 0;
   int* pi = &i;
   int** ppi = &pi;
@@ -14,12 +14,12 @@ int main() {
   std::cout << "//" << std::endl
             << "// int**" << std::endl
             << "//////////" << std::endl;
-  for (auto&& method : Mngr.GetMethods(Type_of<int**>))
+  for (auto&& method : Mngr->GetMethods(Type_of<int**>))
     std::cout << method.name.GetView() << std::endl;
   std::cout << "//" << std::endl
             << "// int*" << std::endl
             << "/////////" << std::endl;
-  for (auto&& method : Mngr.GetMethods(Type_of<int*>))
+  for (auto&& method : Mngr->GetMethods(Type_of<int*>))
     std::cout << method.name.GetView() << std::endl;
 
   SharedObject ref_i = **ObjectView{ppi};

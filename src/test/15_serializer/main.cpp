@@ -39,7 +39,7 @@ void Serializer(ObjectView obj) {
 int main() {
   RegisterVector();
 
-  auto a = Mngr.MakeShared(Type_of<Vector>);
+  auto a = Mngr->MakeShared(Type_of<Vector>);
 
   for (size_t i = 0; i < 10; i++) {
     std::vector<size_t> row;
