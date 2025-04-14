@@ -57,9 +57,9 @@ class ObjectView {
       : ObjectView{Type_of<decltype(obj)>,
                    const_cast<void*>(static_cast<const void*>(&obj))} {}
 
-  constexpr Type GetType() const noexcept { return type; }
+  constexpr const Type& GetType() const noexcept { return type; }
 
-  constexpr void* GetPtr() const noexcept { return ptr; }
+  constexpr void* const& GetPtr() const noexcept { return ptr; }
 
   explicit operator bool() const noexcept;
 

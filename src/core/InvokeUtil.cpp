@@ -37,8 +37,8 @@ bool details::IsPriorityCompatible(std::span<const Type> params,
   return true;
 }
 
-bool details::IsNonCopiedArgConstructCompatible(
-    std::span<const Type> params, std::span<const Type> argTypes) {
+bool details::IsNonCopiedArgCompatible(std::span<const Type> params,
+                                       std::span<const Type> argTypes) {
   if (params.size() != argTypes.size())
     return false;
 
@@ -90,8 +90,8 @@ bool details::IsNonCopiedArgConstructCompatible(
   return true;
 }
 
-bool details::IsNonCopiedArgConstructCompatible(
-    std::span<const Type> params, std::span<const TypeID> argTypeIDs) {
+bool details::IsNonCopiedArgCompatible(std::span<const Type> params,
+                                       std::span<const TypeID> argTypeIDs) {
   if (params.size() != argTypeIDs.size())
     return false;
 
@@ -183,15 +183,15 @@ bool details::IsPointerAndArrayCompatible(std::string_view lhs,
 
 details::NewArgsGuard::NewArgsGuard(bool is_priority,
                                     std::pmr::memory_resource* rsrc,
-                                    std::span<const Type> paramTypeIDs,
+                                    std::span<const Type> paramTypes,
                                     std::span<const Type> argTypes,
                                     ArgPtrBuffer orig_argptr_buffer)
     : rsrc{rsrc} {
-  if (argTypes.size() != paramTypeIDs.size())
+  if (argTypes.size() != paramTypes.size())
     return;
 
   if (is_priority) {
-    is_compatible = IsPriorityCompatible(paramTypeIDs, argTypes);
+    is_compatible = IsPriorityCompatible(paramTypes, argTypes);
     argptr_buffer = orig_argptr_buffer;
     return;
   }
@@ -205,10 +205,10 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
   std::uint32_t size_copiedargs = 0;
 
   for (std::uint8_t i = 0; i < argTypes.size(); i++) {
-    if (paramTypeIDs[i] == argTypes[i])
+    if (paramTypes[i] == argTypes[i])
       continue;
 
-    const auto& lhs = paramTypeIDs[i];
+    const auto& lhs = paramTypes[i];
     const auto& rhs = argTypes[i];
 
     if (lhs.IsLValueReference()) {  // &{T} | &{const{T}}
