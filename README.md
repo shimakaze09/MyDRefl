@@ -22,6 +22,8 @@ Extremely **fast** and **powerful** C++20 dynamic reflection library
 
 - [to-do](doc/todo.md)
 - [change log](doc/change_log.md)
+- manual (TODO)
+- [introduction](doc/introduction.md)
 
 ## How to Use
 

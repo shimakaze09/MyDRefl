@@ -57,8 +57,8 @@ int main() {
   Mngr->RegisterType<Data>();
   Mngr->AddField<&Data::value>("value");
   Mngr->AddConstructor<A, Data&, Data&&>();
-  Mngr->AddField("lref", [](A* a) { return &a->lref; });
-  Mngr->AddField("rref", [](A* a) { return &a->rref; });
+  Mngr->AddField("lref", [](A* a) -> decltype(auto) { return a->lref; });
+  Mngr->AddField("rref", [](A* a) -> decltype(auto) { return &a->rref; });
   Mngr->AddMethod<&A::get>("get");
   Mngr->AddMethod<&A::get_c>("get_c");
   Mngr->AddMethod<&A::get_l>("get_l");
