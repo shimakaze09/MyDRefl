@@ -112,6 +112,24 @@ class NameIDRegistry : public IDRegistry<NameID, Name> {
     static constexpr Name tuple_get{"MyDRefl::tuple_get"};
     static constexpr Name tuple_element{"MyDRefl::tuple_element"};
 
+    // variant
+
+    static constexpr Name variant_index{"MyDRefl::variant_index"};
+    static constexpr Name variant_valueless_by_exception{
+        "MyDRefl::variant_valueless_by_exception"};
+    static constexpr Name variant_holds_alternative{
+        "MyDRefl::variant_holds_alternative"};
+    static constexpr Name variant_get{"MyDRefl::variant_get"};
+    static constexpr Name variant_get_if{"MyDRefl::variant_get_if"};
+    static constexpr Name variant_size{"MyDRefl::variant_size"};
+    static constexpr Name variant_alternative{"MyDRefl::variant_alternative"};
+
+    // optional
+
+    static constexpr Name optional_has_value{"MyDRefl::optional_has_value"};
+    static constexpr Name optional_value{"MyDRefl::optional_value"};
+    static constexpr Name optional_reset{"MyDRefl::optional_reset"};
+
     // iterator
 
     static constexpr Name iterator_advance{"MyDRefl::iterator_advance"};
