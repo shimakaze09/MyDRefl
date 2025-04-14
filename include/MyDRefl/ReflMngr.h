@@ -322,8 +322,9 @@ class ReflMngr {
 
   template <typename... Args>
   SharedObject MInvoke(ObjectView obj, Name method_name,
-                       std::pmr::memory_resource* result_rsrc, MethodFlag flag,
-                       Args&&... args) const;
+                       std::pmr::memory_resource* rst_rsrc,
+                       std::pmr::memory_resource* temp_args_rsrc,
+                       MethodFlag flag, Args&&... args) const;
 
   template <typename... Args>
   SharedObject Invoke(ObjectView obj, Name method_name, Args&&... args) const;

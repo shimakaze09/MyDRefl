@@ -1253,15 +1253,19 @@ T ReflMngr::BInvoke(ObjectView obj, Name method_name, Args&&... args) const {
 template <typename... Args>
 SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
                                std::pmr::memory_resource* rst_rsrc,
+                               std::pmr::memory_resource* temp_args_rsrc,
                                MethodFlag flag, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr Type argTypes[] = {Type_of<decltype(args)>...};
     void* const argptr_buffer[] = {
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return MInvoke(obj, method_name, rst_rsrc, std::span<const Type>{argTypes},
+    return MInvoke(obj, method_name, rst_rsrc, temp_args_rsrc,
+                   std::span<const Type>{argTypes},
                    static_cast<ArgPtrBuffer>(argptr_buffer), flag);
   } else
-    return MInvoke(obj, method_name, rst_rsrc, flag);
+    return MInvoke(obj, method_name, rst_rsrc, temp_args_rsrc,
+                   std::span<const Type>{}, static_cast<ArgPtrBuffer>(nullptr),
+                   flag);
 }
 
 template <typename... Args>

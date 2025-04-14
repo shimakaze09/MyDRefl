@@ -87,6 +87,6 @@ struct TypeInfo {
 }  // namespace My::MyDRefl
 
 template <>
-constexpr auto My::type_name<My::MyDRefl::AttrSet>() {
+constexpr auto My::type_name<My::MyDRefl::AttrSet>() noexcept {
   return TSTR("My::MyDRefl::AttrSet");
 }
