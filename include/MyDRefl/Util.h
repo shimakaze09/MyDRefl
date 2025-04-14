@@ -580,7 +580,12 @@ concept container_insert_return_type = requires {
   typename T::insert_return_type;
 };
 
-// TODO: assign
+template <typename T>
+concept container_assign = container_size_type<T> && container_value_type<T> &&
+                           requires(T t, const typename T::size_type& s,
+                                    const typename T::value_type& v) {
+  t.assgin(s, v);
+};
 
 // - iterator
 

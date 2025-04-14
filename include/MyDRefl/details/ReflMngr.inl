@@ -426,6 +426,12 @@ struct TypeAutoRegister_Default {
 
     // container
 
+    if constexpr (container_assign<T>)
+      mngr.AddMemberMethod(
+          NameIDRegistry::Meta::container_assign,
+          [](T& lhs, const typename T::size_type& s,
+             const typename T::value_type& v) { lhs.assign(s, v); });
+
     // - iterator
 
     if constexpr (container_begin<T&>)
@@ -1232,7 +1238,6 @@ T ReflMngr::BInvokeRet(ObjectView obj, Name method_name,
     Type result_type =
         BInvoke(obj, method_name, static_cast<void*>(&result_buffer), argTypes,
                 argptr_buffer, flag);
-    assert(result_type.Is<T>());
     return MoveResult<T>(result_type, &result_buffer);
   } else
     BInvoke(obj, method_name, (void*)nullptr, argTypes, argptr_buffer, flag);

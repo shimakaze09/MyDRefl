@@ -5,17 +5,6 @@
 
 //#include <span>
 
-#define OBJECT_VIEW_DECLARE_OPERATOR(op, name) \
-  template <typename Arg>                      \
-  SharedObject operator op(Arg&& rhs) const
-
-#define OBJECT_VIEW_DEFINE_CMP_OPERATOR(op, name)             \
-  template <typename Arg>                                     \
-  bool operator op(const Arg& rhs) const {                    \
-    return static_cast<bool>(                                 \
-        AInvoke(NameIDRegistry::Meta::operator_##name, rhs)); \
-  }
-
 #define OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(op, name)   \
   template <typename Arg>                                 \
   ObjectView operator op(Arg&& rhs) const {               \
@@ -25,18 +14,6 @@
                    std::forward<Arg>(rhs));               \
     return AddLValueReference();                          \
   }
-
-#define OBJECT_VIEW_DECLARE_META(name) \
-  template <typename Arg>              \
-  SharedObject name(Arg&& rhs) const
-
-#define OBJECT_VIEW_DECLARE_META_RET(name, ret) \
-  template <typename Arg>                       \
-  ret name(Arg&& rhs) const
-
-#define OBJECT_VIEW_DECLARE_META_VARS(name) \
-  template <typename... Args>               \
-  SharedObject name(Args&&... args) const
 
 namespace My::MyDRefl {
 class ObjectView {
@@ -192,19 +169,42 @@ class ObjectView {
   // Meta
   /////////
 
-  OBJECT_VIEW_DECLARE_OPERATOR(+, add);
-  OBJECT_VIEW_DECLARE_OPERATOR(-, sub);
-  OBJECT_VIEW_DECLARE_OPERATOR(*, mul);
-  OBJECT_VIEW_DECLARE_OPERATOR(/, div);
-  OBJECT_VIEW_DECLARE_OPERATOR(%, mod);
-  OBJECT_VIEW_DECLARE_OPERATOR(&, band);
-  OBJECT_VIEW_DECLARE_OPERATOR(|, bor);
-  OBJECT_VIEW_DECLARE_OPERATOR(^, bxor);
+  template <typename T>
+  SharedObject operator+(T&& rhs) const;
+  template <typename T>
+  SharedObject operator-(T&& rhs) const;
+  template <typename T>
+  SharedObject operator*(T&& rhs) const;
+  template <typename T>
+  SharedObject operator/(T&& rhs) const;
+  template <typename T>
+  SharedObject operator%(T&& rhs) const;
+  template <typename T>
+  SharedObject operator&(T&& rhs) const;
+  template <typename T>
+  SharedObject operator|(T&& rhs) const;
+  template <typename T>
+  SharedObject operator^(T&& rhs) const;
 
-  OBJECT_VIEW_DEFINE_CMP_OPERATOR(<, lt);
-  OBJECT_VIEW_DEFINE_CMP_OPERATOR(<=, le);
-  OBJECT_VIEW_DEFINE_CMP_OPERATOR(>, gt);
-  OBJECT_VIEW_DEFINE_CMP_OPERATOR(>=, ge);
+  template <typename T>
+  bool operator<(const T& rhs) const {
+    return ABInvoke<bool>(NameIDRegistry::Meta::operator_lt, rhs);
+  }
+
+  template <typename T>
+  bool operator<=(const T& rhs) const {
+    return ABInvoke<bool>(NameIDRegistry::Meta::operator_le, rhs);
+  }
+
+  template <typename T>
+  bool operator>(const T& rhs) const {
+    return ABInvoke<bool>(NameIDRegistry::Meta::operator_gt, rhs);
+  }
+
+  template <typename T>
+  bool operator>=(const T& rhs) const {
+    return ABInvoke<bool>(NameIDRegistry::Meta::operator_ge, rhs);
+  }
 
   template <typename Arg>
   requires NonObjectAndView<std::decay_t<Arg>> ObjectView
@@ -234,7 +234,8 @@ class ObjectView {
   SharedObject operator~() const;
   SharedObject operator*() const;
 
-  OBJECT_VIEW_DECLARE_OPERATOR([], subscript);
+  template <typename T>
+  SharedObject operator[](T&& rhs) const;
   SharedObject operator[](std::size_t n) const;
 
   template <typename... Args>
@@ -260,16 +261,34 @@ class ObjectView {
   // Iterator
   /////////////
 
-  OBJECT_VIEW_DECLARE_META_RET(advance, void);
-  OBJECT_VIEW_DECLARE_META_RET(distance, std::size_t);
-  OBJECT_VIEW_DECLARE_META(next);
-  OBJECT_VIEW_DECLARE_META(prev);
+  template <typename T>
+  void advance(T&& arg) const {
+    ABInvoke<void>(NameIDRegistry::Meta::container_advance,
+                   std::forward<T>(arg));
+  };
+
+  template <typename T>
+  std::size_t distance(T&& arg) const {
+    return ABInvoke<std::size_t>(NameIDRegistry::Meta::container_distance,
+                                 std::forward<T>(arg));
+  };
+
+  template <typename T>
+  SharedObject next(T&& rhs) const;
+  template <typename T>
+  SharedObject prev(T&& rhs) const;
   SharedObject next() const;
   SharedObject prev() const;
 
   //
   // container
   //////////////
+
+  template <typename... Args>
+  void assign(Args&&... args) const {
+    ABInvoke<void>(NameIDRegistry::Meta::container_assign,
+                   std::forward<Args>(args)...);
+  };
 
   // - iterator
 
@@ -289,37 +308,77 @@ class ObjectView {
   std::size_t size() const;
   std::size_t capacity() const;
   std::size_t bucket_count() const;
-  OBJECT_VIEW_DECLARE_META_RET(resize, void);
+
+  template <typename T>
+  void resize(T&& arg) const {
+    ABInvoke<void>(NameIDRegistry::Meta::container_resize,
+                   std::forward<T>(arg));
+  };
+
   void reserve(std::size_t n) const;
   void shrink_to_fit() const;
 
   // - element access
 
-  OBJECT_VIEW_DECLARE_META(at);
+  template <typename T>
+  SharedObject at(T&& rhs) const;
   SharedObject front() const;
   SharedObject back() const;
   SharedObject data() const;
 
   // - lookup
-  OBJECT_VIEW_DECLARE_META_RET(count, std::size_t);
-  OBJECT_VIEW_DECLARE_META(find);
-  OBJECT_VIEW_DECLARE_META(lower_bound);
-  OBJECT_VIEW_DECLARE_META(upper_bound);
-  OBJECT_VIEW_DECLARE_META(equal_range);
+  template <typename T>
+  std::size_t count(T&& arg) const {
+    return ABInvoke<std::size_t>(NameIDRegistry::Meta::container_count,
+                                 std::forward<T>(arg));
+  };
+
+  template <typename T>
+  SharedObject find(T&& rhs) const;
+  template <typename T>
+  SharedObject lower_bound(T&& rhs) const;
+  template <typename T>
+  SharedObject upper_bound(T&& rhs) const;
+  template <typename T>
+  SharedObject equal_range(T&& rhs) const;
 
   // - modifiers
 
   void clear() const;
-  OBJECT_VIEW_DECLARE_META_VARS(insert);
-  OBJECT_VIEW_DECLARE_META_VARS(insert_or_assign);
-  OBJECT_VIEW_DECLARE_META(erase);
-  OBJECT_VIEW_DECLARE_META_RET(push_front, void);
-  OBJECT_VIEW_DECLARE_META_RET(push_back, void);
+  template <typename... Args>
+  SharedObject insert(Args&&... args) const;
+  template <typename... Args>
+  SharedObject insert_or_assign(Args&&... args) const;
+  template <typename T>
+  SharedObject erase(T&& rhs) const;
+
+  template <typename T>
+  void push_front(T&& arg) const {
+    ABInvoke<void>(NameIDRegistry::Meta::container_push_front,
+                   std::forward<T>(arg));
+  };
+
+  template <typename T>
+  void push_back(T&& arg) const {
+    ABInvoke<void>(NameIDRegistry::Meta::container_push_back,
+                   std::forward<T>(arg));
+  };
+
   void pop_front() const;
   void pop_back() const;
-  OBJECT_VIEW_DECLARE_META_RET(swap, void);
-  OBJECT_VIEW_DECLARE_META_RET(merge, void);
-  OBJECT_VIEW_DECLARE_META(extract);
+
+  template <typename T>
+  void swap(T&& arg) const {
+    ABInvoke<void>(NameIDRegistry::Meta::container_swap, std::forward<T>(arg));
+  };
+
+  template <typename T>
+  void merge(T&& arg) const {
+    ABInvoke<void>(NameIDRegistry::Meta::container_merge, std::forward<T>(arg));
+  };
+
+  template <typename T>
+  SharedObject extract(T&& rhs) const;
 
  protected:
   Type type;
@@ -378,11 +437,6 @@ template <typename T>
 constexpr ObjectView ObjectView_of = {Type_of<T>};
 }  // namespace My::MyDRefl
 
-#undef OBJECT_VIEW_DECLARE_OPERATOR
-#undef OBJECT_VIEW_DEFINE_CMP_OPERATOR
 #undef OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR
-#undef OBJECT_VIEW_DECLARE_META
-#undef OBJECT_VIEW_DECLARE_META_RET
-#undef OBJECT_VIEW_DECLARE_META_VARS
 
 #include "details/Object.inl"
