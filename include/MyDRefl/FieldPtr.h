@@ -2,7 +2,6 @@
 
 #include "Object.h"
 
-#include <array>
 #include <variant>
 
 namespace My::MyDRefl {

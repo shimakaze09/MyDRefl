@@ -1,6 +1,5 @@
 #include <MyDRefl/MyDRefl.h>
 
-#include <array>
 #include <iostream>
 
 using namespace My;

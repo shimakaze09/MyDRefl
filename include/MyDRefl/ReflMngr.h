@@ -303,10 +303,6 @@ class ReflMngr {
                ArgPtrBuffer argptr_buffer = nullptr,
                MethodFlag flag = MethodFlag::All) const;
 
-  template <typename... Args>
-  Type BInvokeArgs(ObjectView obj, Name method_name, void* result_buffer,
-                   Args&&... args) const;
-
   template <typename T, typename... Args>
   T BInvoke(ObjectView obj, Name method_name, Args&&... args) const;
 
