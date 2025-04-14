@@ -135,6 +135,7 @@ class NameIDRegistry : public IDRegistry<NameID, Name> {
     static constexpr Name container_data{"MyDRefl::container_data"};
     static constexpr Name container_front{"MyDRefl::container_front"};
     static constexpr Name container_back{"MyDRefl::container_back"};
+    static constexpr Name container_top{"MyDRefl::container_top"};
 
     static constexpr Name container_empty{"MyDRefl::container_empty"};
     static constexpr Name container_size{"MyDRefl::container_size"};
@@ -160,6 +161,8 @@ class NameIDRegistry : public IDRegistry<NameID, Name> {
     static constexpr Name container_pop_front{"MyDRefl::container_pop_front"};
     static constexpr Name container_push_back{"MyDRefl::container_push_back"};
     static constexpr Name container_pop_back{"MyDRefl::container_pop_back"};
+    static constexpr Name container_push{"MyDRefl::container_push"};
+    static constexpr Name container_pop{"MyDRefl::container_pop"};
     static constexpr Name container_swap{"MyDRefl::container_swap"};
     static constexpr Name container_merge{"MyDRefl::container_merge"};
     static constexpr Name container_extract{"MyDRefl::container_extract"};

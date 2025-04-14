@@ -668,6 +668,10 @@ template <typename T>
 concept container_back = requires(T t) {
   t.back();
 };
+template <typename T>
+concept container_top = requires(T t) {
+  t.top();
+};
 
 // - capacity
 
@@ -885,6 +889,22 @@ concept container_push_back_rvalue =
 template <typename T>
 concept container_pop_back = requires(T t) {
   t.pop_back();
+};
+
+template <typename T, typename U>
+concept container_push = requires(T t, U u) {
+  t.push(std::forward<U>(u));
+};
+template <typename T>
+concept container_push_clvalue =
+    container_value_type<T> && container_push<T, const typename T::value_type&>;
+template <typename T>
+concept container_push_rvalue =
+    container_value_type<T> && container_push<T, typename T::value_type&&>;
+
+template <typename T>
+concept container_pop = requires(T t) {
+  t.pop();
 };
 
 template <typename T>

@@ -12,8 +12,10 @@ namespace My::MyDRefl {
 // MultiSet -> MultiMap -> Map
 // UnorderedMultiSet -> UnorderedSet
 // UnorderedMultiSet -> UnorderedMultiMap -> UnorderedMap
+// Stack -> PriorityQueue
 // Tuple -> Pair
 enum class ContainerType {
+  None,
   RawArray,
   Array,
   Vector,
@@ -29,11 +31,11 @@ enum class ContainerType {
   UnorderedMap,
   UnorderedMultiMap,
   Stack,
+  PriorityQueue,
   Queue,
   Tuple,
   Pair,
 };
-MY_MYDREFL_ENUM_BOOL_OPERATOR_DEFINE(ContainerType)
 
 // SpecializeIsSet<std::set<...>> is std::true_type
 template <typename T>
