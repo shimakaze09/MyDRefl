@@ -2,10 +2,32 @@
 
 #include "Util.h"
 
+// here we just include necessary StdName/Name_*.h
+// if you want to include all, you can define macro MY_MYDREFL_INCLUDE_ALL_STD_NAME
+
+#include <MyTemplate/StdName/Name_memory.h>
+#include <MyTemplate/StdName/Name_set.h>
+#include <MyTemplate/StdName/Name_span.h>
+#include <MyTemplate/StdName/Name_string.h>
+#include <MyTemplate/StdName/Name_unordered_map.h>
+#include <MyTemplate/StdName/Name_vector.h>
+
+#ifdef MY_MYDREFL_INCLUDE_ALL_STD_NAME
+#include <MyTemplate/StdName/Name_deque.h>
+#include <MyTemplate/StdName/Name_forward_list.h>
+#include <MyTemplate/StdName/Name_list.h>
+#include <MyTemplate/StdName/Name_map.h>
+#include <MyTemplate/StdName/Name_queue.h>
+#include <MyTemplate/StdName/Name_stack.h>
+#include <MyTemplate/StdName/Name_string.h>
+#include <MyTemplate/StdName/Name_string_view.h>
+#include <MyTemplate/StdName/Name_unordered_set.h>
+#endif  // MY_MYDREFL_INCLUDE_ALL_STD_NAME
+
 #include <MyTemplate/Type.h>
 
+//#include <memory>
 #include <cassert>
-#include <memory>
 
 namespace My::MyDRefl {
 enum class MethodFlag {

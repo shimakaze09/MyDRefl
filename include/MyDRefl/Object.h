@@ -3,8 +3,7 @@
 #include "Basic.h"
 #include "IDRegistry.h"
 
-#include <optional>
-#include <span>
+//#include <span>
 
 #define OBJECT_VIEW_DECLARE_OPERATOR(op, name) \
   template <typename Arg>                      \
@@ -163,17 +162,14 @@ class ObjectView {
   // - only contains APIs with ObjectView in ReflMngr
   //
 
-  std::vector<std::tuple<InfoTypePair, InfoFieldPair, ObjectView>>
-  GetTypeFieldVars(FieldFlag flag = FieldFlag ::All) const;
-  std::vector<ObjectView> GetVars(FieldFlag flag = FieldFlag ::All) const;
-
-  // self vars and all bases' vars
   void ForEachVar(
       const std::function<bool(InfoTypePair, InfoFieldPair, ObjectView)>& func,
       FieldFlag flag = FieldFlag::All) const;
-
+  std::vector<std::tuple<InfoTypePair, InfoFieldPair, ObjectView>>
+  GetTypeFieldVars(FieldFlag flag = FieldFlag::All) const;
+  std::vector<ObjectView> GetVars(FieldFlag flag = FieldFlag::All) const;
   ObjectView FindVar(const std::function<bool(ObjectView)>& func,
-                     FieldFlag flag = FieldFlag ::All) const;
+                     FieldFlag flag = FieldFlag::All) const;
 
   //
   // Type

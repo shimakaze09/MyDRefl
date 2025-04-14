@@ -38,3 +38,4 @@
 - [ ] speed up `ReflMngr.cpp` compiltation
 - [x] rename invoke APIs
 - [x] simplify `MethodPtr::func`
+- [ ] argument static/dynamic cast to parameter

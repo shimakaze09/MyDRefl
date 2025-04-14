@@ -17,6 +17,10 @@ ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     LIST(APPEND defines "")
 ENDIF ()
 
+IF (My_MyDRefl_include_all_StdName)
+    LIST(APPEND defines "MY_MYDREFL_INCLUDE_ALL_STD_NAME")
+ENDIF ()
+
 ADD_TARGET(
         MODE STATIC
         SOURCE

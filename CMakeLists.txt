@@ -8,11 +8,12 @@ INIT_MYCMAKE(VERSION 0.6.4)
 
 INIT_PROJECT()
 
-ADD_DEP(MyTemplate 0.7.0)
+ADD_DEP(MyTemplate 0.7.1)
 
 INCLUDE(cmake/Platform.cmake)
 
 OPTION(My_MyDRefl_Build_ext_Bootstrap "build ext Bootstrap" OFF)
+OPTION(My_MyDRefl_include_all_StdName "switch MY_MYDREFL_INCLUDE_ALL_STD_NAME" OFF)
 
 ADD_SUB_DIRS_REC(include)
 ADD_SUB_DIRS_REC(src)

@@ -1,5 +1,11 @@
 #pragma once
 
+#include <MyTemplate/Func.h>
+
+#include <cstdint>
+#include <functional>
+#include <iterator>
+
 #define MY_MYDREFL_ENUM_BOOL_OPERATOR_DEFINE(Name)                       \
   constexpr Name operator&(const Name& lhs, const Name& rhs) noexcept {  \
     static_assert(std::is_enum_v<Name>);                                 \
@@ -28,12 +34,6 @@
     lhs = static_cast<Name>(static_cast<T>(lhs) | static_cast<T>(rhs));  \
     return lhs;                                                          \
   }
-
-#include <MyTemplate/Func.h>
-
-#include <cstdint>
-#include <functional>
-#include <iterator>
 
 namespace My::MyDRefl {
 using Offsetor = std::function<void*(void*)>;
