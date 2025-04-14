@@ -17,10 +17,9 @@ ObjectView ObjectView::Var(Type base, Name field_name, FieldFlag flag) const {
   return Mngr.Var(*this, base, field_name, flag);
 }
 
-InvokeResult ObjectView::Invoke(Name method_name, void* result_buffer,
-                                std::span<const Type> argTypes,
-                                ArgPtrBuffer argptr_buffer,
-                                MethodFlag flag) const {
+Type ObjectView::Invoke(Name method_name, void* result_buffer,
+                        std::span<const Type> argTypes,
+                        ArgPtrBuffer argptr_buffer, MethodFlag flag) const {
   return Mngr.Invoke(*this, method_name, result_buffer, argTypes, argptr_buffer,
                      flag);
 }
@@ -153,9 +152,8 @@ ObjectView ObjectView::AddRValueReference() const {
   return {Mngr.tregistry.RegisterAddRValueReference(type), ptr};
 }
 
-InvocableResult ObjectView::IsInvocable(Name method_name,
-                                        std::span<const Type> argTypes,
-                                        MethodFlag flag) const {
+Type ObjectView::IsInvocable(Name method_name, std::span<const Type> argTypes,
+                             MethodFlag flag) const {
   return Mngr.IsInvocable(type, method_name, argTypes, flag);
 }
 

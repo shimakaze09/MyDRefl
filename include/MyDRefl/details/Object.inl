@@ -73,9 +73,8 @@ inline ObjectView::operator bool() const noexcept {
     if (type.Is<bool>())
       return As<bool>();
     else {
-      auto rst = IsInvocable(NameIDRegistry::Meta::operator_bool);
-      if (rst.success) {
-        assert(rst.result_desc.type.Is<bool>());
+      if (auto rst = IsInvocable(NameIDRegistry::Meta::operator_bool)) {
+        assert(rst.Is<bool>());
         return Invoke<bool>(NameIDRegistry::Meta::operator_bool);
       } else
         return true;
@@ -85,8 +84,7 @@ inline ObjectView::operator bool() const noexcept {
 }
 
 template <typename... Args>
-InvocableResult ObjectView::IsInvocable(Name method_name,
-                                        MethodFlag flag) const {
+Type ObjectView::IsInvocable(Name method_name, MethodFlag flag) const {
   constexpr std::array argTypes = {Type_of<Args>...};
   return IsInvocable(method_name, std::span<const Type>{argTypes}, flag);
 }
@@ -98,17 +96,17 @@ T ObjectView::InvokeRet(Name method_name, std::span<const Type> argTypes,
     using U =
         std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
     std::uint8_t result_buffer[sizeof(U)];
-    InvokeResult result =
+    Type result_type =
         Invoke(method_name, result_buffer, argTypes, argptr_buffer, flag);
-    assert(result.type.Is<T>());
-    return result.Move<T>(result_buffer);
+    assert(result_type.Is<T>());
+    return MoveResult<T>(result_type, result_buffer);
   } else
     Invoke(method_name, (void*)nullptr, argTypes, argptr_buffer, flag);
 }
 
 template <typename... Args>
-InvokeResult ObjectView::InvokeArgs(Name method_name, void* result_buffer,
-                                    Args&&... args) const {
+Type ObjectView::InvokeArgs(Name method_name, void* result_buffer,
+                            Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     constexpr std::array argTypes = {Type_of<decltype(args)>...};
     const std::array argptr_buffer{

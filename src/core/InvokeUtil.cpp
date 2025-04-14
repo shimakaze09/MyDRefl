@@ -1,7 +1,5 @@
 #include "InvokeUtil.h"
 
-#include <MyDRefl/MyDRefl.h>
-
 using namespace My::MyDRefl;
 
 bool details::IsPriorityCompatible(std::span<const Type> params,
@@ -392,10 +390,8 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
 details::NewArgsGuard::~NewArgsGuard() {
   if (buffer) {
     for (const auto& info : std::span<const ArgInfo>{new_nonptr_arg_info_buffer,
-                                                     num_copied_nonptr_args}) {
-      bool success = Mngr.Destruct({info.GetType(), argptr_buffer[info.idx]});
-      assert(success);
-    }
+                                                     num_copied_nonptr_args})
+      Mngr.Destruct({info.GetType(), argptr_buffer[info.idx]});
     rsrc->deallocate(buffer, buffer_size, max_alignment);
   }
 }
