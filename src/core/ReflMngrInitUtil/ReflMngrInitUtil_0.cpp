@@ -23,4 +23,5 @@ void My::MyDRefl::details::ReflMngrInitUtil_0(ReflMngr& mngr) {
   mngr.AddField<ContainerType::Queue>("Queue");
   mngr.AddField<ContainerType::Tuple>("Tuple");
   mngr.AddField<ContainerType::Pair>("Pair");
+  mngr.AddField<ContainerType::Span>("Span");
 }

@@ -460,13 +460,9 @@ concept pair_second_type = requires {
   typename T::second_type;
 };
 template <typename T>
-concept pair_first = requires(T t) {
-  t.first;
-};
+concept pair_first = std::is_member_object_pointer_v<decltype(&T::first)>;
 template <typename T>
-concept pair_second = requires(T t) {
-  t.second;
-};
+concept pair_second = std::is_member_object_pointer_v<decltype(&T::second)>;
 
 //
 // tuple
@@ -585,6 +581,38 @@ struct get_container_size_type;
 template <typename T>
 using get_container_size_type_t = typename get_container_size_type<T>::type;
 
+// ctor
+
+template <typename T>
+concept container_ctor_cnt =
+    container_size_type<T> && requires(const typename T::size_type& cnt) {
+  T{cnt};
+};
+
+template <typename T>
+concept container_ctor_cnt_value =
+    container_size_type<T> && container_value_type<T> &&
+    requires(const typename T::size_type& cnt,
+             const typename T::value_type& v) {
+  T{cnt, v};
+};
+
+template <typename T>
+concept container_ctor_ptr_cnt =
+    container_pointer_type<T> && container_size_type<T> &&
+    requires(const typename T::pointer_type& first,
+             const typename T::size_type& cnt) {
+  T{first, cnt};
+};
+
+template <typename T>
+concept container_ctor_ptr_ptr =
+    container_pointer_type<T> &&
+    requires(const typename T::pointer_type& first,
+             const typename T::pointer_type& last) {
+  T{first, last};
+};
+
 // assign
 
 template <typename T>
@@ -682,6 +710,10 @@ concept container_empty = requires(const T& t) {
 template <typename T>
 concept container_size = requires(const T& t) {
   {std::size(t)}->std::convertible_to<std::size_t>;
+};
+template <typename T>
+concept container_size_bytes = requires(const T& t) {
+  {t.size_bytes()}->std::convertible_to<std::size_t>;
 };
 template <typename T>
 concept container_resize_cnt =

@@ -90,7 +90,7 @@ NameIDRegistry::NameIDRegistry() {
   RegisterUnmanaged(Meta::tuple_size.GetID(), Meta::tuple_size.GetView());
   RegisterUnmanaged(Meta::tuple_get.GetID(), Meta::tuple_get.GetView());
   RegisterUnmanaged(Meta::tuple_element.GetID(), Meta::tuple_element.GetView());
-  
+
   // iterator
 
   RegisterUnmanaged(Meta::iterator_advance.GetID(),
@@ -134,6 +134,8 @@ NameIDRegistry::NameIDRegistry() {
                     Meta::container_empty.GetView());
   RegisterUnmanaged(Meta::container_size.GetID(),
                     Meta::container_size.GetView());
+  RegisterUnmanaged(Meta::container_size_bytes.GetID(),
+                    Meta::container_size_bytes.GetView());
   RegisterUnmanaged(Meta::container_max_size.GetID(),
                     Meta::container_max_size.GetView());
   RegisterUnmanaged(Meta::container_resize.GetID(),

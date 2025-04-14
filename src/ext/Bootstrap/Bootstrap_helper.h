@@ -24,4 +24,5 @@ void Bootstrap_helper_container_5();
 void Bootstrap_helper_container_6();
 void Bootstrap_helper_reflmngr_0();
 void Bootstrap_helper_reflmngr_1();
+void Bootstrap_helper_reflmngr_2();
 }  // namespace My::MyDRefl::ext::details

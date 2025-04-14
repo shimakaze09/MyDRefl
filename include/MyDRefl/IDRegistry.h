@@ -140,6 +140,7 @@ class NameIDRegistry : public IDRegistry<NameID, Name> {
 
     static constexpr Name container_empty{"MyDRefl::container_empty"};
     static constexpr Name container_size{"MyDRefl::container_size"};
+    static constexpr Name container_size_bytes{"MyDRefl::container_size_bytes"};
     static constexpr Name container_max_size{"MyDRefl::container_max_size"};
     static constexpr Name container_resize{"MyDRefl::container_resize"};
     static constexpr Name container_capacity{"MyDRefl::container_capacity"};

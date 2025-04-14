@@ -36,6 +36,7 @@ enum class ContainerType {
   PriorityQueue,
   Queue,
   Pair,
+  Span
 };
 
 // SpecializeIsSet<std::set<...>> is std::true_type
