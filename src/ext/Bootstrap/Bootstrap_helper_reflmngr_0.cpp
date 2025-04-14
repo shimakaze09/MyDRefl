@@ -16,9 +16,9 @@ void My::MyDRefl::ext::details::Bootstrap_helper_reflmngr_0() {
   Mngr.AddMethod<MemFuncOf<ReflMngr, Name(Type, Name, FieldInfo)>::get(
       &ReflMngr::AddField)>("AddField");
   Mngr.AddMethod<MemFuncOf<ReflMngr, Name(Type, Name, MethodInfo)>::get(
-      &ReflMngr::AddMethod)>("AddField");
+      &ReflMngr::AddMethod)>("AddMethod");
   Mngr.AddMethod<MemFuncOf<ReflMngr, Type(Type, Type, BaseInfo)>::get(
-      &ReflMngr::AddBase)>("AddField");
+      &ReflMngr::AddBase)>("AddBase");
   Mngr.AddMethod<&ReflMngr::AddTypeAttr>("AddTypeAttr");
   Mngr.AddMethod<&ReflMngr::AddFieldAttr>("AddFieldAttr");
   Mngr.AddMethod<&ReflMngr::AddMethodAttr>("AddMethodAttr");

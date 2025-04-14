@@ -56,7 +56,7 @@ static Type IsInvocable(bool is_priority, Type type, Name method_name,
   // 1. object variable
   if (enum_contain(flag, MethodFlag::Variable)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (iter->second.methodptr.IsMemberVariable() &&
+      if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Variable &&
           (is_priority
                ? IsPriorityCompatible(iter->second.methodptr.GetParamList(),
                                       argTypes)
@@ -70,7 +70,7 @@ static Type IsInvocable(bool is_priority, Type type, Name method_name,
   // 2. object const and static
   if (enum_contain(flag, MethodFlag::Const | MethodFlag::Static)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (!iter->second.methodptr.IsMemberVariable() &&
+      if (iter->second.methodptr.GetMethodFlag() != MethodFlag::Variable &&
           enum_contain_any(flag, iter->second.methodptr.GetMethodFlag()) &&
           (is_priority
                ? IsPriorityCompatible(iter->second.methodptr.GetParamList(),
@@ -107,7 +107,7 @@ static Type Invoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
 
   if (enum_contain(flag, MethodFlag::Variable)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (iter->second.methodptr.IsMemberVariable()) {
+      if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Variable) {
         NewArgsGuard guard{is_priority, args_rsrc,
                            iter->second.methodptr.GetParamList(), argTypes,
                            argptr_buffer};
@@ -121,7 +121,7 @@ static Type Invoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
   }
   if (enum_contain_any(flag, MethodFlag::Const | MethodFlag::Static)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (!iter->second.methodptr.IsMemberVariable() &&
+      if (iter->second.methodptr.GetMethodFlag() != MethodFlag::Variable &&
           enum_contain(flag, iter->second.methodptr.GetMethodFlag())) {
         NewArgsGuard guard{is_priority, args_rsrc,
                            iter->second.methodptr.GetParamList(), argTypes,
@@ -166,7 +166,7 @@ static SharedObject MInvoke(bool is_priority,
 
   if (enum_contain(flag, MethodFlag::Variable)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (iter->second.methodptr.IsMemberVariable()) {
+      if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Variable) {
         NewArgsGuard guard{is_priority, args_rsrc,
                            iter->second.methodptr.GetParamList(), argTypes,
                            argptr_buffer};
@@ -212,7 +212,7 @@ static SharedObject MInvoke(bool is_priority,
 
   if (enum_contain_any(flag, MethodFlag::Const | MethodFlag::Static)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (!iter->second.methodptr.IsMemberVariable() &&
+      if (iter->second.methodptr.GetMethodFlag() != MethodFlag::Variable &&
           enum_contain(flag, iter->second.methodptr.GetMethodFlag())) {
         NewArgsGuard guard{is_priority, args_rsrc,
                            iter->second.methodptr.GetParamList(), argTypes,
@@ -481,22 +481,22 @@ Name ReflMngr::AddMethod(Type type, Name method_name, MethodInfo methodinfo) {
   return new_method_name;
 }
 
-Name ReflMngr::AddTrivialConstructor(Type type, Name method_name) {
-  return AddMethod(type, method_name,
-                   MethodInfo{static_cast<MethodPtr::MemberVariableFunction*>(
-                       [](void*, void*, ArgsView) {})});
+Name ReflMngr::AddTrivialConstructor(Type type) {
+  return AddMethod(
+      type, NameIDRegistry::Meta::ctor,
+      MethodInfo{{[](void*, void*, ArgsView) {}, MethodFlag::Variable}});
 }
 
-Name ReflMngr::AddZeroConstructor(Type type, Name method_name) {
+Name ReflMngr::AddZeroConstructor(Type type) {
   auto* typeinfo = GetTypeInfo(type);
   if (!typeinfo)
     return {};
   std::size_t size;
-  return AddMethod(type, method_name,
-                   MethodInfo{std::function<MethodPtr::MemberVariableFunction>{
-                       [size](void* obj, void*, ArgsView) {
-                         std::memset(obj, 0, size);
-                       }}});
+  return AddMethod(type, NameIDRegistry::Meta::ctor,
+                   MethodInfo{{[size](void* obj, void*, ArgsView) {
+                                 std::memset(obj, 0, size);
+                               },
+                               MethodFlag::Variable}});
 }
 
 Type ReflMngr::AddBase(Type derived, Type base, BaseInfo baseinfo) {
@@ -1157,7 +1157,7 @@ bool ReflMngr::IsDestructible(Type type) const {
   auto [begin_iter, end_iter] =
       typeinfo.methodinfos.equal_range(NameIDRegistry::Meta::dtor);
   for (auto iter = begin_iter; iter != end_iter; ++iter) {
-    if (!iter->second.methodptr.IsMemberVariable() &&
+    if (iter->second.methodptr.GetMethodFlag() != MethodFlag::Variable &&
         IsCompatible(iter->second.methodptr.GetParamList(), {}))
       return true;
   }
@@ -1176,7 +1176,7 @@ bool ReflMngr::NonCopiedArgConstruct(ObjectView obj,
   auto [begin_iter, end_iter] =
       typeinfo.methodinfos.equal_range(NameIDRegistry::Meta::ctor);
   for (auto iter = begin_iter; iter != end_iter; ++iter) {
-    if (iter->second.methodptr.IsMemberVariable() &&
+    if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Variable &&
         details::IsNonCopiedArgConstructCompatible(
             iter->second.methodptr.GetParamList(), argTypes)) {
       iter->second.methodptr.Invoke(obj.GetPtr(), nullptr, argptr_buffer);
@@ -1195,7 +1195,7 @@ bool ReflMngr::Construct(ObjectView obj, std::span<const Type> argTypes,
   auto [begin_iter, end_iter] =
       typeinfo.methodinfos.equal_range(NameIDRegistry::Meta::ctor);
   for (auto iter = begin_iter; iter != end_iter; ++iter) {
-    if (iter->second.methodptr.IsMemberVariable()) {
+    if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Variable) {
       details::NewArgsGuard guard{false, &temporary_resource,
                                   iter->second.methodptr.GetParamList(),
                                   argTypes, argptr_buffer};
@@ -1217,7 +1217,7 @@ void ReflMngr::Destruct(ObjectView obj) const {
   auto [begin_iter, end_iter] =
       typeinfo.methodinfos.equal_range(NameIDRegistry::Meta::dtor);
   for (auto iter = begin_iter; iter != end_iter; ++iter) {
-    if (iter->second.methodptr.IsMemberConst() &&
+    if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Const &&
         IsCompatible(iter->second.methodptr.GetParamList(), {})) {
       iter->second.methodptr.Invoke(obj.GetPtr(), nullptr, {});
       return;

@@ -20,10 +20,8 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
     using FuncPtr = decltype(funcptr);
     using Traits = FuncTraits<decltype(funcptr)>;
     if constexpr (std::is_member_function_pointer_v<FuncPtr>) {
-      using MaybeConstVoidPtr =
-          std::conditional_t<Traits::is_const, const void*, void*>;
-      constexpr auto wrapped_func = [](MaybeConstVoidPtr obj,
-                                       void* result_buffer, ArgsView args) {
+      constexpr auto wrapped_func = [](void* obj, void* result_buffer,
+                                       ArgsView args) {
         assert(((args.GetParamList()[Ns] == Type_of<Args>) && ...));
         constexpr auto f = wrap_function<funcptr>();
         f(obj, result_buffer, args.GetBuffer());
@@ -31,10 +29,12 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
       constexpr auto decayed_wrapped_func = DecayLambda(wrapped_func);
       return decayed_wrapped_func;
     } else if constexpr (is_function_pointer_v<FuncPtr>) {
-      constexpr auto wrapped_func = [](void* result_buffer, ArgsView args) {
+      constexpr auto wrapped_func = [](void* null_obj, void* result_buffer,
+                                       ArgsView args) {
+        assert(null_obj == nullptr);
         assert(((args.GetParamList()[Ns] == Type_of<Args>) && ...));
         constexpr auto f = wrap_function<funcptr>();
-        f(result_buffer, args.GetBuffer());
+        f(nullptr, result_buffer, args.GetBuffer());
       };
       constexpr auto decayed_wrapped_func = DecayLambda(wrapped_func);
       decayed_wrapped_func;
@@ -46,11 +46,9 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
   static /*constexpr*/ auto GenerateMemberFunction(
       Func&& func, std::index_sequence<Ns...>) noexcept {
     using Traits = WrapFuncTraits<std::decay_t<Func>>;
-    using MaybeConstVoidPtr =
-        std::conditional_t<Traits::is_const, const void*, void*>;
     /*constexpr*/ auto wrapped_func =
         [wrapped_f = wrap_member_function(std::forward<Func>(func))](
-            MaybeConstVoidPtr obj, void* result_buffer, ArgsView args) mutable {
+            void* obj, void* result_buffer, ArgsView args) mutable {
           assert(((args.GetParamList()[Ns] == Type_of<Args>) && ...));
           wrapped_f(obj, result_buffer, args.GetBuffer());
         };
@@ -63,9 +61,10 @@ struct GenerateMethodPtr_Helper<TypeList<Args...>> {
       Func&& func, std::index_sequence<Ns...>) noexcept {
     /*constexpr*/ auto wrapped_func =
         [wrapped_f = wrap_static_function(std::forward<Func>(func))](
-            void* result_buffer, ArgsView args) mutable {
+            void* null_obj, void* result_buffer, ArgsView args) mutable {
+          assert(null_obj == nullptr);
           assert(((args.GetParamList()[Ns] == Type_of<Args>) && ...));
-          wrapped_f(result_buffer, args.GetBuffer());
+          wrapped_f(nullptr, result_buffer, args.GetBuffer());
         };
     return std::function{wrapped_func};
   }
@@ -1042,9 +1041,11 @@ MethodPtr ReflMngr::GenerateMethodPtr() {
   using ArgList = typename Traits::ArgList;
   using Return = typename Traits::Return;
   using Helper = details::GenerateMethodPtr_Helper<ArgList>;
+  constexpr MethodFlag flag =
+      Traits::is_const ? MethodFlag::Const : MethodFlag::Variable;
   return {Helper::template GenerateFunction<funcptr>(
               std::make_index_sequence<Length_v<ArgList>>{}),
-          Type_of<Return>, Helper::GenerateParamList()};
+          flag, Type_of<Return>, Helper::GenerateParamList()};
 }
 
 template <typename T, typename... Args>
@@ -1067,10 +1068,12 @@ MethodPtr ReflMngr::GenerateMemberMethodPtr(Func&& func) {
   using ArgList = typename Traits::ArgList;
   using Return = typename Traits::Return;
   using Helper = details::GenerateMethodPtr_Helper<ArgList>;
+  constexpr MethodFlag flag =
+      Traits::is_const ? MethodFlag::Const : MethodFlag::Variable;
   return {Helper::template GenerateMemberFunction(
               std::forward<Func>(func),
               std::make_index_sequence<Length_v<ArgList>>{}),
-          Type_of<Return>, Helper::GenerateParamList()};
+          flag, Type_of<Return>, Helper::GenerateParamList()};
 }
 
 template <typename Func>
@@ -1082,7 +1085,7 @@ MethodPtr ReflMngr::GenerateStaticMethodPtr(Func&& func) {
   return {Helper::template GenerateStaticFunction(
               std::forward<Func>(func),
               std::make_index_sequence<Length_v<ArgList>>{}),
-          Type_of<Return>, Helper::GenerateParamList()};
+          MethodFlag::Static, Type_of<Return>, Helper::GenerateParamList()};
 }
 
 //

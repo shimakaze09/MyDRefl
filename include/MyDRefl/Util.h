@@ -198,7 +198,7 @@ using ArgPtrBuffer = void* const*;
 // - Func Obj::* : Func isn't && (const && is ok)
 // - Func*
 // [result]
-// - type : void({const?} void* obj, void* result_buffer, ArgPtrBuffer argptr_buffer)
+// - type : void(void* obj, void* result_buffer, ArgPtrBuffer argptr_buffer)
 // - size : 1
 template <auto func_ptr>
 constexpr auto wrap_member_function() noexcept;
@@ -206,7 +206,7 @@ constexpr auto wrap_member_function() noexcept;
 // [func_ptr]
 // - Func*
 // [result]
-// - type : void(void* result_buffer, ArgPtrBuffer argptr_buffer)
+// - type : void(void*, void* result_buffer, ArgPtrBuffer argptr_buffer)
 // - size : 1
 template <auto func_ptr>
 constexpr auto wrap_static_function() noexcept;
@@ -219,14 +219,14 @@ constexpr auto wrap_function() noexcept;
 
 // Func: Ret(const? volatile? Object&, Args...)
 // [result]
-// - type : void({const?} void* obj, void* result_buffer, ArgPtrBuffer argptr_buffer)
+// - type : void(void* obj, void* result_buffer, ArgPtrBuffer argptr_buffer)
 // - size : sizeof(Func)
 template <typename Func>
 constexpr auto wrap_member_function(Func&& func) noexcept;
 
 // Func: Ret(Args...)
 // [result]
-// - type : void(void* result_buffer, ArgPtrBuffer argptr_buffer)
+// - type : void(void*, void* result_buffer, ArgPtrBuffer argptr_buffer)
 // - size : sizeof(Func)
 template <typename Func>
 constexpr auto wrap_static_function(Func&& func) noexcept;
@@ -236,6 +236,9 @@ requires std::is_enum_v<Enum> constexpr decltype(auto) enum_cast(
     Enum&& e) noexcept;
 template <typename Enum>
 requires std::is_enum_v<Enum> constexpr bool enum_empty(const Enum& e) noexcept;
+template <typename Enum>
+requires std::is_enum_v<Enum> constexpr bool enum_single(
+    const Enum& e) noexcept;
 template <typename Enum>
 requires std::is_enum_v<Enum> constexpr bool enum_contain_any(
     const Enum& e, const Enum& flag) noexcept;
