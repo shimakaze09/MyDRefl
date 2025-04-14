@@ -270,8 +270,8 @@ bool ObjectView::operator>=(const T& rhs) const {
 template <typename Arg>
 requires NonObjectAndView<std::decay_t<Arg>> ObjectView
 ObjectView::operator=(Arg&& rhs) const {
-  SharedObject rst = AInvoke(NameIDRegistry::Meta::operator_assign,
-                             MethodFlag::Variable, std::forward<Arg>(rhs));
+  SharedObject rst =
+      AInvoke(NameIDRegistry::Meta::operator_assign, std::forward<Arg>(rhs));
   assert(rst.IsObjectView());
   return {rst.GetType(), rst.GetPtr()};
 }
