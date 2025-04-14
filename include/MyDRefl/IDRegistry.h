@@ -123,6 +123,7 @@ class NameIDRegistry : public IDRegistry<NameID, Name> {
     static constexpr Name variant_get_if{"MyDRefl::variant_get_if"};
     static constexpr Name variant_size{"MyDRefl::variant_size"};
     static constexpr Name variant_alternative{"MyDRefl::variant_alternative"};
+    static constexpr Name variant_visit_get{"MyDRefl::variant_visit_get"};
 
     // optional
 

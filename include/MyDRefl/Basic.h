@@ -2,6 +2,8 @@
 
 #include "Util.h"
 
+#include "attrs/ContainerType.h"
+
 // here we just include necessary StdName/Name_*.h
 // if you want to include all, you can define macro MY_MYDREFL_INCLUDE_ALL_STD_NAME
 
@@ -78,7 +80,7 @@ T MoveResult(Type type, void* result_buffer) noexcept(
     std::is_reference_v<T> || std::is_nothrow_destructible_v<T> &&
                                   std::is_nothrow_move_constructible_v<T>) {
   if constexpr (!std::is_void_v<T>) {
-    assert(result_buffer && type);
+    assert(result_buffer);
 
     if constexpr (!std::is_reference_v<T> &&
                   std::is_default_constructible_v<T>) {

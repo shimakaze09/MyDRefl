@@ -267,8 +267,8 @@ concept IsVariant = true && variant_size<T> && variant_index<T> &&
                     variant_valueless_by_exception<T>;
 
 template <typename T>
-concept IsOptional =
-    true && optional_has_value<T> && optional_value<T> && optional_reset<T>;
+concept IsOptional = true && optional_has_value<T> && optional_value<T> &&
+                     optional_value<const T> && optional_reset<T>;
 
 template <typename T>
 concept IsContainerType =

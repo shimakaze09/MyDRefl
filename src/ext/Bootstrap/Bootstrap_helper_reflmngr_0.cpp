@@ -23,7 +23,10 @@ void My::MyDRefl::ext::details::Bootstrap_helper_reflmngr_0() {
   Mngr->AddMethod<&ReflMngr::AddTypeAttr>("AddTypeAttr");
   Mngr->AddMethod<&ReflMngr::AddFieldAttr>("AddFieldAttr");
   Mngr->AddMethod<&ReflMngr::AddMethodAttr>("AddMethodAttr");
-  Mngr->AddMethod<&ReflMngr::AddTrivialConstructor>("AddTrivialConstructor");
+  Mngr->AddMethod<&ReflMngr::AddTrivialDefaultConstructor>(
+      "AddTrivialDefaultConstructor");
+  Mngr->AddMethod<&ReflMngr::AddTrivialCopyConstructor>(
+      "AddTrivialCopyConstructor");
   Mngr->AddMethod<&ReflMngr::AddZeroConstructor>("AddZeroConstructor");
   Mngr->AddMethod<&ReflMngr::StaticCast_DerivedToBase>(
       "StaticCast_DerivedToBase");

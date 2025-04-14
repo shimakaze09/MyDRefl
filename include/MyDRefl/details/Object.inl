@@ -70,7 +70,6 @@ T ObjectView::BInvokeRet(Name method_name, std::span<const Type> argTypes,
     std::aligned_storage_t<sizeof(U), alignof(U)> result_buffer;
     Type result_type = BInvoke(method_name, static_cast<void*>(&result_buffer),
                                argTypes, argptr_buffer, flag);
-    assert(result_type.Is<T>());
     return MoveResult<T>(result_type, &result_buffer);
   } else
     BInvoke(method_name, (void*)nullptr, argTypes, argptr_buffer, flag);

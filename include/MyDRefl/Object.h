@@ -246,6 +246,12 @@ class ObjectView {
   template <typename T>
   SharedObject operator<<(T&& in) const;
 
+  ////////////////////////
+  // General Containers //
+  ////////////////////////
+
+  ContainerType get_container_type() const;
+
   //
   // Tuple
   //////////
@@ -271,6 +277,10 @@ class ObjectView {
   // Variant
   ////////////
 
+  std::size_t variant_index() const {
+    return BInvoke<std::size_t>(NameIDRegistry::Meta::variant_index);
+  }
+
   std::size_t variant_size() const {
     return BInvoke<std::size_t>(NameIDRegistry::Meta::variant_size);
   }
@@ -292,6 +302,10 @@ class ObjectView {
   Type variant_alternative(std::size_t i) const {
     return BInvoke<Type>(NameIDRegistry::Meta::variant_alternative,
                          std::move(i));
+  }
+
+  ObjectView variant_visit_get() const {
+    return BInvoke<ObjectView>(NameIDRegistry::Meta::variant_visit_get);
   }
 
   //
@@ -334,7 +348,7 @@ class ObjectView {
   SharedObject prev() const;
 
   //
-  // container
+  // Container
   //////////////
 
   template <typename... Args>

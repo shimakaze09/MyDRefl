@@ -104,6 +104,8 @@ NameIDRegistry::NameIDRegistry() {
   RegisterUnmanaged(Meta::variant_size.GetID(), Meta::variant_size.GetView());
   RegisterUnmanaged(Meta::variant_alternative.GetID(),
                     Meta::variant_alternative.GetView());
+  RegisterUnmanaged(Meta::variant_visit_get.GetID(),
+                    Meta::variant_visit_get.GetView());
 
   // optional
 
