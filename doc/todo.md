@@ -36,6 +36,6 @@
     - [x] operations: advance, distance, next, prev
     - [x] range access: `[c][l/r]begin`, `[c][l/r]end`
 - [x] type alias for AttrSet
-- [ ] speed up `ReflMngr.cpp` compiltation
+- [x] speed up `ReflMngr.cpp` compiltation
 - [x] rename invoke APIs
 - [x] simplify `MethodPtr::func`

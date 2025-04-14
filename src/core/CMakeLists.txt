@@ -7,6 +7,15 @@ ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     LIST(APPEND c_options "-Wno-attributes")
 ENDIF ()
 
+SET(c_options_private "")
+IF (MSVC)
+    LIST(APPEND c_options_private "/MP")
+ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    #
+ELSEIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    #
+ENDIF ()
+
 SET(defines "")
 IF (MSVC)
     LIST(APPEND defines "_SILENCE_STDEXT_HASH_LOWER_BOUND_DEPRECATION_WARNING")
@@ -29,6 +38,8 @@ ADD_TARGET(
         "${PROJECT_SOURCE_DIR}/include"
         C_OPTION
         ${c_options}
+        C_OPTION_PRIVATE
+        ${c_options_private}
         LIB
         My::MyTemplate_core
         DEFINE
