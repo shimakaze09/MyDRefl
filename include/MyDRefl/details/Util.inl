@@ -297,18 +297,6 @@ template <typename T>
 struct My::MyDRefl::get_container_size_type<T&&>
     : My::MyDRefl::get_container_size_type<T> {};
 
-template <typename T>
-struct My::MyDRefl::get_container_size_type<const T>
-    : My::MyDRefl::get_container_size_type<T> {};
-
-template <typename T>
-struct My::MyDRefl::get_container_size_type<volatile T>
-    : My::MyDRefl::get_container_size_type<T> {};
-
-template <typename T>
-struct My::MyDRefl::get_container_size_type<const volatile T>
-    : My::MyDRefl::get_container_size_type<T> {};
-
 template <typename T, std::size_t N>
 struct My::MyDRefl::get_container_size_type<T[N]>
     : std::type_identity<std::size_t> {};

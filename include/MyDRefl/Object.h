@@ -341,6 +341,7 @@ class ObjectView {
   SharedObject at(T&& rhs) const;
   SharedObject front() const;
   SharedObject back() const;
+  SharedObject top() const;
   SharedObject data() const;
 
   // - modifiers
@@ -377,6 +378,13 @@ class ObjectView {
   void pop_back() const {
     BInvoke<void>(NameIDRegistry::Meta::container_pop_back);
   }
+
+  template <typename T>
+  void push(T&& arg) const {
+    ABInvoke<void>(NameIDRegistry::Meta::container_push, std::forward<T>(arg));
+  };
+
+  void pop() const { BInvoke<void>(NameIDRegistry::Meta::container_pop); }
 
   template <typename T>
   void swap(T&& arg) const {

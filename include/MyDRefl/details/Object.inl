@@ -290,6 +290,10 @@ inline SharedObject ObjectView::back() const {
   return Invoke(NameIDRegistry::Meta::container_back);
 }
 
+inline SharedObject ObjectView::top() const {
+  return Invoke(NameIDRegistry::Meta::container_top);
+}
+
 inline SharedObject ObjectView::next() const {
   return Invoke(NameIDRegistry::Meta::iterator_next);
 }
