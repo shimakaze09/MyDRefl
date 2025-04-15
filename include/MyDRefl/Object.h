@@ -10,18 +10,16 @@ class ObjectView {
  public:
   constexpr ObjectView() noexcept : ptr{nullptr} {}
 
-  explicit constexpr ObjectView(std::nullptr_t) noexcept : ObjectView{} {}
-
   constexpr ObjectView(Type type, void* ptr) noexcept : type{type}, ptr{ptr} {}
 
   explicit constexpr ObjectView(Type type) noexcept
       : ObjectView{type, nullptr} {}
 
   template <typename T>
-  requires std::negation_v<std::is_same<std::remove_cvref_t<T>, Type>>&&
-      std::negation_v<std::is_same<std::remove_cvref_t<T>, std::nullptr_t>>&&
-          NonObjectAndView<T> constexpr explicit ObjectView(T&& obj) noexcept
-      : ObjectView{Type_of<decltype(obj)>,
+  requires std::negation_v<std::is_reference<T>>&&
+      std::negation_v<std::is_same<std::remove_cvref_t<T>, Type>>&&
+          NonObjectAndView<T> constexpr explicit ObjectView(T& obj) noexcept
+      : ObjectView{Type_of<T>,
                    const_cast<void*>(static_cast<const void*>(&obj))} {}
 
   constexpr const Type& GetType() const noexcept { return type; }
