@@ -77,11 +77,16 @@ class FieldPtr {
 
   constexpr FieldFlag GetFieldFlag() const noexcept;
 
-  // object
-  ObjectView Var() noexcept;
+  // unowned
+  ObjectView Var();
 
-  // variable
   ObjectView Var(void* obj);
+
+  // unowned without DYNAMIC_BUFFER
+  ObjectView Var() const;
+
+  // without DYNAMIC_BUFFER
+  ObjectView Var(void* obj) const;
 
  private:
   Type type;

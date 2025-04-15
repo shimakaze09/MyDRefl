@@ -92,8 +92,7 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
                                     std::pmr::memory_resource* rsrc,
                                     std::span<const Type> paramTypes,
                                     std::span<const Type> argTypes,
-                                    ArgPtrBuffer orig_argptr_buffer)
-    : rsrc{rsrc} {
+                                    ArgPtrBuffer orig_argptr_buffer) {
   if (argTypes.size() != paramTypes.size())
     return;
 
@@ -217,6 +216,7 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
 
   // 2. compute offset and alignment
 
+  std::size_t max_alignment = 1;
   for (std::uint8_t k = 0; k < num_copiedargs; ++k) {
     std::uint32_t size, alignment;
     if (info_copiedargs[k].is_pointer_or_array) {
@@ -230,7 +230,7 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
     }
 
     std::uint32_t offset =
-        (size_copiedargs + (alignment - 1)) / alignment * alignment;
+        (size_copiedargs + (alignment - 1)) & ~(alignment - 1);
     info_copiedargs[k].offset = offset;
     size_copiedargs = offset + size;
 
@@ -244,14 +244,14 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
 
   std::uint32_t offset_new_arg_buffer = 0;
   std::uint32_t offset_new_argptr_buffer =
-      (size_copiedargs + alignof(void*) - 1) / alignof(void*) * alignof(void*);
+      (size_copiedargs + alignof(void*) - 1) & ~(alignof(void*) - 1);
   std::uint32_t offset_new_nonptr_arg_info_buffer =
       offset_new_argptr_buffer + num_args * sizeof(void*);
 
-  buffer_size = offset_new_nonptr_arg_info_buffer +
-                num_copied_nonptr_args * sizeof(ArgInfo);
+  std::uint32_t buffer_size = offset_new_nonptr_arg_info_buffer +
+                              num_copied_nonptr_args * sizeof(ArgInfo);
 
-  buffer = rsrc->allocate(buffer_size, max_alignment);
+  new (&buffer) BufferGuard{rsrc, buffer_size, max_alignment};
 
   auto new_arg_buffer = forward_offset(buffer, offset_new_arg_buffer);
   auto new_argptr_buffer = reinterpret_cast<void**>(
@@ -293,10 +293,9 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
 }
 
 details::NewArgsGuard::~NewArgsGuard() {
-  if (buffer) {
+  if (buffer.Get()) {
     for (const auto& info : std::span<const ArgInfo>{new_nonptr_arg_info_buffer,
                                                      num_copied_nonptr_args})
       Mngr->Destruct({info.GetType(), argptr_buffer[info.idx]});
-    rsrc->deallocate(buffer, buffer_size, max_alignment);
   }
 }

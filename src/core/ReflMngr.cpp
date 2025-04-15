@@ -457,7 +457,7 @@ static bool ContainsMethod(Type type, Name method_name, MethodFlag flag) {
 }  // namespace My::MyDRefl::details
 
 ReflMngr::ReflMngr() {
-  RegisterType(GlobalType, 0, 0);
+  RegisterType(GlobalType, 0, 1);
 
   details::ReflMngrInitUtil_0(*this);
   details::ReflMngrInitUtil_1(*this);
@@ -523,6 +523,7 @@ bool ReflMngr::ContainsVirtualBase(Type type) const {
 
 Type ReflMngr::RegisterType(Type type, size_t size, size_t alignment,
                             bool is_polymorphic) {
+  assert(alignment > 0 && (alignment & (alignment - 1)) == 0);
   auto target = typeinfos.find(type.RemoveCVRef());
   if (target != typeinfos.end())
     return {};
@@ -531,6 +532,78 @@ Type ReflMngr::RegisterType(Type type, size_t size, size_t alignment,
   typeinfos.emplace_hint(target, new_type,
                          TypeInfo{size, alignment, is_polymorphic});
   return new_type;
+}
+
+Type ReflMngr::RegisterType(Type type, std::span<const Type> bases,
+                            std::span<const Type> field_types,
+                            std::span<const Name> field_names) {
+  assert(field_types.size() == field_names.size());
+
+  if (typeinfos.contains(type))
+    return {};
+
+  std::size_t size = 0;
+  std::size_t alignment = 1;
+
+  const size_t num_field = field_types.size();
+
+  std::pmr::vector<std::size_t> base_offsets{&temporary_resource};
+  base_offsets.resize(bases.size());
+
+  for (size_t i = 0; i < bases.size(); i++) {
+    const auto& basetype = bases[i];
+    auto btarget = typeinfos.find(basetype);
+    if (btarget == typeinfos.end())
+      return {};
+    const auto& baseinfo = btarget->second;
+    if (baseinfo.is_polymorphic)
+      return {};
+    assert(baseinfo.alignment > 0 &&
+           (baseinfo.alignment & (baseinfo.alignment - 1)) == 0);
+    size = (size + (baseinfo.alignment - 1)) & ~(baseinfo.alignment - 1);
+    base_offsets[i] = size;
+    size += baseinfo.size;
+    if (baseinfo.alignment > alignment)
+      alignment = baseinfo.alignment;
+  }
+
+  std::pmr::vector<std::size_t> field_offsets{&temporary_resource};
+  field_offsets.resize(num_field);
+
+  for (size_t i = 0; i < num_field; ++i) {
+    const auto& field_type = field_types[i];
+    auto fttarget = typeinfos.find(field_type);
+    if (fttarget == typeinfos.end())
+      return {};
+    const auto& ftinfo = fttarget->second;
+    assert(ftinfo.alignment > 0 &&
+           (ftinfo.alignment & (ftinfo.alignment - 1)) == 0);
+    size = (size + (ftinfo.alignment - 1)) & ~(ftinfo.alignment - 1);
+    field_offsets[i] = size;
+    size += ftinfo.size;
+    if (ftinfo.alignment > alignment)
+      alignment = ftinfo.alignment;
+  }
+
+  size = (size + (alignment - 1)) & ~(alignment - 1);
+
+  Type newtype = RegisterType(type, size, alignment);
+  for (size_t i = 0; i < bases.size(); i++) {
+    AddBase(type, bases[i],
+            BaseInfo{{[offset = base_offsets[i]](void* derived) {
+                        return forward_offset(derived, offset);
+                      },
+                      [offset = base_offsets[i]](void* base) {
+                        return backward_offset(base, offset);
+                      }}});
+  }
+
+  for (size_t i = 0; i < num_field; ++i) {
+    AddField(type, field_names[i],
+             FieldInfo{{field_types[i], field_offsets[i]}});
+  }
+
+  return newtype;
 }
 
 Name ReflMngr::AddField(Type type, Name field_name, FieldInfo fieldinfo) {
@@ -613,7 +686,7 @@ Name ReflMngr::AddTrivialCopyConstructor(Type type) {
       }});
 }
 
-Name ReflMngr::AddZeroConstructor(Type type) {
+Name ReflMngr::AddZeroDefaultConstructor(Type type) {
   auto target = typeinfos.find(type);
   if (target == typeinfos.end() || target->second.is_polymorphic ||
       ContainsVirtualBase(type))
@@ -640,6 +713,98 @@ Name ReflMngr::AddZeroConstructor(Type type) {
                     }
                   },
                   MethodFlag::Variable}});
+}
+
+Name ReflMngr::AddDefaultConstructor(Type type) {
+  auto target = typeinfos.find(type);
+  if (target == typeinfos.end() || target->second.is_polymorphic ||
+      ContainsVirtualBase(type))
+    return {};
+  const auto& typeinfo = target->second;
+  for (const auto& [basetype, baseinfo] : typeinfo.baseinfos) {
+    assert(
+        !baseinfo.IsPolymorphic() &&
+        !baseinfo
+             .IsVirtual());  // type isn't polymorphic => bases aren't polymorphic
+    if (!IsConstructible(basetype))
+      return {};
+  }
+  for (const auto& [fieldname, fieldinfo] : typeinfo.fieldinfos) {
+    if (fieldinfo.fieldptr.GetFieldFlag() == FieldFlag::Unowned)
+      continue;
+
+    if (!IsConstructible(fieldinfo.fieldptr.GetType()))
+      return {};
+  }
+  const auto& t = target->first;
+  return AddMethod(
+      type, NameIDRegistry::Meta::ctor,
+      MethodInfo{
+          {[t](void* obj, void*, ArgsView) {
+             const auto& typeinfo = Mngr->typeinfos.at(t);
+             for (const auto& [basetype, baseinfo] : typeinfo.baseinfos) {
+               void* baseptr = baseinfo.StaticCast_DerivedToBase(obj);
+               bool success = Mngr->Construct(ObjectView{basetype, baseptr});
+               assert(success);
+             }
+
+             for (const auto& [fieldname, fieldinfo] : typeinfo.fieldinfos) {
+               if (fieldinfo.fieldptr.GetFieldFlag() == FieldFlag::Unowned)
+                 continue;
+
+               if (fieldinfo.fieldptr.GetType().IsPointer())
+                 buffer_as<void*>(fieldinfo.fieldptr.Var(obj).GetPtr()) =
+                     nullptr;
+               else
+                 Mngr->Construct(fieldinfo.fieldptr.Var(obj));
+             }
+           },
+           MethodFlag::Variable}});
+}
+
+Name ReflMngr::AddDestructor(Type type) {
+  auto target = typeinfos.find(type);
+  if (target == typeinfos.end() || target->second.is_polymorphic ||
+      ContainsVirtualBase(type))
+    return {};
+  const auto& typeinfo = target->second;
+  for (const auto& [basetype, baseinfo] : typeinfo.baseinfos) {
+    assert(
+        !baseinfo.IsPolymorphic() &&
+        !baseinfo
+             .IsVirtual());  // type isn't polymorphic => bases aren't polymorphic
+    if (!IsDestructible(basetype))
+      return {};
+  }
+  for (const auto& [fieldname, fieldinfo] : typeinfo.fieldinfos) {
+    if (fieldinfo.fieldptr.GetFieldFlag() == FieldFlag::Unowned)
+      continue;
+
+    if (!type.IsReference() && !IsDestructible(fieldinfo.fieldptr.GetType()))
+      return {};
+  }
+  const auto& t = target->first;
+  return AddMethod(
+      type, NameIDRegistry::Meta::dtor,
+      MethodInfo{
+          {[t](void* obj, void*, ArgsView) {
+             const auto& typeinfo = Mngr->typeinfos.at(t);
+
+             for (const auto& [fieldname, fieldinfo] : typeinfo.fieldinfos) {
+               if (fieldinfo.fieldptr.GetFieldFlag() == FieldFlag::Unowned)
+                 continue;
+               Type ftype = fieldinfo.fieldptr.GetType();
+               if (ftype.IsReference())
+                 continue;
+               Mngr->Destruct(fieldinfo.fieldptr.Var(obj));
+             }
+
+             for (const auto& [basetype, baseinfo] : typeinfo.baseinfos) {
+               void* baseptr = baseinfo.StaticCast_DerivedToBase(obj);
+               Mngr->Destruct(ObjectView{basetype, baseptr});
+             }
+           },
+           MethodFlag::Const}});
 }
 
 Type ReflMngr::AddBase(Type derived, Type base, BaseInfo baseinfo) {
@@ -1137,7 +1302,7 @@ bool ReflMngr::IsDestructible(Type type) const {
   if (begin_iter == end_iter)
     return true;
   for (auto iter = begin_iter; iter != end_iter; ++iter) {
-    if (iter->second.methodptr.GetMethodFlag() != MethodFlag::Variable &&
+    if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Const &&
         IsCompatible(iter->second.methodptr.GetParamList(), {}))
       return true;
   }

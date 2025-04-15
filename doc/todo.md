@@ -41,4 +41,4 @@
 - [x] rename invoke APIs
 - [x] simplify `MethodPtr::func`
 - [ ] property
-- [ ] data-driven API
+- [x] data-driven API
