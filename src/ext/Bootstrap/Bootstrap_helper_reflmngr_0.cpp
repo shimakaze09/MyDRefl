@@ -11,13 +11,29 @@ void My::MyDRefl::ext::details::Bootstrap_helper_reflmngr_0() {
   Mngr.AddMethod<&ReflMngr::GetTypeInfo>("GetTypeInfo");
   Mngr.AddMethod<&ReflMngr::Clear>("Clear");
   Mngr.AddMethod<&ReflMngr::ContainsVirtualBase>("ContainsVirtualBase");
-  Mngr.AddMethod<MemFuncOf<ReflMngr, Type(Type, std::size_t, std::size_t,
+  Mngr.AddMethod<MemFuncOf<ReflMngr, Type(Type, std::size_t, std::size_t, bool,
                                           bool)>::get(&ReflMngr::RegisterType)>(
       "RegisterType");
   Mngr.AddMemberMethod(
       "RegisterType",
       [](ReflMngr& mngr, Type type, std::size_t size, std::size_t alignment) {
         return mngr.RegisterType(type, size, alignment);
+      });
+  Mngr.AddMemberMethod(
+      "RegisterType", [](ReflMngr& mngr, Type type, std::size_t size,
+                         std::size_t alignment, bool is_polymorphic) {
+        return mngr.RegisterType(type, size, alignment, is_polymorphic);
+      });
+  Mngr.AddMethod<
+      MemFuncOf<ReflMngr, Type(Type, std::span<const Type>,
+                               std::span<const Type>, std::span<const Name>,
+                               bool)>::get(&ReflMngr::RegisterType)>(
+      "RegisterType");
+  Mngr.AddMemberMethod(
+      "RegisterType",
+      [](ReflMngr& mngr, Type type, std::span<const Type> bases,
+         std::span<const Type> field_types, std::span<const Name> field_names) {
+        return mngr.RegisterType(type, bases, field_types, field_names);
       });
   Mngr.AddMethod<MemFuncOf<ReflMngr, Name(Type, Name, FieldInfo)>::get(
       &ReflMngr::AddField)>("AddField");

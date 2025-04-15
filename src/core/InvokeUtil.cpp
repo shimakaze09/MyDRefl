@@ -56,10 +56,10 @@ bool details::IsRefConstructible(Type paramType,
   if (target == Mngr.typeinfos.end())
     return false;
   const auto& typeinfo = target->second;
+  if (argTypes.empty() && typeinfo.is_trivial)
+    return true;
   auto [begin_iter, end_iter] =
       typeinfo.methodinfos.equal_range(NameIDRegistry::Meta::ctor);
-  if (begin_iter == end_iter && argTypes.empty())
-    return true;
   for (auto iter = begin_iter; iter != end_iter; ++iter) {
     if (IsRefCompatible(iter->second.methodptr.GetParamList(), argTypes))
       return true;
@@ -138,7 +138,8 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
           continue;  // &{const{T}} <- T | &{T} | &&{T}
 
         Type raw_lhs_type{raw_lhs};
-        if (IsRefConstructible(raw_lhs_type, std::span<const Type>{&rhs, 1})) {
+        if (IsRefConstructible(raw_lhs_type, std::span<const Type>{&rhs, 1}) &&
+            Mngr.IsDestructible(raw_lhs_type)) {
           auto& info = info_copiedargs[num_copiedargs++];
           assert(num_copiedargs <= MaxArgNum);
 
@@ -167,7 +168,8 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
           continue;  // &&{const{T}} <- &&{T}
 
         Type raw_lhs_type{raw_lhs};
-        if (IsRefConstructible(raw_lhs_type, std::span<const Type>{&rhs, 1})) {
+        if (IsRefConstructible(raw_lhs_type, std::span<const Type>{&rhs, 1}) &&
+            Mngr.IsDestructible(raw_lhs_type)) {
           auto& info = info_copiedargs[num_copiedargs++];
           assert(num_copiedargs <= MaxArgNum);
 
@@ -183,12 +185,29 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
       } else {  // &&{T}
         if (rhs.Is(unref_lhs))
           continue;  // &&{T} <- T
+
+        Type raw_lhs_type{unref_lhs};
+        if (IsRefConstructible(raw_lhs_type, std::span<const Type>{&rhs, 1}) &&
+            Mngr.IsDestructible(raw_lhs_type)) {
+          auto& info = info_copiedargs[num_copiedargs++];
+          assert(num_copiedargs <= MaxArgNum);
+
+          info.idx = i;
+          info.is_pointer_or_array = false;
+          info.name = raw_lhs_type.GetName().data();
+          info.name_size =
+              static_cast<std::uint16_t>(raw_lhs_type.GetName().size());
+          info.name_hash = raw_lhs_type.GetID().GetValue();
+
+          continue;  // &&{T} <- T{arg}
+        }
       }
     } else {  // T
       if (lhs.Is(rhs.Name_RemoveRValueReference()))
         continue;  // T <- &&{T}
 
-      if (IsRefConstructible(lhs, std::span<const Type>{&rhs, 1})) {
+      if (IsRefConstructible(lhs, std::span<const Type>{&rhs, 1}) &&
+          Mngr.IsDestructible(lhs)) {
         auto& info = info_copiedargs[num_copiedargs++];
         assert(num_copiedargs <= MaxArgNum);
 
