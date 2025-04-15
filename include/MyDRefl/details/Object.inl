@@ -196,6 +196,22 @@ SharedObject ObjectView::AInvoke(Name method_name, Args&&... args) const {
 // Meta //
 //////////
 
+inline SharedObject ObjectView::operator++() const {
+  return Invoke(NameIDRegistry::Meta::operator_pre_inc);
+}
+
+inline SharedObject ObjectView::operator++(int) const {
+  return Invoke(NameIDRegistry::Meta::operator_post_inc, 0);
+}
+
+inline SharedObject ObjectView::operator--() const {
+  return Invoke(NameIDRegistry::Meta::operator_pre_dec);
+}
+
+inline SharedObject ObjectView::operator--(int) const {
+  return Invoke(NameIDRegistry::Meta::operator_post_dec, 0);
+}
+
 inline SharedObject ObjectView::operator+() const {
   return Invoke(NameIDRegistry::Meta::operator_plus);
 }
@@ -214,22 +230,6 @@ inline SharedObject ObjectView::operator[](std::size_t n) const {
 
 inline SharedObject ObjectView::operator*() const {
   return Invoke(NameIDRegistry::Meta::operator_deref);
-}
-
-inline SharedObject ObjectView::operator++() const {
-  return Invoke(NameIDRegistry::Meta::operator_pre_inc);
-}
-
-inline SharedObject ObjectView::operator++(int) const {
-  return Invoke(NameIDRegistry::Meta::operator_post_inc, 0);
-}
-
-inline SharedObject ObjectView::operator--() const {
-  return Invoke(NameIDRegistry::Meta::operator_pre_dec);
-}
-
-inline SharedObject ObjectView::operator--(int) const {
-  return Invoke(NameIDRegistry::Meta::operator_post_dec, 0);
 }
 
 OBJECT_VIEW_DEFINE_OPERATOR_T(+, add)
