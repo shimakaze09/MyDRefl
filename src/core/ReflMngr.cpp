@@ -129,10 +129,11 @@ static Type IsInvocable(bool is_priority, Type type, Name method_name,
   const auto& typeinfo = typetarget->second;
   auto [begin_iter, end_iter] = typeinfo.methodinfos.equal_range(method_name);
 
-  // 1. object variable
-  if (enum_contain(flag, MethodFlag::Variable)) {
+  // 1. object variable and static
+  if (enum_contain(flag, MethodFlag::Priority)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Variable &&
+      if (enum_contain(MethodFlag::Priority,
+                       iter->second.methodptr.GetMethodFlag()) &&
           (is_priority
                ? IsPriorityCompatible(iter->second.methodptr.GetParamList(),
                                       argTypes)
@@ -143,11 +144,10 @@ static Type IsInvocable(bool is_priority, Type type, Name method_name,
     }
   }
 
-  // 2. object const and static
-  if (enum_contain(flag, MethodFlag::Const | MethodFlag::Static)) {
+  // 2. object const
+  if (enum_contain(flag, MethodFlag::Const)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (iter->second.methodptr.GetMethodFlag() != MethodFlag::Variable &&
-          enum_contain_any(flag, iter->second.methodptr.GetMethodFlag()) &&
+      if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Const &&
           (is_priority
                ? IsPriorityCompatible(iter->second.methodptr.GetParamList(),
                                       argTypes)
@@ -183,7 +183,8 @@ static Type BInvoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
 
   if (enum_contain_any(flag, MethodFlag::Priority)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (enum_contain(flag, iter->second.methodptr.GetMethodFlag())) {
+      if (enum_contain(MethodFlag::Priority,
+                       iter->second.methodptr.GetMethodFlag())) {
         NewArgsGuard guard{is_priority, args_rsrc,
                            iter->second.methodptr.GetParamList(), argTypes,
                            argptr_buffer};
@@ -242,7 +243,8 @@ static SharedObject MInvoke(bool is_priority,
 
   if (enum_contain(flag, MethodFlag::Priority)) {
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
-      if (enum_contain(flag, iter->second.methodptr.GetMethodFlag())) {
+      if (enum_contain(MethodFlag::Priority,
+                       iter->second.methodptr.GetMethodFlag())) {
         NewArgsGuard guard{is_priority, args_rsrc,
                            iter->second.methodptr.GetParamList(), argTypes,
                            argptr_buffer};
@@ -254,7 +256,8 @@ static SharedObject MInvoke(bool is_priority,
         const auto& rst_type = methodptr.GetResultType();
 
         if (rst_type.Is<void>()) {
-          iter->second.methodptr.Invoke(obj.GetPtr(), nullptr, argptr_buffer);
+          iter->second.methodptr.Invoke(obj.GetPtr(), nullptr,
+                                        guard.GetArgPtrBuffer());
           return SharedObject{Type_of<void>};
         } else if (rst_type.IsReference()) {
           std::aligned_storage_t<sizeof(void*)> buffer;
@@ -263,11 +266,13 @@ static SharedObject MInvoke(bool is_priority,
           return {rst_type, buffer_as<void*>(&buffer)};
         } else if (rst_type.Is<ObjectView>()) {
           std::aligned_storage_t<sizeof(ObjectView)> buffer;
-          iter->second.methodptr.Invoke(obj.GetPtr(), &buffer, argptr_buffer);
+          iter->second.methodptr.Invoke(obj.GetPtr(), &buffer,
+                                        guard.GetArgPtrBuffer());
           return SharedObject{buffer_as<ObjectView>(&buffer)};
         } else if (rst_type.Is<SharedObject>()) {
           SharedObject buffer;
-          iter->second.methodptr.Invoke(obj.GetPtr(), &buffer, argptr_buffer);
+          iter->second.methodptr.Invoke(obj.GetPtr(), &buffer,
+                                        guard.GetArgPtrBuffer());
           return buffer;
         } else {
           auto* result_typeinfo = Mngr->GetTypeInfo(rst_type);
@@ -301,7 +306,7 @@ static SharedObject MInvoke(bool is_priority,
 
         if (rst_type.Is<void>()) {
           iter->second.methodptr.Invoke(static_cast<const void*>(obj.GetPtr()),
-                                        nullptr, argptr_buffer);
+                                        nullptr, guard.GetArgPtrBuffer());
           return SharedObject{rst_type};
         } else if (rst_type.IsReference()) {
           std::aligned_storage_t<sizeof(void*)> buffer;
@@ -310,11 +315,13 @@ static SharedObject MInvoke(bool is_priority,
           return {rst_type, buffer_as<void*>(&buffer)};
         } else if (rst_type.Is<ObjectView>()) {
           std::aligned_storage_t<sizeof(ObjectView)> buffer;
-          iter->second.methodptr.Invoke(obj.GetPtr(), &buffer, argptr_buffer);
+          iter->second.methodptr.Invoke(obj.GetPtr(), &buffer,
+                                        guard.GetArgPtrBuffer());
           return SharedObject{buffer_as<ObjectView>(&buffer)};
         } else if (rst_type.Is<SharedObject>()) {
           SharedObject buffer;
-          iter->second.methodptr.Invoke(obj.GetPtr(), &buffer, argptr_buffer);
+          iter->second.methodptr.Invoke(obj.GetPtr(), &buffer,
+                                        guard.GetArgPtrBuffer());
           return buffer;
         } else {
           auto* result_typeinfo = Mngr->GetTypeInfo(rst_type);
