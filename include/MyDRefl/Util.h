@@ -270,7 +270,8 @@ concept operator_add = requires(T lhs, T rhs) {
   lhs + rhs;
 };
 template <typename T>
-concept operator_sub = requires(T lhs, T rhs) {
+concept operator_sub =
+    !std::is_same_v<std::decay_t<T>, void*> && requires(T lhs, T rhs) {
   lhs - rhs;
 };
 template <typename T>
@@ -348,6 +349,7 @@ concept operator_assignment_add =
 };
 template <typename T>
 concept operator_assignment_sub =
+    !std::is_same_v<std::decay_t<T>, void*> && !std::is_same_v<T, void> &&
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
   {lhs -= rhs}->std::same_as<T&>;
 };
@@ -429,7 +431,8 @@ concept operator_subscript =
   lhs[rhs];
 };
 template <typename T>
-concept operator_indirection = requires(T t) {
+concept operator_indirection =
+    !std::is_same_v<std::decay_t<T>, void*> && requires(T t) {
   *t;
 };
 
