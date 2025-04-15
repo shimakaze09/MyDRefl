@@ -49,6 +49,12 @@ class ReflMngr {
   void Clear() noexcept;
 
   //
+  // Traits
+  ///////////
+
+  bool ContainsVirtualBase(Type type) const;
+
+  //
   // Factory
   ////////////
   //
@@ -107,7 +113,8 @@ class ReflMngr {
   // Modifier
   /////////////
 
-  Type RegisterType(Type type, size_t size, size_t alignment);
+  Type RegisterType(Type type, size_t size, size_t alignment,
+                    bool is_polymorphic = false);
   Name AddField(Type type, Name field_name, FieldInfo fieldinfo);
   Name AddMethod(Type type, Name method_name, MethodInfo methodinfo);
   Type AddBase(Type derived, Type base, BaseInfo baseinfo);
@@ -122,7 +129,7 @@ class ReflMngr {
   // -- template --
 
   // call
-  // - RegisterType(type_name<T>(), sizeof(T), alignof(T))
+  // - RegisterType(type_name<T>(), sizeof(T), alignof(T), std::is_polymorphic<T>)
   // - details::TypeAutoRegister<T>::run
   // you can custom type register by specialize details::TypeAutoRegister<T>
   template <typename T>
