@@ -30,7 +30,7 @@ int main() {
     Mngr->AddField<&Vec::x>("x");
     Mngr->AddField<&Vec::y>("y");
     Mngr->AddMethod<MemFuncOf<Vec, Vec&(float)>::get(&Vec::operator+=)>(
-        NameIDRegistry::Meta::operator_assign_add);
+        NameIDRegistry::Meta::operator_assignment_add);
   }
 
   auto obj = Mngr->MakeShared(Type_of<Vec>);

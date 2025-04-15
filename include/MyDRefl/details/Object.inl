@@ -15,12 +15,14 @@
                    std::forward<T>(rhs));                 \
   }
 
-#define OBJECT_VIEW_DEFINE_META_T(prefix, name)           \
-  template <typename T>                                   \
-  SharedObject ObjectView::name(T&& arg) const {          \
-    return AInvoke(NameIDRegistry::Meta::prefix##_##name, \
-                   std::forward<T>(arg));                 \
+#define OBJECT_VIEW_DEFINE_META_T(fname, mname)                        \
+  template <typename T>                                                \
+  SharedObject ObjectView::fname(T&& arg) const {                      \
+    return AInvoke(NameIDRegistry::Meta::mname, std::forward<T>(arg)); \
   }
+
+#define OBJECT_VIEW_DEFINE_CONTAINER_META_T(name) \
+  OBJECT_VIEW_DEFINE_META_T(name, container_##name)
 
 #define OBJECT_VIEW_DEFINE_META_VARS_T(prefix, name)      \
   template <typename... Args>                             \
@@ -31,7 +33,8 @@
 
 #define DEFINE_OPERATOR_LSHIFT(Lhs, Rhs)             \
   inline Lhs& operator<<(Lhs& lhs, const Rhs& rhs) { \
-    return rhs >> lhs;                               \
+    rhs >> lhs;                                      \
+    return lhs;                                      \
   }
 
 #define DEFINE_OPERATOR_RSHIFT(Lhs, Rhs)             \
@@ -196,12 +199,16 @@ SharedObject ObjectView::AInvoke(Name method_name, Args&&... args) const {
 // Meta //
 //////////
 
+//
+// operators
+//////////////
+
 inline SharedObject ObjectView::operator++() const {
   return Invoke(NameIDRegistry::Meta::operator_pre_inc);
 }
 
 inline SharedObject ObjectView::operator++(int) const {
-  return Invoke(NameIDRegistry::Meta::operator_post_inc, 0);
+  return Invoke(NameIDRegistry::Meta::operator_post_inc);
 }
 
 inline SharedObject ObjectView::operator--() const {
@@ -209,27 +216,23 @@ inline SharedObject ObjectView::operator--() const {
 }
 
 inline SharedObject ObjectView::operator--(int) const {
-  return Invoke(NameIDRegistry::Meta::operator_post_dec, 0);
+  return Invoke(NameIDRegistry::Meta::operator_post_dec);
 }
 
 inline SharedObject ObjectView::operator+() const {
-  return Invoke(NameIDRegistry::Meta::operator_plus);
+  return Invoke(NameIDRegistry::Meta::operator_add);
 }
 
 inline SharedObject ObjectView::operator-() const {
-  return Invoke(NameIDRegistry::Meta::operator_minus);
+  return Invoke(NameIDRegistry::Meta::operator_sub);
 }
 
 inline SharedObject ObjectView::operator~() const {
   return Invoke(NameIDRegistry::Meta::operator_bnot);
 }
 
-inline SharedObject ObjectView::operator[](std::size_t n) const {
-  return Invoke(NameIDRegistry::Meta::operator_subscript, std::move(n));
-}
-
 inline SharedObject ObjectView::operator*() const {
-  return Invoke(NameIDRegistry::Meta::operator_deref);
+  return Invoke(NameIDRegistry::Meta::operator_indirection);
 }
 
 OBJECT_VIEW_DEFINE_OPERATOR_T(+, add)
@@ -240,6 +243,8 @@ OBJECT_VIEW_DEFINE_OPERATOR_T(%, mod)
 OBJECT_VIEW_DEFINE_OPERATOR_T(&, band)
 OBJECT_VIEW_DEFINE_OPERATOR_T(|, bor)
 OBJECT_VIEW_DEFINE_OPERATOR_T(^, bxor)
+OBJECT_VIEW_DEFINE_OPERATOR_T(<<, shl)
+OBJECT_VIEW_DEFINE_OPERATOR_T(>>, shr)
 
 OBJECT_VIEW_DEFINE_OPERATOR_T([], subscript)
 
@@ -270,22 +275,21 @@ bool ObjectView::operator>=(const T& rhs) const {
 template <typename Arg>
 requires NonObjectAndView<std::decay_t<Arg>> ObjectView
 ObjectView::operator=(Arg&& rhs) const {
-  SharedObject rst =
-      AInvoke(NameIDRegistry::Meta::operator_assign, std::forward<Arg>(rhs));
-  assert(rst.IsObjectView());
-  return {rst.GetType(), rst.GetPtr()};
+  ABInvoke<void>(NameIDRegistry::Meta::operator_assignment,
+                 MethodFlag::Variable, std::forward<Arg>(rhs));
+  return AddLValueReference();
 }
 
-OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(+=, assign_add);
-OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(-=, assign_sub);
-OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(*=, assign_mul);
-OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(/=, assign_div);
-OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(%=, assign_mod);
-OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(&=, assign_band);
-OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(|=, assign_bor);
-OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(^=, assign_bxor);
-OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(<<=, assign_lshift);
-OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(>>=, assign_rshift);
+OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(+=, assignment_add);
+OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(-=, assignment_sub);
+OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(*=, assignment_mul);
+OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(/=, assignment_div);
+OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(%=, assignment_mod);
+OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(&=, assignment_band);
+OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(|=, assignment_bor);
+OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(^=, assignment_bxor);
+OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(<<=, assignment_shl);
+OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR(>>=, assignment_shr);
 
 template <typename... Args>
 SharedObject ObjectView::operator()(Args&&... args) const {
@@ -293,77 +297,18 @@ SharedObject ObjectView::operator()(Args&&... args) const {
                  std::forward<Args>(args)...);
 }
 
-template <typename T>
-T& ObjectView::operator>>(T& out) const {
-  ABInvoke<void>(NameIDRegistry::Meta::operator_rshift, MethodFlag::Const, out);
-  return out;
-}
-
-template <typename T>
-SharedObject ObjectView::operator<<(T&& in) const {
-  return AInvoke(NameIDRegistry::Meta::operator_lshift, std::forward<T>(in));
-}
-
-////////////////////////
-// General Containers //
-////////////////////////
-
 //
-// Tuple
-//////////
+// non-member functions
+/////////////////////////
 
-inline std::size_t ObjectView::tuple_size() const {
-  return BInvoke<std::size_t>(NameIDRegistry::Meta::tuple_size,
-                              MethodFlag::Static);
+inline ObjectView ObjectView::get(std::size_t i) const {
+  return BInvoke<ObjectView>(NameIDRegistry::Meta::get, MethodFlag::Member,
+                             std::move(i));
 }
 
-inline ObjectView ObjectView::tuple_get(std::size_t i) const {
-  return BInvoke<ObjectView>(NameIDRegistry::Meta::tuple_get,
-                             MethodFlag::Member, std::move(i));
-}
-
-inline ObjectView ObjectView::tuple_get(Type type) const {
-  return BInvoke<ObjectView>(NameIDRegistry::Meta::tuple_get,
-                             MethodFlag::Member, std::move(type));
-}
-
-inline Type ObjectView::tuple_element(std::size_t i) const {
-  return BInvoke<Type>(NameIDRegistry::Meta::tuple_element, MethodFlag::Static,
-                       std::move(i));
-}
-
-//
-// Variant
-////////////
-
-inline std::size_t ObjectView::variant_index() const {
-  return BInvoke<std::size_t>(NameIDRegistry::Meta::variant_index,
-                              MethodFlag::Const);
-}
-
-inline std::size_t ObjectView::variant_size() const {
-  return BInvoke<std::size_t>(NameIDRegistry::Meta::variant_size,
-                              MethodFlag::Static);
-}
-
-inline bool ObjectView::variant_holds_alternative(Type type) const {
-  return BInvoke<bool>(NameIDRegistry::Meta::variant_holds_alternative,
-                       MethodFlag::Const, std::move(type));
-}
-
-inline ObjectView ObjectView::variant_get(std::size_t i) const {
-  return BInvoke<ObjectView>(NameIDRegistry::Meta::variant_get,
-                             MethodFlag::Member, std::move(i));
-}
-
-inline ObjectView ObjectView::variant_get(Type type) const {
-  return BInvoke<ObjectView>(NameIDRegistry::Meta::variant_get,
-                             MethodFlag::Member, std::move(type));
-}
-
-inline Type ObjectView::variant_alternative(std::size_t i) const {
-  return BInvoke<Type>(NameIDRegistry::Meta::variant_alternative,
-                       MethodFlag::Static, std::move(i));
+inline ObjectView ObjectView::get(Type type) const {
+  return BInvoke<ObjectView>(NameIDRegistry::Meta::get, MethodFlag::Member,
+                             std::move(type));
 }
 
 inline ObjectView ObjectView::variant_visit_get() const {
@@ -371,54 +316,52 @@ inline ObjectView ObjectView::variant_visit_get() const {
                              MethodFlag::Member);
 }
 
-//
-// Optional
-/////////////
-
-inline bool ObjectView::optional_has_value() const {
-  return BInvoke<bool>(NameIDRegistry::Meta::optional_has_value,
-                       MethodFlag::Const);
+inline std::size_t ObjectView::tuple_size() const {
+  return BInvoke<std::size_t>(NameIDRegistry::Meta::tuple_size,
+                              MethodFlag::Static);
 }
 
-inline ObjectView ObjectView::optional_value() const {
-  return BInvoke<ObjectView>(NameIDRegistry::Meta::optional_value,
-                             MethodFlag::Member);
+inline Type ObjectView::tuple_element(std::size_t i) const {
+  return BInvoke<Type>(NameIDRegistry::Meta::tuple_element, MethodFlag::Static,
+                       std::move(i));
 }
 
-inline void ObjectView::optional_reset() const {
-  BInvoke<void>(NameIDRegistry::Meta::optional_reset, MethodFlag::Variable);
+inline std::size_t ObjectView::variant_size() const {
+  return BInvoke<std::size_t>(NameIDRegistry::Meta::variant_size,
+                              MethodFlag::Static);
 }
 
-//
-// Iterator
-/////////////
+inline Type ObjectView::variant_alternative(std::size_t i) const {
+  return BInvoke<Type>(NameIDRegistry::Meta::variant_alternative,
+                       MethodFlag::Static, std::move(i));
+}
 
 template <typename T>
 void ObjectView::advance(T&& arg) const {
-  ABInvoke<void>(NameIDRegistry::Meta::iterator_advance, MethodFlag::Variable,
+  ABInvoke<void>(NameIDRegistry::Meta::advance, MethodFlag::Variable,
                  std::forward<T>(arg));
 };
 
 template <typename T>
 std::size_t ObjectView::distance(T&& arg) const {
-  return ABInvoke<std::size_t>(NameIDRegistry::Meta::iterator_distance,
+  return ABInvoke<std::size_t>(NameIDRegistry::Meta::distance,
                                MethodFlag::Const, std::forward<T>(arg));
 };
 
-OBJECT_VIEW_DEFINE_META_T(iterator, next);
-OBJECT_VIEW_DEFINE_META_T(iterator, prev);
+OBJECT_VIEW_DEFINE_META_T(next, next);
+OBJECT_VIEW_DEFINE_META_T(prev, prev);
 
 inline SharedObject ObjectView::next() const {
-  return Invoke(NameIDRegistry::Meta::iterator_next);
+  return Invoke(NameIDRegistry::Meta::next);
 }
 
 inline SharedObject ObjectView::prev() const {
-  return Invoke(NameIDRegistry::Meta::iterator_prev);
+  return Invoke(NameIDRegistry::Meta::prev);
 }
 
 //
-// container
-//////////////
+// member functions
+/////////////////////
 
 template <typename... Args>
 void ObjectView::assign(Args&&... args) const {
@@ -428,7 +371,7 @@ void ObjectView::assign(Args&&... args) const {
 
 // - element access
 
-OBJECT_VIEW_DEFINE_META_T(container, at)
+OBJECT_VIEW_DEFINE_CONTAINER_META_T(at)
 
 inline SharedObject ObjectView::data() const {
   return Invoke(NameIDRegistry::Meta::container_data);
@@ -571,7 +514,7 @@ void ObjectView::merge(T&& arg) const {
   ABInvoke<void>(NameIDRegistry::Meta::container_merge, MethodFlag::Variable,
                  std::forward<T>(arg));
 };
-OBJECT_VIEW_DEFINE_META_T(container, extract)
+OBJECT_VIEW_DEFINE_CONTAINER_META_T(extract)
 
 // - list operations
 
@@ -614,10 +557,38 @@ std::size_t ObjectView::count(T&& arg) const {
   return ABInvoke<std::size_t>(NameIDRegistry::Meta::container_count,
                                MethodFlag::Const, std::forward<T>(arg));
 };
-OBJECT_VIEW_DEFINE_META_T(container, find)
-OBJECT_VIEW_DEFINE_META_T(container, lower_bound)
-OBJECT_VIEW_DEFINE_META_T(container, upper_bound)
-OBJECT_VIEW_DEFINE_META_T(container, equal_range)
+OBJECT_VIEW_DEFINE_CONTAINER_META_T(find)
+OBJECT_VIEW_DEFINE_CONTAINER_META_T(lower_bound)
+OBJECT_VIEW_DEFINE_CONTAINER_META_T(upper_bound)
+OBJECT_VIEW_DEFINE_CONTAINER_META_T(equal_range)
+
+// - variant
+
+inline std::size_t ObjectView::index() const {
+  return BInvoke<std::size_t>(NameIDRegistry::Meta::variant_index,
+                              MethodFlag::Const);
+}
+
+inline bool ObjectView::holds_alternative(Type type) const {
+  return BInvoke<bool>(NameIDRegistry::Meta::holds_alternative,
+                       MethodFlag::Const, std::move(type));
+}
+
+// - optional
+
+inline bool ObjectView::has_value() const {
+  return BInvoke<bool>(NameIDRegistry::Meta::optional_has_value,
+                       MethodFlag::Const);
+}
+
+inline ObjectView ObjectView::value() const {
+  return BInvoke<ObjectView>(NameIDRegistry::Meta::optional_value,
+                             MethodFlag::Member);
+}
+
+inline void ObjectView::reset() const {
+  BInvoke<void>(NameIDRegistry::Meta::optional_reset, MethodFlag::Variable);
+}
 }  // namespace My::MyDRefl
 
 template <>
@@ -704,6 +675,7 @@ DEFINE_OPERATOR_RSHIFT(std::fstream, ObjectView)
 #undef OBJECT_VIEW_DEFINE_ASSIGN_OP_OPERATOR
 #undef OBJECT_VIEW_DEFINE_OPERATOR_T
 #undef OBJECT_VIEW_DEFINE_META_T
+#undef OBJECT_VIEW_DEFINE_CONTAINER_META_T
 #undef OBJECT_VIEW_DEFINE_META_VARS_T
 #undef DEFINE_OPERATOR_LSHIFT
 #undef DEFINE_OPERATOR_RSHIFT

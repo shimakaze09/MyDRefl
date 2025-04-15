@@ -3,230 +3,147 @@
 using namespace My;
 using namespace My::MyDRefl;
 
+#define MY_MYDREFL_META_GET_ID_VIEW(meta) meta.GetID(), meta.GetView()
+#define MY_MYDREFL_META_GET_ID_NAME(meta) meta.GetID(), meta.GetName()
+
 NameIDRegistry::NameIDRegistry() {
-  RegisterUnmanaged(Meta::ctor.GetID(), Meta::ctor.GetView());
-  RegisterUnmanaged(Meta::dtor.GetID(), Meta::dtor.GetView());
+  // operators
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_bool));
 
-  RegisterUnmanaged(Meta::operator_bool.GetID(), Meta::operator_bool.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_add));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_sub));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_mul));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_div));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_mod));
 
-  RegisterUnmanaged(Meta::operator_plus.GetID(), Meta::operator_plus.GetView());
-  RegisterUnmanaged(Meta::operator_minus.GetID(),
-                    Meta::operator_minus.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_bnot));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_band));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_bor));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_bxor));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_shl));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_shr));
 
-  RegisterUnmanaged(Meta::operator_add.GetID(), Meta::operator_add.GetView());
-  RegisterUnmanaged(Meta::operator_sub.GetID(), Meta::operator_sub.GetView());
-  RegisterUnmanaged(Meta::operator_mul.GetID(), Meta::operator_mul.GetView());
-  RegisterUnmanaged(Meta::operator_div.GetID(), Meta::operator_div.GetView());
-  RegisterUnmanaged(Meta::operator_mod.GetID(), Meta::operator_mod.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_pre_inc));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_pre_dec));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_post_inc));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_post_dec));
 
-  RegisterUnmanaged(Meta::operator_bnot.GetID(), Meta::operator_bnot.GetView());
-  RegisterUnmanaged(Meta::operator_band.GetID(), Meta::operator_band.GetView());
-  RegisterUnmanaged(Meta::operator_bor.GetID(), Meta::operator_bor.GetView());
-  RegisterUnmanaged(Meta::operator_bxor.GetID(), Meta::operator_bxor.GetView());
-  RegisterUnmanaged(Meta::operator_lshift.GetID(),
-                    Meta::operator_lshift.GetView());
-  RegisterUnmanaged(Meta::operator_rshift.GetID(),
-                    Meta::operator_rshift.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_assignment));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_assignment_add));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_assignment_sub));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_assignment_mul));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_assignment_div));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_assignment_mod));
+  RegisterUnmanaged(
+      MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_assignment_band));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_assignment_bor));
+  RegisterUnmanaged(
+      MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_assignment_bxor));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_assignment_shl));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_assignment_shr));
 
-  RegisterUnmanaged(Meta::operator_pre_inc.GetID(),
-                    Meta::operator_pre_inc.GetView());
-  RegisterUnmanaged(Meta::operator_pre_dec.GetID(),
-                    Meta::operator_pre_dec.GetView());
-  RegisterUnmanaged(Meta::operator_post_inc.GetID(),
-                    Meta::operator_post_inc.GetView());
-  RegisterUnmanaged(Meta::operator_post_dec.GetID(),
-                    Meta::operator_post_dec.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_eq));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_ne));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_lt));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_le));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_gt));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_ge));
 
-  RegisterUnmanaged(Meta::operator_assign.GetID(),
-                    Meta::operator_assign.GetView());
-  RegisterUnmanaged(Meta::operator_assign_add.GetID(),
-                    Meta::operator_assign_add.GetView());
-  RegisterUnmanaged(Meta::operator_assign_sub.GetID(),
-                    Meta::operator_assign_sub.GetView());
-  RegisterUnmanaged(Meta::operator_assign_mul.GetID(),
-                    Meta::operator_assign_mul.GetView());
-  RegisterUnmanaged(Meta::operator_assign_div.GetID(),
-                    Meta::operator_assign_div.GetView());
-  RegisterUnmanaged(Meta::operator_assign_mod.GetID(),
-                    Meta::operator_assign_mod.GetView());
-  RegisterUnmanaged(Meta::operator_assign_band.GetID(),
-                    Meta::operator_assign_band.GetView());
-  RegisterUnmanaged(Meta::operator_assign_bor.GetID(),
-                    Meta::operator_assign_bor.GetView());
-  RegisterUnmanaged(Meta::operator_assign_bxor.GetID(),
-                    Meta::operator_assign_bxor.GetView());
-  RegisterUnmanaged(Meta::operator_assign_lshift.GetID(),
-                    Meta::operator_assign_lshift.GetView());
-  RegisterUnmanaged(Meta::operator_assign_rshift.GetID(),
-                    Meta::operator_assign_rshift.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_and));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_or));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_not));
 
-  RegisterUnmanaged(Meta::operator_eq.GetID(), Meta::operator_eq.GetView());
-  RegisterUnmanaged(Meta::operator_ne.GetID(), Meta::operator_ne.GetView());
-  RegisterUnmanaged(Meta::operator_lt.GetID(), Meta::operator_lt.GetView());
-  RegisterUnmanaged(Meta::operator_le.GetID(), Meta::operator_le.GetView());
-  RegisterUnmanaged(Meta::operator_gt.GetID(), Meta::operator_gt.GetView());
-  RegisterUnmanaged(Meta::operator_ge.GetID(), Meta::operator_ge.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_subscript));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_indirection));
 
-  RegisterUnmanaged(Meta::operator_and.GetID(), Meta::operator_and.GetView());
-  RegisterUnmanaged(Meta::operator_or.GetID(), Meta::operator_or.GetView());
-  RegisterUnmanaged(Meta::operator_not.GetID(), Meta::operator_not.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::operator_call));
 
-  RegisterUnmanaged(Meta::operator_subscript.GetID(),
-                    Meta::operator_subscript.GetView());
-  RegisterUnmanaged(Meta::operator_deref.GetID(),
-                    Meta::operator_deref.GetView());
-  RegisterUnmanaged(Meta::operator_ref.GetID(), Meta::operator_ref.GetView());
-  RegisterUnmanaged(Meta::operator_member.GetID(),
-                    Meta::operator_member.GetView());
-  RegisterUnmanaged(Meta::operator_member_of_pointer.GetID(),
-                    Meta::operator_member_of_pointer.GetView());
+  // non-member functions
 
-  RegisterUnmanaged(Meta::operator_call.GetID(), Meta::operator_call.GetView());
-  RegisterUnmanaged(Meta::operator_comma.GetID(),
-                    Meta::operator_comma.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::ctor));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::dtor));
 
-  // tuple
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::get));
 
-  RegisterUnmanaged(Meta::tuple_size.GetID(), Meta::tuple_size.GetView());
-  RegisterUnmanaged(Meta::tuple_get.GetID(), Meta::tuple_get.GetView());
-  RegisterUnmanaged(Meta::tuple_element.GetID(), Meta::tuple_element.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::tuple_size));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::tuple_element));
 
-  // variant
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::holds_alternative));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::get_if));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::variant_size));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::variant_alternative));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::variant_visit_get));
 
-  RegisterUnmanaged(Meta::variant_index.GetID(), Meta::variant_index.GetView());
-  RegisterUnmanaged(Meta::variant_valueless_by_exception.GetID(),
-                    Meta::variant_valueless_by_exception.GetView());
-  RegisterUnmanaged(Meta::variant_holds_alternative.GetID(),
-                    Meta::variant_holds_alternative.GetView());
-  RegisterUnmanaged(Meta::variant_get.GetID(), Meta::variant_get.GetView());
-  RegisterUnmanaged(Meta::variant_get_if.GetID(),
-                    Meta::variant_get_if.GetView());
-  RegisterUnmanaged(Meta::variant_size.GetID(), Meta::variant_size.GetView());
-  RegisterUnmanaged(Meta::variant_alternative.GetID(),
-                    Meta::variant_alternative.GetView());
-  RegisterUnmanaged(Meta::variant_visit_get.GetID(),
-                    Meta::variant_visit_get.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::advance));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::distance));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::next));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::prev));
 
-  // optional
+  // member functions
 
-  RegisterUnmanaged(Meta::optional_has_value.GetID(),
-                    Meta::optional_has_value.GetView());
-  RegisterUnmanaged(Meta::optional_value.GetID(),
-                    Meta::optional_value.GetView());
-  RegisterUnmanaged(Meta::optional_reset.GetID(),
-                    Meta::optional_reset.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_assign));
 
-  // iterator
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_begin));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_cbegin));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_end));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_cend));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_rbegin));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_crbegin));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_rend));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_crend));
 
-  RegisterUnmanaged(Meta::iterator_advance.GetID(),
-                    Meta::iterator_advance.GetView());
-  RegisterUnmanaged(Meta::iterator_distance.GetID(),
-                    Meta::iterator_distance.GetView());
-  RegisterUnmanaged(Meta::iterator_next.GetID(), Meta::iterator_next.GetView());
-  RegisterUnmanaged(Meta::iterator_prev.GetID(), Meta::iterator_prev.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_at));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_data));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_front));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_back));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_top));
 
-  // container
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_empty));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_size));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_size_bytes));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_resize));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_capacity));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_bucket_count));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_reserve));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_shrink_to_fit));
 
-  RegisterUnmanaged(Meta::container_assign.GetID(),
-                    Meta::container_assign.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_clear));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_insert));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_insert_after));
+  RegisterUnmanaged(
+      MY_MYDREFL_META_GET_ID_VIEW(Meta::container_insert_or_assign));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_erase));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_erase_after));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_push_front));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_pop_front));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_push_back));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_pop_back));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_push));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_pop));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_swap));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_merge));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_extract));
 
-  RegisterUnmanaged(Meta::container_begin.GetID(),
-                    Meta::container_begin.GetView());
-  RegisterUnmanaged(Meta::container_cbegin.GetID(),
-                    Meta::container_cbegin.GetView());
-  RegisterUnmanaged(Meta::container_end.GetID(), Meta::container_end.GetView());
-  RegisterUnmanaged(Meta::container_cend.GetID(),
-                    Meta::container_cend.GetView());
-  RegisterUnmanaged(Meta::container_rbegin.GetID(),
-                    Meta::container_rbegin.GetView());
-  RegisterUnmanaged(Meta::container_crbegin.GetID(),
-                    Meta::container_crbegin.GetView());
-  RegisterUnmanaged(Meta::container_rend.GetID(),
-                    Meta::container_rend.GetView());
-  RegisterUnmanaged(Meta::container_crend.GetID(),
-                    Meta::container_crend.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_splice_after));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_splice));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_remove));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_reverse));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_unique));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_sort));
 
-  RegisterUnmanaged(Meta::container_at.GetID(), Meta::container_at.GetView());
-  RegisterUnmanaged(Meta::container_data.GetID(),
-                    Meta::container_data.GetView());
-  RegisterUnmanaged(Meta::container_front.GetID(),
-                    Meta::container_front.GetView());
-  RegisterUnmanaged(Meta::container_back.GetID(),
-                    Meta::container_back.GetView());
-  RegisterUnmanaged(Meta::container_top.GetID(), Meta::container_top.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_count));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_find));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_lower_bound));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_upper_bound));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::container_equal_range));
 
-  RegisterUnmanaged(Meta::container_empty.GetID(),
-                    Meta::container_empty.GetView());
-  RegisterUnmanaged(Meta::container_size.GetID(),
-                    Meta::container_size.GetView());
-  RegisterUnmanaged(Meta::container_size_bytes.GetID(),
-                    Meta::container_size_bytes.GetView());
-  RegisterUnmanaged(Meta::container_max_size.GetID(),
-                    Meta::container_max_size.GetView());
-  RegisterUnmanaged(Meta::container_resize.GetID(),
-                    Meta::container_resize.GetView());
-  RegisterUnmanaged(Meta::container_capacity.GetID(),
-                    Meta::container_capacity.GetView());
-  RegisterUnmanaged(Meta::container_bucket_count.GetID(),
-                    Meta::container_bucket_count.GetView());
-  RegisterUnmanaged(Meta::container_reserve.GetID(),
-                    Meta::container_reserve.GetView());
-  RegisterUnmanaged(Meta::container_shrink_to_fit.GetID(),
-                    Meta::container_shrink_to_fit.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::variant_index));
+  RegisterUnmanaged(
+      MY_MYDREFL_META_GET_ID_VIEW(Meta::variant_valueless_by_exception));
 
-  RegisterUnmanaged(Meta::container_clear.GetID(),
-                    Meta::container_clear.GetView());
-  RegisterUnmanaged(Meta::container_insert.GetID(),
-                    Meta::container_insert.GetView());
-  RegisterUnmanaged(Meta::container_insert_after.GetID(),
-                    Meta::container_insert_after.GetView());
-  RegisterUnmanaged(Meta::container_insert_or_assign.GetID(),
-                    Meta::container_insert_or_assign.GetView());
-  RegisterUnmanaged(Meta::container_erase.GetID(),
-                    Meta::container_erase.GetView());
-  RegisterUnmanaged(Meta::container_erase_after.GetID(),
-                    Meta::container_erase_after.GetView());
-  RegisterUnmanaged(Meta::container_push_front.GetID(),
-                    Meta::container_push_front.GetView());
-  RegisterUnmanaged(Meta::container_pop_front.GetID(),
-                    Meta::container_pop_front.GetView());
-  RegisterUnmanaged(Meta::container_push_back.GetID(),
-                    Meta::container_push_back.GetView());
-  RegisterUnmanaged(Meta::container_pop_back.GetID(),
-                    Meta::container_pop_back.GetView());
-  RegisterUnmanaged(Meta::container_push.GetID(),
-                    Meta::container_push.GetView());
-  RegisterUnmanaged(Meta::container_pop.GetID(), Meta::container_pop.GetView());
-  RegisterUnmanaged(Meta::container_swap.GetID(),
-                    Meta::container_swap.GetView());
-  RegisterUnmanaged(Meta::container_merge.GetID(),
-                    Meta::container_merge.GetView());
-  RegisterUnmanaged(Meta::container_extract.GetID(),
-                    Meta::container_extract.GetView());
-
-  RegisterUnmanaged(Meta::container_splice_after.GetID(),
-                    Meta::container_splice_after.GetView());
-  RegisterUnmanaged(Meta::container_splice.GetID(),
-                    Meta::container_splice.GetView());
-  RegisterUnmanaged(Meta::container_remove.GetID(),
-                    Meta::container_remove.GetView());
-  RegisterUnmanaged(Meta::container_reverse.GetID(),
-                    Meta::container_reverse.GetView());
-  RegisterUnmanaged(Meta::container_unique.GetID(),
-                    Meta::container_unique.GetView());
-  RegisterUnmanaged(Meta::container_sort.GetID(),
-                    Meta::container_sort.GetView());
-
-  RegisterUnmanaged(Meta::container_count.GetID(),
-                    Meta::container_count.GetView());
-  RegisterUnmanaged(Meta::container_find.GetID(),
-                    Meta::container_find.GetView());
-  RegisterUnmanaged(Meta::container_lower_bound.GetID(),
-                    Meta::container_lower_bound.GetView());
-  RegisterUnmanaged(Meta::container_upper_bound.GetID(),
-                    Meta::container_upper_bound.GetView());
-  RegisterUnmanaged(Meta::container_equal_range.GetID(),
-                    Meta::container_equal_range.GetView());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::optional_has_value));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::optional_value));
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_VIEW(Meta::optional_reset));
 }
 
 Name NameIDRegistry::Nameof(NameID ID) const {
@@ -237,7 +154,7 @@ Name NameIDRegistry::Nameof(NameID ID) const {
 }
 
 TypeIDRegistry::TypeIDRegistry() {
-  RegisterUnmanaged(Meta::global.GetID(), Meta::global.GetName());
+  RegisterUnmanaged(MY_MYDREFL_META_GET_ID_NAME(Meta::global));
 }
 
 Type TypeIDRegistry::Typeof(TypeID ID) const {
@@ -367,3 +284,6 @@ Type TypeIDRegistry::RegisterAddConstRValueReference(Type type) {
   RegisterUnmanaged(ref_ID, rst_name);
   return {rst_name, ref_ID};
 }
+
+#undef MY_MYDREFL_META_GET_ID_VIEW
+#undef MY_MYDREFL_META_GET_ID_NAME

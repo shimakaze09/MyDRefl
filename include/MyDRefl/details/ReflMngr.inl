@@ -204,16 +204,16 @@ void register_variant_ctor_assign(ReflMngr& mngr) {
   using Elem = std::variant_alternative_t<Idx, T>;
   if constexpr (type_ctor<T, const Elem&>)
     mngr.AddConstructor<T, const Elem&>();
-  if constexpr (operator_assign<T, const Elem&>)
-    mngr.AddMemberMethod(NameIDRegistry::Meta::container_assign,
+  if constexpr (operator_assignment<T, const Elem&>)
+    mngr.AddMemberMethod(NameIDRegistry::Meta::operator_assignment,
                          [](T& t, const Elem& elem) -> T& { return t = elem; });
 
   if constexpr (!std::is_fundamental_v<Elem>) {
     if constexpr (type_ctor<T, Elem&&>)
       mngr.AddConstructor<T, Elem&&>();
-    if constexpr (operator_assign<T, Elem&&>)
+    if constexpr (operator_assignment<T, Elem&&>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::container_assign,
+          NameIDRegistry::Meta::operator_assignment,
           [](T& t, Elem&& elem) -> T& { return t = std::move(elem); });
   }
 }
@@ -249,10 +249,10 @@ struct TypeAutoRegister_Default {
                            [](const T& obj) { return static_cast<bool>(obj); });
 
     if constexpr (operator_plus<const T>)
-      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_plus,
+      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_add,
                            [](const T& lhs) { return +lhs; });
     if constexpr (operator_minus<const T>)
-      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_minus,
+      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_sub,
                            [](const T& lhs) { return -lhs; });
 
     if constexpr (std::is_array_v<T> && std::rank_v<T> == 0) {
@@ -307,85 +307,85 @@ struct TypeAutoRegister_Default {
                            [](const T& lhs, const T& rhs) -> decltype(auto) {
                              return lhs & rhs;
                            });
-    if constexpr (operator_lshift<const T&, const std::size_t&>)
+    if constexpr (operator_shl<const T&, const std::size_t&>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_lshift,
+          NameIDRegistry::Meta::operator_shl,
           [](const T& lhs, const std::size_t& rhs) -> decltype(auto) {
             return lhs << rhs;
           });
-    if constexpr (operator_rshift<const T&, const std::size_t&>)
+    if constexpr (operator_shr<const T&, const std::size_t&>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_rshift,
+          NameIDRegistry::Meta::operator_shr,
           [](const T& lhs, const std::size_t& rhs) -> decltype(auto) {
             return lhs >> rhs;
           });
 
-    if constexpr (operator_rshift<std::istream&, T>)
-      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_lshift,
+    if constexpr (operator_shr<std::istream&, T>)
+      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_shl,
                            [](T& lhs, std::istream& rhs) -> decltype(auto) {
                              return rhs >> lhs;
                            });
-    if constexpr (operator_rshift<std::istringstream&, T>)
+    if constexpr (operator_shr<std::istringstream&, T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_lshift,
+          NameIDRegistry::Meta::operator_shl,
           [](T& lhs, std::istringstream& rhs) -> decltype(auto) {
             return rhs >> lhs;
           });
-    if constexpr (operator_rshift<std::ifstream&, T>)
-      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_lshift,
+    if constexpr (operator_shr<std::ifstream&, T>)
+      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_shl,
                            [](T& lhs, std::ifstream& rhs) -> decltype(auto) {
                              return rhs >> lhs;
                            });
-    if constexpr (operator_rshift<std::iostream&, T>)
-      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_lshift,
+    if constexpr (operator_shr<std::iostream&, T>)
+      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_shl,
                            [](T& lhs, std::iostream& rhs) -> decltype(auto) {
                              return rhs >> lhs;
                            });
-    if constexpr (operator_rshift<std::stringstream&, T>)
+    if constexpr (operator_shr<std::stringstream&, T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_lshift,
+          NameIDRegistry::Meta::operator_shl,
           [](T& lhs, std::stringstream& rhs) -> decltype(auto) {
             return rhs >> lhs;
           });
-    if constexpr (operator_rshift<std::fstream&, T>)
-      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_lshift,
+    if constexpr (operator_shr<std::fstream&, T>)
+      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_shl,
                            [](T& lhs, std::fstream& rhs) -> decltype(auto) {
                              return rhs >> lhs;
                            });
 
-    if constexpr (operator_lshift<std::ostream&, const T>)
+    if constexpr (operator_shl<std::ostream&, const T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_rshift,
+          NameIDRegistry::Meta::operator_shr,
           [](const T& lhs, std::ostream& rhs) -> decltype(auto) {
             return rhs << lhs;
           });
-    if constexpr (operator_lshift<std::ostringstream&, const T>)
+    if constexpr (operator_shl<std::ostringstream&, const T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_rshift,
+          NameIDRegistry::Meta::operator_shr,
           [](const T& lhs, std::ostringstream& rhs) -> decltype(auto) {
             return rhs << lhs;
           });
-    if constexpr (operator_lshift<std::ofstream&, const T>)
+    if constexpr (operator_shl<std::ofstream&, const T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_rshift,
+          NameIDRegistry::Meta::operator_shr,
           [](const T& lhs, std::ofstream& rhs) -> decltype(auto) {
             return rhs << lhs;
           });
-    if constexpr (operator_lshift<std::iostream&, const T>)
+    if constexpr (operator_shl<std::iostream&, const T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_rshift,
+          NameIDRegistry::Meta::operator_shr,
           [](const T& lhs, std::iostream& rhs) -> decltype(auto) {
             return rhs << lhs;
           });
-    if constexpr (operator_lshift<std::stringstream&, const T>)
+    if constexpr (operator_shl<std::stringstream&, const T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_rshift,
+          NameIDRegistry::Meta::operator_shr,
           [](const T& lhs, std::stringstream& rhs) -> decltype(auto) {
             return rhs << lhs;
           });
-    if constexpr (operator_lshift<std::fstream&, const T>)
+    if constexpr (operator_shl<std::fstream&, const T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_rshift,
+          NameIDRegistry::Meta::operator_shr,
           [](const T& lhs, std::fstream& rhs) -> decltype(auto) {
             return rhs << lhs;
           });
@@ -395,61 +395,61 @@ struct TypeAutoRegister_Default {
                            [](T& lhs) -> decltype(auto) { return ++lhs; });
     if constexpr (operator_post_inc<T&>)
       mngr.AddMemberMethod(NameIDRegistry::Meta::operator_post_inc,
-                           [](T& lhs, int) -> decltype(auto) { return lhs++; });
+                           [](T& lhs) -> decltype(auto) { return lhs++; });
     if constexpr (operator_pre_dec<T&>)
       mngr.AddMemberMethod(NameIDRegistry::Meta::operator_pre_dec,
                            [](T& lhs) -> decltype(auto) { return --lhs; });
     if constexpr (operator_post_dec<T&>)
       mngr.AddMemberMethod(NameIDRegistry::Meta::operator_post_dec,
-                           [](T& lhs, int) -> decltype(auto) { return lhs--; });
+                           [](T& lhs) -> decltype(auto) { return lhs--; });
 
-    if constexpr (operator_assign_copy<T>)
+    if constexpr (operator_assignment_copy<T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_assign,
+          NameIDRegistry::Meta::operator_assignment,
           [](T& lhs, const T& rhs) -> T& { return lhs = rhs; });
-    if constexpr (!std::is_fundamental_v<T> && operator_assign_move<T>)
+    if constexpr (!std::is_fundamental_v<T> && operator_assignment_move<T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_assign,
+          NameIDRegistry::Meta::operator_assignment,
           [](T& lhs, T&& rhs) -> T& { return lhs = std::move(rhs); });
-    if constexpr (operator_assign_add<T>)
+    if constexpr (operator_assignment_add<T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_assign_add,
+          NameIDRegistry::Meta::operator_assignment_add,
           [](T& lhs, const T& rhs) -> T& { return lhs += rhs; });
-    if constexpr (operator_assign_sub<T>)
+    if constexpr (operator_assignment_sub<T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_assign_sub,
+          NameIDRegistry::Meta::operator_assignment_sub,
           [](T& lhs, const T& rhs) -> T& { return lhs -= rhs; });
-    if constexpr (operator_assign_mul<T>)
+    if constexpr (operator_assignment_mul<T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_assign_mul,
+          NameIDRegistry::Meta::operator_assignment_mul,
           [](T& lhs, const T& rhs) -> T& { return lhs *= rhs; });
-    if constexpr (operator_assign_div<T>)
+    if constexpr (operator_assignment_div<T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_assign_div,
+          NameIDRegistry::Meta::operator_assignment_div,
           [](T& lhs, const T& rhs) -> T& { return lhs /= rhs; });
-    if constexpr (operator_assign_mod<T>)
+    if constexpr (operator_assignment_mod<T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_assign_mod,
+          NameIDRegistry::Meta::operator_assignment_mod,
           [](T& lhs, const T& rhs) -> T& { return lhs %= rhs; });
-    if constexpr (operator_assign_band<T>)
+    if constexpr (operator_assignment_band<T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_assign_band,
+          NameIDRegistry::Meta::operator_assignment_band,
           [](T& lhs, const T& rhs) -> T& { return lhs &= rhs; });
-    if constexpr (operator_assign_bor<T>)
+    if constexpr (operator_assignment_bor<T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_assign_bor,
+          NameIDRegistry::Meta::operator_assignment_bor,
           [](T& lhs, const T& rhs) -> T& { return lhs |= rhs; });
-    if constexpr (operator_assign_bxor<T>)
+    if constexpr (operator_assignment_bxor<T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_assign_bxor,
+          NameIDRegistry::Meta::operator_assignment_bxor,
           [](T& lhs, const T& rhs) -> T& { return lhs ^= rhs; });
-    if constexpr (operator_assign_lshift<T>)
+    if constexpr (operator_assignment_shl<T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_assign_lshift,
+          NameIDRegistry::Meta::operator_assignment_shl,
           [](T& lhs, const T& rhs) -> T& { return lhs <<= rhs; });
-    if constexpr (operator_assign_lshift<T>)
+    if constexpr (operator_assignment_shl<T>)
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::operator_assign_rshift,
+          NameIDRegistry::Meta::operator_assignment_shr,
           [](T& lhs, const T& rhs) -> T& { return lhs >>= rhs; });
 
     if constexpr (!IsContainerType<T> && operator_eq<T>)
@@ -495,32 +495,31 @@ struct TypeAutoRegister_Default {
           [](const T& lhs, const std::size_t& rhs) -> decltype(auto) {
             return lhs[rhs];
           });
-    if constexpr (operator_deref<T>)
-      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_deref,
+    if constexpr (operator_indirection<T>)
+      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_indirection,
                            [](T& lhs) -> decltype(auto) { return *lhs; });
-    if constexpr (operator_deref<const T>)
-      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_deref,
+    if constexpr (operator_indirection<const T>)
+      mngr.AddMemberMethod(NameIDRegistry::Meta::operator_indirection,
                            [](const T& lhs) -> decltype(auto) { return *lhs; });
 
     // iterator
     if constexpr (std::input_iterator<T>) {
-      mngr.AddMemberMethod(NameIDRegistry::Meta::iterator_advance,
+      mngr.AddMemberMethod(NameIDRegistry::Meta::advance,
                            [](T& lhs, const std::iter_difference_t<T>& rhs) {
                              std::advance(lhs, rhs);
                            });
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::iterator_next,
+          NameIDRegistry::Meta::next,
           [](const T& lhs, const std::iter_difference_t<T>& rhs)
               -> decltype(auto) { return std::next(lhs, rhs); });
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::iterator_prev,
+          NameIDRegistry::Meta::prev,
           [](const T& lhs, const std::iter_difference_t<T>& rhs)
               -> decltype(auto) { return std::prev(lhs, rhs); });
       if constexpr (std::is_convertible_v<std::iter_difference_t<T>,
                                           std::size_t>) {
         mngr.AddMemberMethod(
-            NameIDRegistry::Meta::iterator_distance,
-            [](const T& lhs, const T& rhs) {
+            NameIDRegistry::Meta::distance, [](const T& lhs, const T& rhs) {
               return static_cast<std::size_t>(std::distance(lhs, rhs));
             });
       }
@@ -551,20 +550,20 @@ struct TypeAutoRegister_Default {
       mngr.AddStaticMethod(Type_of<T>, NameIDRegistry::Meta::tuple_size, []() {
         return static_cast<std::size_t>(std::tuple_size_v<T>);
       });
-      mngr.AddMemberMethod(NameIDRegistry::Meta::tuple_get,
+      mngr.AddMemberMethod(NameIDRegistry::Meta::get,
                            [](T& t, const std::size_t& i) {
                              return runtime_get<std::tuple_size>(t, i);
                            });
-      mngr.AddMemberMethod(NameIDRegistry::Meta::tuple_get,
+      mngr.AddMemberMethod(NameIDRegistry::Meta::get,
                            [](const T& t, const std::size_t& i) {
                              return runtime_get<std::tuple_size>(t, i);
                            });
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::tuple_get, [](T& t, const Type& type) {
+          NameIDRegistry::Meta::get, [](T& t, const Type& type) {
             return runtime_get<std::tuple_size, std::tuple_element>(t, type);
           });
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::tuple_get, [](const T& t, const Type& type) {
+          NameIDRegistry::Meta::get, [](const T& t, const Type& type) {
             return runtime_get<std::tuple_size, std::tuple_element>(t, type);
           });
       mngr.AddStaticMethod(
@@ -587,25 +586,25 @@ struct TypeAutoRegister_Default {
       mngr.AddStaticMethod(
           Type_of<T>, NameIDRegistry::Meta::variant_size,
           []() { return static_cast<std::size_t>(std::variant_size_v<T>); });
-      mngr.AddMemberMethod(NameIDRegistry::Meta::variant_get,
+      mngr.AddMemberMethod(NameIDRegistry::Meta::get,
                            [](T& t, const std::size_t& i) {
                              return runtime_get<std::variant_size>(t, i);
                            });
-      mngr.AddMemberMethod(NameIDRegistry::Meta::variant_get,
+      mngr.AddMemberMethod(NameIDRegistry::Meta::get,
                            [](const T& t, const std::size_t& i) {
                              return runtime_get<std::variant_size>(t, i);
                            });
-      mngr.AddMemberMethod(NameIDRegistry::Meta::variant_holds_alternative,
+      mngr.AddMemberMethod(NameIDRegistry::Meta::holds_alternative,
                            [](const T& t, const Type& type) {
                              return runtime_variant_holds_alternative(t, type);
                            });
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::variant_get, [](T& t, const Type& type) {
+          NameIDRegistry::Meta::get, [](T& t, const Type& type) {
             return runtime_get<std::variant_size, std::variant_alternative>(
                 t, type);
           });
       mngr.AddMemberMethod(
-          NameIDRegistry::Meta::variant_get, [](const T& t, const Type& type) {
+          NameIDRegistry::Meta::get, [](const T& t, const Type& type) {
             return runtime_get<std::variant_size, std::variant_alternative>(
                 t, type);
           });
@@ -641,17 +640,21 @@ struct TypeAutoRegister_Default {
       using Elem = typename T::value_type;
       if constexpr (type_ctor<T, const Elem&>)
         mngr.AddConstructor<T, const Elem&>();
-      if constexpr (operator_assign<T, const Elem&>)
-        mngr.AddMemberMethod(
-            NameIDRegistry::Meta::container_assign,
-            [](T& t, const Elem& elem) -> T& { return t = elem; });
+      if constexpr (operator_assignment<T, const Elem&>) {
+
+        mngr.AddMemberMethod(NameIDRegistry::Meta::operator_assignment,
+                             [](T& t, const Elem& elem) -> T& {
+                               t = elem;
+                               return t;
+                             });
+      }
 
       if constexpr (!std::is_fundamental_v<Elem>) {
         if constexpr (type_ctor<T, Elem&&>)
           mngr.AddConstructor<T, Elem&&>();
-        if constexpr (operator_assign<T, Elem&&>)
+        if constexpr (operator_assignment<T, Elem&&>)
           mngr.AddMemberMethod(
-              NameIDRegistry::Meta::container_assign,
+              NameIDRegistry::Meta::operator_assignment,
               [](T& t, Elem&& elem) -> T& { return t = std::move(elem); });
       }
     }

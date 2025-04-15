@@ -106,17 +106,17 @@ struct MethodInfo;
 
 struct InfoTypePair {
   Type type;
-  TypeInfo* info;
+  TypeInfo* info{nullptr};
 };
 
 struct InfoFieldPair {
   Name name;
-  FieldInfo* info;
+  FieldInfo* info{nullptr};
 };
 
 struct InfoMethodPair {
   Name name;
-  MethodInfo* info;
+  MethodInfo* info{nullptr};
 };
 
 struct InfoTypeFieldPair {

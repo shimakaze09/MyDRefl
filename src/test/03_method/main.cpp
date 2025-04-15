@@ -35,7 +35,7 @@ int main() {
     Mngr->AddMethod<&Vec::Norm2>("Norm2");
     Mngr->AddMethod<&Vec::NormalizeSelf>("NormalizeSelf");
     Mngr->AddMethod<&Vec::operator+= >(
-        NameIDRegistry::Meta::operator_assign_add);
+        NameIDRegistry::Meta::operator_assignment_add);
   }
 
   auto v = Mngr->MakeShared(Type_of<Vec>, 1.f, 2.f);

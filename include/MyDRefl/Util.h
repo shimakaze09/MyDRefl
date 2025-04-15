@@ -353,11 +353,11 @@ concept operator_bxor = requires(T lhs, T rhs) {
   lhs ^ rhs;
 };
 template <typename T, typename U>
-concept operator_lshift = requires(T lhs, U rhs) {
+concept operator_shl = requires(T lhs, U rhs) {
   lhs << rhs;
 };
 template <typename T, typename U>
-concept operator_rshift = requires(T lhs, U rhs) {
+concept operator_shr = requires(T lhs, U rhs) {
   lhs >> rhs;
 };
 
@@ -379,62 +379,62 @@ concept operator_post_dec = !std::is_same_v<T, bool> && requires(T t) {
 };
 
 template <typename T, typename U>
-concept operator_assign = requires(T lhs, U rhs) {
+concept operator_assignment = requires(T lhs, U rhs) {
   {lhs = std::forward<U>(rhs)}->std::same_as<T&>;
 };
 template <typename T>
-concept operator_assign_copy =
-    std::is_copy_assignable_v<T> && operator_assign<T, const T&>;
+concept operator_assignment_copy =
+    std::is_copy_assignable_v<T> && operator_assignment<T, const T&>;
 template <typename T>
-concept operator_assign_move =
-    std::is_move_assignable_v<T> && operator_assign<T, T&&>;
+concept operator_assignment_move =
+    std::is_move_assignable_v<T> && operator_assignment<T, T&&>;
 template <typename T>
-concept operator_assign_add =
+concept operator_assignment_add =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
   {lhs += rhs}->std::same_as<T&>;
 };
 template <typename T>
-concept operator_assign_sub =
+concept operator_assignment_sub =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
   {lhs -= rhs}->std::same_as<T&>;
 };
 template <typename T>
-concept operator_assign_mul =
+concept operator_assignment_mul =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
   {lhs *= rhs}->std::same_as<T&>;
 };
 template <typename T>
-concept operator_assign_div =
+concept operator_assignment_div =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
   {lhs /= rhs}->std::same_as<T&>;
 };
 template <typename T>
-concept operator_assign_mod =
+concept operator_assignment_mod =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
   {lhs %= rhs}->std::same_as<T&>;
 };
 template <typename T>
-concept operator_assign_band =
+concept operator_assignment_band =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
   {lhs &= rhs}->std::same_as<T&>;
 };
 template <typename T>
-concept operator_assign_bor =
+concept operator_assignment_bor =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
   {lhs |= rhs}->std::same_as<T&>;
 };
 template <typename T>
-concept operator_assign_bxor =
+concept operator_assignment_bxor =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
   {lhs ^= rhs}->std::same_as<T&>;
 };
 template <typename T>
-concept operator_assign_lshift =
+concept operator_assignment_shl =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
   {lhs <<= rhs}->std::same_as<T&>;
 };
 template <typename T>
-concept operator_assign_rshift =
+concept operator_assignment_shr =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
   {lhs >>= rhs}->std::same_as<T&>;
 };
@@ -476,12 +476,8 @@ concept operator_subscript =
   lhs[rhs];
 };
 template <typename T>
-concept operator_deref = requires(T t) {
+concept operator_indirection = requires(T t) {
   *t;
-};
-template <typename T>
-concept operator_ref = requires(T t) {
-  &t;
 };
 
 //
