@@ -24,8 +24,9 @@ mode_0:
     return;  // stop
   }
 
-  deriveds.emplace_back(std::get<ObjectView>(value),
-                        std::get<TypeInfo*>(value));
+  deriveds.push_back({.obj = std::get<ObjectView>(value),
+                      .typeinfo = std::get<TypeInfo*>(value)});
+
   curbase_valid = false;
 
   while (!deriveds.empty()) {
@@ -82,8 +83,8 @@ mode_0:
   mode_1:
     // push derived
     if (std::get<TypeInfo*>(value)) {
-      deriveds.emplace_back(std::get<ObjectView>(value),
-                            std::get<TypeInfo*>(value));
+      deriveds.push_back({.obj = std::get<ObjectView>(value),
+                          .typeinfo = std::get<TypeInfo*>(value)});
       curbase_valid = false;
     }
   }
