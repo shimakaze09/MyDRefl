@@ -168,8 +168,7 @@ static Type IsInvocable(bool is_priority, Type type, Name method_name,
 
 static Type BInvoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
                     ObjectView obj, Name method_name, void* result_buffer,
-                    std::span<const Type> argTypes, ArgPtrBuffer argptr_buffer,
-                    MethodFlag flag) {
+                    ArgsView args, MethodFlag flag) {
   assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
   auto typetarget = Mngr->typeinfos.find(obj.GetType());
@@ -186,8 +185,7 @@ static Type BInvoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
       if (enum_contain(MethodFlag::Priority,
                        iter->second.methodptr.GetMethodFlag())) {
         NewArgsGuard guard{is_priority, args_rsrc,
-                           iter->second.methodptr.GetParamList(), argTypes,
-                           argptr_buffer};
+                           iter->second.methodptr.GetParamList(), args};
         if (!guard.IsCompatible())
           continue;
         iter->second.methodptr.Invoke(obj.GetPtr(), result_buffer,
@@ -200,8 +198,7 @@ static Type BInvoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
       if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Const) {
         NewArgsGuard guard{is_priority, args_rsrc,
-                           iter->second.methodptr.GetParamList(), argTypes,
-                           argptr_buffer};
+                           iter->second.methodptr.GetParamList(), args};
         if (!guard.IsCompatible())
           continue;
         iter->second.methodptr.Invoke(static_cast<const void*>(obj.GetPtr()),
@@ -215,7 +212,7 @@ static Type BInvoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
     auto rst = BInvoke(
         is_priority, args_rsrc,
         ObjectView{base, baseinfo.StaticCast_DerivedToBase(obj.GetPtr())},
-        method_name, result_buffer, argTypes, argptr_buffer, flag);
+        method_name, result_buffer, args, flag);
     if (rst)
       return rst;
   }
@@ -226,9 +223,8 @@ static Type BInvoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
 static SharedObject MInvoke(bool is_priority,
                             std::pmr::memory_resource* args_rsrc,
                             ObjectView obj, Name method_name,
-                            std::pmr::memory_resource* rst_rsrc,
-                            std::span<const Type> argTypes,
-                            ArgPtrBuffer argptr_buffer, MethodFlag flag) {
+                            std::pmr::memory_resource* rst_rsrc, ArgsView args,
+                            MethodFlag flag) {
   assert(args_rsrc);
   assert(rst_rsrc);
   assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
@@ -246,8 +242,7 @@ static SharedObject MInvoke(bool is_priority,
       if (enum_contain(MethodFlag::Priority,
                        iter->second.methodptr.GetMethodFlag())) {
         NewArgsGuard guard{is_priority, args_rsrc,
-                           iter->second.methodptr.GetParamList(), argTypes,
-                           argptr_buffer};
+                           iter->second.methodptr.GetParamList(), args};
 
         if (!guard.IsCompatible())
           continue;
@@ -295,8 +290,7 @@ static SharedObject MInvoke(bool is_priority,
     for (auto iter = begin_iter; iter != end_iter; ++iter) {
       if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Const) {
         NewArgsGuard guard{is_priority, args_rsrc,
-                           iter->second.methodptr.GetParamList(), argTypes,
-                           argptr_buffer};
+                           iter->second.methodptr.GetParamList(), args};
 
         if (!guard.IsCompatible())
           continue;
@@ -344,7 +338,7 @@ static SharedObject MInvoke(bool is_priority,
     auto rst = MInvoke(
         is_priority, args_rsrc,
         ObjectView{base, baseinfo.StaticCast_DerivedToBase(obj.GetPtr())},
-        method_name, rst_rsrc, argTypes, argptr_buffer, flag);
+        method_name, rst_rsrc, args, flag);
     if (rst.GetType())
       return rst;
   }
@@ -849,9 +843,8 @@ bool ReflMngr::AddMethodAttr(Type type, Name name, Attr attr) {
 }
 
 SharedObject ReflMngr::MMakeShared(Type type, std::pmr::memory_resource* rsrc,
-                                   std::span<const Type> argTypes,
-                                   ArgPtrBuffer argptr_buffer) const {
-  ObjectView obj = MNew(type, rsrc, argTypes, argptr_buffer);
+                                   ArgsView args) const {
+  ObjectView obj = MNew(type, rsrc, args);
 
   if (!obj.GetType().Valid())
     return {};
@@ -1113,8 +1106,7 @@ Type ReflMngr::IsInvocable(Type type, Name method_name,
 }
 
 Type ReflMngr::BInvoke(ObjectView obj, Name method_name, void* result_buffer,
-                       std::span<const Type> argTypes,
-                       ArgPtrBuffer argptr_buffer, MethodFlag flag,
+                       ArgsView args, MethodFlag flag,
                        std::pmr::memory_resource* temp_args_rsrc) const {
   ObjectView rawObj;
   const CVRefMode cvref_mode = obj.GetType().GetCVRefMode();
@@ -1143,21 +1135,18 @@ Type ReflMngr::BInvoke(ObjectView obj, Name method_name, void* result_buffer,
   if (!obj.GetPtr())
     flag = enum_within(flag, MethodFlag::Static);
 
-  if (auto priority_rst =
-          details::BInvoke(true, temp_args_rsrc, rawObj, method_name,
-                           result_buffer, argTypes, argptr_buffer, flag))
+  if (auto priority_rst = details::BInvoke(
+          true, temp_args_rsrc, rawObj, method_name, result_buffer, args, flag))
     return priority_rst;
 
   return details::BInvoke(false, temp_args_rsrc, rawObj, method_name,
-                          result_buffer, argTypes, argptr_buffer, flag);
+                          result_buffer, args, flag);
 }
 
 SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
                                std::pmr::memory_resource* rst_rsrc,
                                std::pmr::memory_resource* temp_args_rsrc,
-                               std::span<const Type> argTypes,
-                               ArgPtrBuffer argptr_buffer,
-                               MethodFlag flag) const {
+                               ArgsView args, MethodFlag flag) const {
   assert(rst_rsrc);
   assert(temp_args_rsrc);
 
@@ -1188,22 +1177,20 @@ SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
   if (!obj.GetPtr())
     flag = enum_within(flag, MethodFlag::Static);
 
-  if (auto priority_rst =
-          details::MInvoke(true, temp_args_rsrc, rawObj, method_name, rst_rsrc,
-                           argTypes, argptr_buffer, flag);
+  if (auto priority_rst = details::MInvoke(true, temp_args_rsrc, rawObj,
+                                           method_name, rst_rsrc, args, flag);
       priority_rst.GetType().Valid())
     return priority_rst;
 
   return details::MInvoke(false, temp_args_rsrc, rawObj, method_name, rst_rsrc,
-                          argTypes, argptr_buffer, flag);
+                          args, flag);
 }
 
 ObjectView ReflMngr::MNew(Type type, std::pmr::memory_resource* rsrc,
-                          std::span<const Type> argTypes,
-                          ArgPtrBuffer argptr_buffer) const {
+                          ArgsView args) const {
   assert(rsrc);
 
-  if (!IsConstructible(type, argTypes))
+  if (!IsConstructible(type, args.Types()))
     return {};
 
   const auto& typeinfo = typeinfos.at(type);
@@ -1215,7 +1202,7 @@ ObjectView ReflMngr::MNew(Type type, std::pmr::memory_resource* rsrc,
     return {};
 
   ObjectView obj{type, buffer};
-  bool success = Construct(obj, argTypes, argptr_buffer);
+  bool success = Construct(obj, args);
   assert(success);
 
   return obj;
@@ -1234,18 +1221,16 @@ bool ReflMngr::MDelete(ObjectView obj, std::pmr::memory_resource* rsrc) const {
   return true;
 }
 
-ObjectView ReflMngr::New(Type type, std::span<const Type> argTypes,
-                         ArgPtrBuffer argptr_buffer) const {
-  return MNew(type, &object_resource, argTypes, argptr_buffer);
+ObjectView ReflMngr::New(Type type, ArgsView args) const {
+  return MNew(type, &object_resource, args);
 }
 
 bool ReflMngr::Delete(ObjectView obj) const {
   return MDelete(obj, &object_resource);
 }
 
-SharedObject ReflMngr::MakeShared(Type type, std::span<const Type> argTypes,
-                                  ArgPtrBuffer argptr_buffer) const {
-  return MMakeShared(type, &object_resource, argTypes, argptr_buffer);
+SharedObject ReflMngr::MakeShared(Type type, ArgsView args) const {
+  return MMakeShared(type, &object_resource, args);
 }
 
 bool ReflMngr::IsConstructible(Type type,
@@ -1297,21 +1282,19 @@ bool ReflMngr::IsDestructible(Type type) const {
   return false;
 }
 
-bool ReflMngr::Construct(ObjectView obj, std::span<const Type> argTypes,
-                         ArgPtrBuffer argptr_buffer) const {
+bool ReflMngr::Construct(ObjectView obj, ArgsView args) const {
   auto target = typeinfos.find(obj.GetType());
   if (target == typeinfos.end())
     return false;
   const auto& typeinfo = target->second;
   auto [begin_iter, end_iter] =
       typeinfo.methodinfos.equal_range(NameIDRegistry::Meta::ctor);
-  if (begin_iter == end_iter && argTypes.empty())
+  if (begin_iter == end_iter && args.Types().empty())
     return true;  // trivial ctor
   for (auto iter = begin_iter; iter != end_iter; ++iter) {
     if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Variable) {
       details::NewArgsGuard guard{false, &temporary_resource,
-                                  iter->second.methodptr.GetParamList(),
-                                  argTypes, argptr_buffer};
+                                  iter->second.methodptr.GetParamList(), args};
       if (!guard.IsCompatible())
         continue;
       iter->second.methodptr.Invoke(obj.GetPtr(), nullptr, guard.GetArgsView());

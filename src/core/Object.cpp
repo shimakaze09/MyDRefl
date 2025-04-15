@@ -30,28 +30,22 @@ ObjectView ObjectView::Var(Type base, Name field_name, FieldFlag flag) const {
   return Mngr->Var(*this, base, field_name, flag);
 }
 
-Type ObjectView::BInvoke(Name method_name, void* result_buffer,
-                         std::span<const Type> argTypes,
-                         ArgPtrBuffer argptr_buffer, MethodFlag flag) const {
-  return Mngr->BInvoke(*this, method_name, result_buffer, argTypes,
-                       argptr_buffer, flag);
+Type ObjectView::BInvoke(Name method_name, void* result_buffer, ArgsView args,
+                         MethodFlag flag) const {
+  return Mngr->BInvoke(*this, method_name, result_buffer, args, flag);
 }
 
 SharedObject ObjectView::MInvoke(Name method_name,
                                  std::pmr::memory_resource* rst_rsrc,
                                  std::pmr::memory_resource* temp_args_rsrc,
-                                 std::span<const Type> argTypes,
-                                 ArgPtrBuffer argptr_buffer,
-                                 MethodFlag flag) const {
-  return Mngr->MInvoke(*this, method_name, rst_rsrc, temp_args_rsrc, argTypes,
-                       argptr_buffer, flag);
+                                 ArgsView args, MethodFlag flag) const {
+  return Mngr->MInvoke(*this, method_name, rst_rsrc, temp_args_rsrc, args,
+                       flag);
 }
 
-SharedObject ObjectView::Invoke(Name method_name,
-                                std::span<const Type> argTypes,
-                                ArgPtrBuffer argptr_buffer,
+SharedObject ObjectView::Invoke(Name method_name, ArgsView args,
                                 MethodFlag flag) const {
-  return Mngr->Invoke(*this, method_name, argTypes, argptr_buffer, flag);
+  return Mngr->Invoke(*this, method_name, args, flag);
 }
 
 void ObjectView::ForEachVar(

@@ -6,6 +6,28 @@
 //#include <span>
 
 namespace My::MyDRefl {
+// pointer const array type (pointer is const, and pointer to non - const / referenced object)
+using ArgPtrBuffer = void* const*;
+
+class ArgsView {
+ public:
+  constexpr ArgsView() noexcept : buffer{nullptr} {}
+
+  constexpr ArgsView(ArgPtrBuffer buffer,
+                     std::span<const Type> argTypes) noexcept
+      : buffer{buffer}, argTypes{argTypes} {}
+
+  constexpr ArgPtrBuffer Buffer() const noexcept { return buffer; }
+
+  constexpr std::span<const Type> Types() const noexcept { return argTypes; }
+
+  constexpr ObjectView operator[](size_t idx) const noexcept;
+
+ private:
+  ArgPtrBuffer buffer;
+  std::span<const Type> argTypes;
+};
+
 class ObjectView {
  public:
   constexpr ObjectView() noexcept : ptr{nullptr} {}
@@ -56,18 +78,14 @@ class ObjectView {
                    MethodFlag flag = MethodFlag::All) const;
 
   Type BInvoke(Name method_name, void* result_buffer = nullptr,
-               std::span<const Type> argTypes = {},
-               ArgPtrBuffer argptr_buffer = nullptr,
-               MethodFlag flag = MethodFlag::All) const;
+               ArgsView args = {}, MethodFlag flag = MethodFlag::All) const;
 
   SharedObject MInvoke(Name method_name, std::pmr::memory_resource* rst_rsrc,
                        std::pmr::memory_resource* temp_args_rsrc,
-                       std::span<const Type> argTypes = {},
-                       ArgPtrBuffer argptr_buffer = nullptr,
+                       ArgsView args = {},
                        MethodFlag flag = MethodFlag::All) const;
 
-  SharedObject Invoke(Name method_name, std::span<const Type> argTypes = {},
-                      ArgPtrBuffer argptr_buffer = nullptr,
+  SharedObject Invoke(Name method_name, ArgsView args = {},
                       MethodFlag flag = MethodFlag::All) const;
 
   // -- template --
@@ -76,8 +94,7 @@ class ObjectView {
   Type IsInvocable(Name method_name, MethodFlag flag = MethodFlag::All) const;
 
   template <typename T>
-  T BInvokeRet(Name method_name, std::span<const Type> argTypes = {},
-               ArgPtrBuffer argptr_buffer = nullptr,
+  T BInvokeRet(Name method_name, ArgsView args = {},
                MethodFlag flag = MethodFlag::All) const;
 
   template <typename T, typename... Args>

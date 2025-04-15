@@ -1826,21 +1826,19 @@ Type ReflMngr::IsInvocable(Type type, Name method_name, MethodFlag flag) const {
 }
 
 template <typename T>
-T ReflMngr::BInvokeRet(ObjectView obj, Name method_name,
-                       std::span<const Type> argTypes,
-                       ArgPtrBuffer argptr_buffer, MethodFlag flag,
+T ReflMngr::BInvokeRet(ObjectView obj, Name method_name, ArgsView args,
+                       MethodFlag flag,
                        std::pmr::memory_resource* temp_args_rsrc) const {
   if constexpr (!std::is_void_v<T>) {
     using U =
         std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
     std::aligned_storage_t<sizeof(U), alignof(U)> result_buffer;
     Type result_type =
-        BInvoke(obj, method_name, static_cast<void*>(&result_buffer), argTypes,
-                argptr_buffer, flag, temp_args_rsrc);
+        BInvoke(obj, method_name, static_cast<void*>(&result_buffer), args,
+                flag, temp_args_rsrc);
     return MoveResult<T>(result_type, &result_buffer);
   } else
-    BInvoke(obj, method_name, (void*)nullptr, argTypes, argptr_buffer, flag,
-            temp_args_rsrc);
+    BInvoke(obj, method_name, (void*)nullptr, args, flag, temp_args_rsrc);
 }
 
 template <typename T, typename... Args>
@@ -1851,13 +1849,10 @@ T ReflMngr::BInvoke(ObjectView obj, Name method_name, MethodFlag flag,
     constexpr Type argTypes[] = {Type_of<decltype(args)>...};
     void* const argptr_buffer[] = {
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return BInvokeRet<T>(obj, method_name, std::span<const Type>{argTypes},
-                         static_cast<ArgPtrBuffer>(argptr_buffer), flag,
-                         temp_args_rsrc);
+    return BInvokeRet<T>(obj, method_name, ArgsView{argptr_buffer, argTypes},
+                         flag, temp_args_rsrc);
   } else
-    return BInvokeRet<T>(obj, method_name, std::span<const Type>{},
-                         static_cast<ArgPtrBuffer>(nullptr), flag,
-                         temp_args_rsrc);
+    return BInvokeRet<T>(obj, method_name, ArgsView{}, flag, temp_args_rsrc);
 }
 
 template <typename... Args>
@@ -1870,11 +1865,9 @@ SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
     void* const argptr_buffer[] = {
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return MInvoke(obj, method_name, rst_rsrc, temp_args_rsrc,
-                   std::span<const Type>{argTypes},
-                   static_cast<ArgPtrBuffer>(argptr_buffer), flag);
+                   ArgsView{argptr_buffer, argTypes}, flag);
   } else
-    return MInvoke(obj, method_name, rst_rsrc, temp_args_rsrc,
-                   std::span<const Type>{}, static_cast<ArgPtrBuffer>(nullptr),
+    return MInvoke(obj, method_name, rst_rsrc, temp_args_rsrc, ArgsView{},
                    flag);
 }
 
@@ -1885,8 +1878,7 @@ SharedObject ReflMngr::Invoke(ObjectView obj, Name method_name,
     constexpr Type argTypes[] = {Type_of<decltype(args)>...};
     void* const argptr_buffer[] = {
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return Invoke(obj, method_name, std::span<const Type>{argTypes},
-                  static_cast<ArgPtrBuffer>(argptr_buffer));
+    return Invoke(obj, method_name, ArgsView{argptr_buffer, argTypes});
   } else
     return Invoke(obj, method_name);
 }
@@ -1907,8 +1899,7 @@ bool ReflMngr::Construct(ObjectView obj, Args&&... args) const {
     constexpr Type argTypes[] = {Type_of<decltype(args)>...};
     void* const argptr_buffer[] = {
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return Construct(obj, std::span<const Type>{argTypes},
-                     static_cast<ArgPtrBuffer>(argptr_buffer));
+    return Construct(obj, ArgsView{argptr_buffer, argTypes});
   } else
     return Construct(obj);
 }
@@ -1920,8 +1911,7 @@ ObjectView ReflMngr::MNew(Type type, std::pmr::memory_resource* rsrc,
     constexpr Type argTypes[] = {Type_of<decltype(args)>...};
     void* const argptr_buffer[] = {
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return MNew(type, rsrc, std::span<const Type>{argTypes},
-                static_cast<ArgPtrBuffer>(argptr_buffer));
+    return MNew(type, rsrc, ArgsView{argptr_buffer, argTypes});
   } else
     return MNew(type, rsrc);
 }
@@ -1933,8 +1923,7 @@ SharedObject ReflMngr::MMakeShared(Type type, std::pmr::memory_resource* rsrc,
     constexpr Type argTypes[] = {Type_of<decltype(args)>...};
     void* const argptr_buffer[] = {
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return MMakeShared(type, rsrc, std::span<const Type>{argTypes},
-                       static_cast<ArgPtrBuffer>(argptr_buffer));
+    return MMakeShared(type, rsrc, ArgsView{argptr_buffer, argTypes});
   } else
     return MMakeShared(type, rsrc);
 }

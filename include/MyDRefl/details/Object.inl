@@ -66,6 +66,10 @@ constexpr void* ArgPtr(const T& arg) noexcept {
 }  // namespace My::MyDRefl::details
 
 namespace My::MyDRefl {
+constexpr ObjectView ArgsView::operator[](size_t idx) const noexcept {
+  return {argTypes[idx], buffer[idx]};
+}
+
 template <typename T>
 constexpr auto* ObjectView::AsPtr() const noexcept {
   assert(type.Is<T>());
@@ -96,17 +100,17 @@ Type ObjectView::IsInvocable(Name method_name, MethodFlag flag) const {
 }
 
 template <typename T>
-T ObjectView::BInvokeRet(Name method_name, std::span<const Type> argTypes,
-                         ArgPtrBuffer argptr_buffer, MethodFlag flag) const {
+T ObjectView::BInvokeRet(Name method_name, ArgsView args,
+                         MethodFlag flag) const {
   if constexpr (!std::is_void_v<T>) {
     using U =
         std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
     std::aligned_storage_t<sizeof(U), alignof(U)> result_buffer;
-    Type result_type = BInvoke(method_name, static_cast<void*>(&result_buffer),
-                               argTypes, argptr_buffer, flag);
+    Type result_type =
+        BInvoke(method_name, static_cast<void*>(&result_buffer), args, flag);
     return MoveResult<T>(result_type, &result_buffer);
   } else
-    BInvoke(method_name, (void*)nullptr, argTypes, argptr_buffer, flag);
+    BInvoke(method_name, (void*)nullptr, args, flag);
 }
 
 template <typename T, typename... Args>
@@ -115,11 +119,9 @@ T ObjectView::BInvoke(Name method_name, MethodFlag flag, Args&&... args) const {
     constexpr Type argTypes[] = {Type_of<decltype(args)>...};
     void* const argptr_buffer[] = {
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return BInvokeRet<T>(method_name, std::span<const Type>{argTypes},
-                         static_cast<ArgPtrBuffer>(argptr_buffer), flag);
+    return BInvokeRet<T>(method_name, ArgsView{argptr_buffer, argTypes}, flag);
   } else
-    return BInvokeRet<T>(method_name, std::span<const Type>{},
-                         static_cast<ArgPtrBuffer>(nullptr), flag);
+    return BInvokeRet<T>(method_name, ArgsView{}, flag);
 }
 
 template <typename... Args>
@@ -132,12 +134,9 @@ SharedObject ObjectView::MInvoke(Name method_name,
     void* const argptr_buffer[] = {
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
     return MInvoke(method_name, rst_rsrc, temp_args_rsrc,
-                   std::span<const Type>{argTypes},
-                   static_cast<ArgPtrBuffer>(argptr_buffer), flag);
+                   ArgsView{argptr_buffer, argTypes}, flag);
   } else
-    return MInvoke(method_name, rst_rsrc, temp_args_rsrc,
-                   std::span<const Type>{}, static_cast<ArgPtrBuffer>(nullptr),
-                   flag);
+    return MInvoke(method_name, rst_rsrc, temp_args_rsrc, ArgsView{}, flag);
 }
 
 template <typename... Args>
@@ -146,8 +145,7 @@ SharedObject ObjectView::Invoke(Name method_name, Args&&... args) const {
     constexpr Type argTypes[] = {Type_of<decltype(args)>...};
     void* const argptr_buffer[] = {
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return Invoke(method_name, std::span<const Type>{argTypes},
-                  static_cast<ArgPtrBuffer>(argptr_buffer));
+    return Invoke(method_name, ArgsView{argptr_buffer, argTypes});
   } else
     return Invoke(method_name);
 }
@@ -159,11 +157,9 @@ T ObjectView::ABInvoke(Name method_name, MethodFlag flag,
     constexpr Type argTypes[] = {Type_of<decltype(args)>...};
     void* const argptr_buffer[] = {
         const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return BInvokeRet<T>(method_name, std::span<const Type>{argTypes},
-                         static_cast<ArgPtrBuffer>(argptr_buffer), flag);
+    return BInvokeRet<T>(method_name, ArgsView{argptr_buffer, argTypes}, flag);
   } else
-    return BInvokeRet<T>(method_name, std::span<const Type>{},
-                         static_cast<ArgPtrBuffer>(nullptr), flag);
+    return BInvokeRet<T>(method_name, ArgsView{}, flag);
 }
 
 template <typename... Args>
@@ -175,12 +171,9 @@ SharedObject ObjectView::AMInvoke(Name method_name,
     const Type argTypes[] = {details::ArgType<decltype(args)>(args)...};
     void* const argptr_buffer[] = {details::ArgPtr(args)...};
     return MInvoke(method_name, rst_rsrc, temp_args_rsrc,
-                   std::span<const Type>{argTypes},
-                   static_cast<ArgPtrBuffer>(argptr_buffer), flag);
+                   ArgsView{argptr_buffer, argTypes}, flag);
   } else
-    return MInvoke(method_name, rst_rsrc, temp_args_rsrc,
-                   std::span<const Type>{}, static_cast<ArgPtrBuffer>(nullptr),
-                   flag);
+    return MInvoke(method_name, rst_rsrc, temp_args_rsrc, ArgsView{}, flag);
 }
 
 template <typename... Args>
@@ -188,11 +181,9 @@ SharedObject ObjectView::AInvoke(Name method_name, Args&&... args) const {
   if constexpr (sizeof...(Args) > 0) {
     const Type argTypes[] = {details::ArgType<decltype(args)>(args)...};
     void* const argptr_buffer[] = {details::ArgPtr(args)...};
-    return Invoke(method_name, std::span<const Type>{argTypes},
-                  static_cast<ArgPtrBuffer>(argptr_buffer));
+    return Invoke(method_name, ArgsView{argptr_buffer, argTypes});
   } else
-    return Invoke(method_name, std::span<const Type>{},
-                  static_cast<ArgPtrBuffer>(nullptr));
+    return Invoke(method_name, ArgsView{});
 }
 
 //////////

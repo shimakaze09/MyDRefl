@@ -290,25 +290,20 @@ class ReflMngr {
                    MethodFlag flag = MethodFlag::All) const;
 
   Type BInvoke(ObjectView obj, Name method_name, void* result_buffer = nullptr,
-               std::span<const Type> argTypes = {},
-               ArgPtrBuffer argptr_buffer = nullptr,
-               MethodFlag flag = MethodFlag::All,
+               ArgsView args = {}, MethodFlag flag = MethodFlag::All,
                std::pmr::memory_resource* temp_args_rsrc =
                    Mngr->GetTemporaryResource()) const;
 
   SharedObject MInvoke(ObjectView obj, Name method_name,
                        std::pmr::memory_resource* rst_rsrc,
                        std::pmr::memory_resource* temp_args_rsrc,
-                       std::span<const Type> argTypes = {},
-                       ArgPtrBuffer argptr_buffer = nullptr,
+                       ArgsView args = {},
                        MethodFlag flag = MethodFlag::All) const;
 
-  SharedObject Invoke(ObjectView obj, Name method_name,
-                      std::span<const Type> argTypes = {},
-                      ArgPtrBuffer argptr_buffer = nullptr,
+  SharedObject Invoke(ObjectView obj, Name method_name, ArgsView args = {},
                       MethodFlag flag = MethodFlag::All) const {
     return MInvoke(obj, method_name, &object_resource, &temporary_resource,
-                   argTypes, argptr_buffer, flag);
+                   args, flag);
   }
 
   // -- template --
@@ -318,9 +313,7 @@ class ReflMngr {
                    MethodFlag flag = MethodFlag::All) const;
 
   template <typename T>
-  T BInvokeRet(ObjectView obj, Name method_name,
-               std::span<const Type> argTypes = {},
-               ArgPtrBuffer argptr_buffer = nullptr,
+  T BInvokeRet(ObjectView obj, Name method_name, ArgsView args = {},
                MethodFlag flag = MethodFlag::All,
                std::pmr::memory_resource* temp_args_rsrc =
                    Mngr->GetTemporaryResource()) const;
@@ -351,22 +344,17 @@ class ReflMngr {
   bool IsMoveConstructible(Type type) const;
   bool IsDestructible(Type type) const;
 
-  bool Construct(ObjectView obj, std::span<const Type> argTypes = {},
-                 ArgPtrBuffer argptr_buffer = nullptr) const;
+  bool Construct(ObjectView obj, ArgsView args = {}) const;
   void Destruct(ObjectView obj) const;
 
   ObjectView MNew(Type type, std::pmr::memory_resource* rsrc,
-                  std::span<const Type> argTypes = {},
-                  ArgPtrBuffer argptr_buffer = nullptr) const;
+                  ArgsView args = {}) const;
   SharedObject MMakeShared(Type type, std::pmr::memory_resource* rsrc,
-                           std::span<const Type> argTypes = {},
-                           ArgPtrBuffer argptr_buffer = nullptr) const;
+                           ArgsView args = {}) const;
   bool MDelete(ObjectView obj, std::pmr::memory_resource* rsrc) const;
 
-  ObjectView New(Type type, std::span<const Type> argTypes = {},
-                 ArgPtrBuffer argptr_buffer = nullptr) const;
-  SharedObject MakeShared(Type type, std::span<const Type> argTypes = {},
-                          ArgPtrBuffer argptr_buffer = nullptr) const;
+  ObjectView New(Type type, ArgsView args = {}) const;
+  SharedObject MakeShared(Type type, ArgsView args = {}) const;
   bool Delete(ObjectView obj) const;
 
   // -- template --

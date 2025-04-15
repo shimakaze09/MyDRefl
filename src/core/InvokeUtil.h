@@ -51,8 +51,7 @@ bool IsRefCompatible(std::span<const Type> paramTypes,
                      std::span<const TypeID> argTypeIDs);
 
 bool IsRefConstructible(Type paramType, std::span<const Type> argTypes);
-bool RefConstruct(ObjectView obj, std::span<const Type> argTypes,
-                  ArgPtrBuffer argptr_buffer);
+bool RefConstruct(ObjectView obj, ArgsView args);
 
 class BufferGuard {
  public:
@@ -103,8 +102,7 @@ class NewArgsGuard {
 
  public:
   NewArgsGuard(bool is_priority, std::pmr::memory_resource* rsrc,
-               std::span<const Type> paramTypes, std::span<const Type> argTypes,
-               ArgPtrBuffer orig_argptr_buffer);
+               std::span<const Type> paramTypes, ArgsView args);
 
   ~NewArgsGuard();
 
@@ -115,14 +113,14 @@ class NewArgsGuard {
 
   ArgsView GetArgsView() const noexcept {
     assert(IsCompatible());
-    return args;
+    return new_args;
   }
 
  private:
   bool is_compatible{false};
   BufferGuard buffer;
   std::span<ArgInfo> nonptr_arg_infos;
-  ArgsView args;
+  ArgsView new_args;
   BufferGuard type_buffer;
 };
 }  // namespace My::MyDRefl::details

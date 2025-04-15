@@ -4,6 +4,13 @@ using namespace My;
 using namespace My::MyDRefl;
 
 void My::MyDRefl::ext::details::Bootstrap_helper_object() {
+  Mngr->RegisterType<ArgPtrBuffer>();
+
+  Mngr->RegisterType<ArgsView>();
+  Mngr->AddConstructor<ArgsView, ArgPtrBuffer, std::span<const Type>>();
+  Mngr->AddMethod<&ArgsView::Buffer>("Buffer");
+  Mngr->AddMethod<&ArgsView::Types>("Types");
+
   Mngr->RegisterType<ObjectView>();
   Mngr->AddConstructor<ObjectView, Type, void*>();
   Mngr->AddConstructor<ObjectView, Type>();
