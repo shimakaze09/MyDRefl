@@ -6,7 +6,7 @@ using namespace My;
 using namespace My::MyDRefl;
 
 void My::MyDRefl::ext::Bootstrap() {
-  details::Bootstrap_helper_utemplate();
+  details::Bootstrap_helper_mytemplate();
   details::Bootstrap_helper_basic();
   details::Bootstrap_helper_registry();
   details::Bootstrap_helper_info_0();

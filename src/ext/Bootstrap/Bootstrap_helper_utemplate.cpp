@@ -3,7 +3,7 @@
 using namespace My;
 using namespace My::MyDRefl;
 
-void My::MyDRefl::ext::details::Bootstrap_helper_utemplate() {
+void My::MyDRefl::ext::details::Bootstrap_helper_mytemplate() {
   // MyTemplate
   Mngr.RegisterType<NameID>();
   Mngr.AddConstructor<NameID, std::size_t>();
