@@ -52,6 +52,8 @@ class ObjectTree {
   constexpr ObjectTree(ObjectView obj) noexcept
       : obj{obj.RemoveConstReference()} {}
 
+  constexpr ObjectTree(Type type) noexcept : obj{ObjectView{type}} {}
+
   iterator begin() const { return {obj, true}; }
 
   iterator end() const noexcept { return {obj, false}; }
