@@ -26,10 +26,7 @@
 #include <MyTemplate/StdName/Name_unordered_set.h>
 #endif  // MY_MYDREFL_INCLUDE_ALL_STD_NAME
 
-#include <MyTemplate/Type.h>
-
 //#include <memory>
-#include <cassert>
 
 namespace My::MyDRefl {
 enum class MethodFlag {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <MyTemplate/Func.h>
+#include <MyTemplate/Type.h>
 
 #include <cstdint>
 #include <functional>
@@ -259,6 +260,19 @@ requires std::is_enum_v<Enum> constexpr Enum enum_remove(
 template <typename Enum>
 requires std::is_enum_v<Enum> constexpr Enum enum_within(
     const Enum& e, const Enum& flag) noexcept;
+
+// to <- from
+// - same
+// - reference
+// > - 0 (invalid), 1 (convertible)
+// > - table
+//     |     -     | T | T & | const T & | T&& | const T&& | const T |
+//     |       T   | - |  0  |     0     |  1  |     0     |    0    |
+//     |       T & | 0 |  -  |     0     |  0  |     0     |    0    |
+//     | const T & | 1 |  1  |     -     |  1  |     1     |    1    |
+//     |       T&& | 1 |  0  |     0     |  -  |     0     |    0    |
+//     | const T&& | 1 |  0  |     0     |  1  |     -     |    1    |
+constexpr bool is_ref_compatible(Type to, Type from) noexcept;
 
 ////////////
 // Traits //

@@ -249,20 +249,6 @@ class ReflMngr {
   // parameter <- argument
   // - same
   // - reference
-  // > - 0 (invalid), 1 (convertible)
-  // > - table
-  //     |     -     | T | T & | const T & | T&& | const T&& | const T |
-  //     |       T   | - |  0  |     0     |  1  |     0     |    0    |
-  //     |       T & | 0 |  -  |     0     |  0  |     0     |    0    |
-  //     | const T & | 1 |  1  |     -     |  1  |     1     |    1    |
-  //     |       T&& | 1 |  0  |     0     |  -  |     0     |    0    |
-  //     | const T&& | 1 |  0  |     0     |  1  |     -     |    1    |
-  static bool IsNonCopiedArgCompatible(std::span<const Type> paramTypes,
-                                       std::span<const Type> argTypes);
-
-  // parameter <- argument
-  // - same
-  // - reference
   // > - 0 (invalid), 1 (convertible), 2 (constructible)
   // > - table
   //     |    -     | T | T & | const T & | T&& | const T&& |
@@ -343,25 +329,15 @@ class ReflMngr {
   // - if the type doesn't contains any dtor, then we use trivial dtor (do nothing)
   //
 
-  bool IsNonCopiedArgConstructible(Type type,
-                                   std::span<const Type> argTypes = {}) const;
-  bool IsNonCopiedArgConstructible(
-      Type type, std::span<const TypeID> argTypeIDs = {}) const;
   bool IsConstructible(Type type, std::span<const Type> argTypes = {}) const;
   bool IsCopyConstructible(Type type) const;
   bool IsMoveConstructible(Type type) const;
   bool IsDestructible(Type type) const;
 
-  bool NonCopiedArgConstruct(ObjectView obj,
-                             std::span<const Type> argTypes = {},
-                             ArgPtrBuffer argptr_buffer = nullptr) const;
   bool Construct(ObjectView obj, std::span<const Type> argTypes = {},
                  ArgPtrBuffer argptr_buffer = nullptr) const;
   void Destruct(ObjectView obj) const;
 
-  ObjectView MNonCopiedArgNew(Type type, std::pmr::memory_resource* rsrc,
-                              std::span<const Type> argTypes = {},
-                              ArgPtrBuffer argptr_buffer = nullptr) const;
   ObjectView MNew(Type type, std::pmr::memory_resource* rsrc,
                   std::span<const Type> argTypes = {},
                   ArgPtrBuffer argptr_buffer = nullptr) const;
@@ -370,8 +346,6 @@ class ReflMngr {
                            ArgPtrBuffer argptr_buffer = nullptr) const;
   bool MDelete(ObjectView obj, std::pmr::memory_resource* rsrc) const;
 
-  ObjectView NonCopiedArgNew(Type type, std::span<const Type> argTypes = {},
-                             ArgPtrBuffer argptr_buffer = nullptr) const;
   ObjectView New(Type type, std::span<const Type> argTypes = {},
                  ArgPtrBuffer argptr_buffer = nullptr) const;
   SharedObject MakeShared(Type type, std::span<const Type> argTypes = {},
@@ -384,13 +358,8 @@ class ReflMngr {
   bool IsConstructible(Type type) const;
 
   template <typename... Args>
-  bool NonCopiedArgConstruct(ObjectView obj, Args&&... args) const;
-  template <typename... Args>
   bool Construct(ObjectView obj, Args&&... args) const;
 
-  template <typename... Args>
-  ObjectView MNonCopiedArgNew(Type type, std::pmr::memory_resource* rsrc,
-                              Args&&... args) const;
   template <typename... Args>
   ObjectView MNew(Type type, std::pmr::memory_resource* rsrc,
                   Args&&... args) const;
@@ -398,8 +367,6 @@ class ReflMngr {
   SharedObject MMakeShared(Type type, std::pmr::memory_resource* rsrc,
                            Args&&... args) const;
 
-  template <typename... Args>
-  ObjectView NonCopiedArgNew(Type type, Args&&... args) const;
   template <typename... Args>
   ObjectView New(Type type, Args&&... args) const;
   template <typename... Args>
@@ -436,20 +403,20 @@ class ReflMngr {
 
   // Gather (DFS)
 
-  std::vector<InfoTypeFieldPair> GetTypeFields(Type type,
-                                               FieldFlag flag = FieldFlag::All);
+  std::vector<InfoTypeFieldPair> GetTypeFields(
+      Type type, FieldFlag flag = FieldFlag ::All);
   std::vector<InfoTypeMethodPair> GetTypeMethods(
       Type type, MethodFlag flag = MethodFlag::All);
   std::vector<std::tuple<InfoTypePair, InfoFieldPair, ObjectView>>
-  GetTypeFieldVars(ObjectView obj, FieldFlag flag = FieldFlag::All);
+  GetTypeFieldVars(ObjectView obj, FieldFlag flag = FieldFlag ::All);
 
   std::vector<InfoTypePair> GetTypes(Type type);
   std::vector<InfoFieldPair> GetFields(Type type,
-                                       FieldFlag flag = FieldFlag::All);
+                                       FieldFlag flag = FieldFlag ::All);
   std::vector<InfoMethodPair> GetMethods(Type type,
                                          MethodFlag flag = MethodFlag::All);
   std::vector<ObjectView> GetVars(ObjectView obj,
-                                  FieldFlag flag = FieldFlag::All);
+                                  FieldFlag flag = FieldFlag ::All);
 
   // Find (DFS)
 
@@ -457,19 +424,19 @@ class ReflMngr {
                         const std::function<bool(InfoTypePair)>& func) const;
   InfoFieldPair FindField(Type type,
                           const std::function<bool(InfoFieldPair)>& func,
-                          FieldFlag flag = FieldFlag::All) const;
+                          FieldFlag flag = FieldFlag ::All) const;
   InfoMethodPair FindMethod(Type type,
                             const std::function<bool(InfoMethodPair)>& func,
                             MethodFlag flag = MethodFlag::All) const;
   ObjectView FindVar(ObjectView obj,
                      const std::function<bool(ObjectView)>& func,
-                     FieldFlag flag = FieldFlag::All) const;
+                     FieldFlag flag = FieldFlag ::All) const;
 
   // Contains (DFS)
 
   bool ContainsBase(Type type, Type base) const;
   bool ContainsField(Type type, Name field_name,
-                     FieldFlag flag = FieldFlag::All) const;
+                     FieldFlag flag = FieldFlag ::All) const;
   bool ContainsMethod(Type type, Name method_name,
                       MethodFlag flag = MethodFlag::All) const;
 
