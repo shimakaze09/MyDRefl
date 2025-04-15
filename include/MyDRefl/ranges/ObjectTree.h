@@ -2,21 +2,23 @@
 
 #include "common.h"
 
+#include <MyDRefl/Object.h>
+
 namespace My::MyDRefl {
-class TypeTree {
+class ObjectTree {
  public:
   // DFS
   // TypeInfo* and BaseInfo* maybe nullptr
   class iterator {
    public:
-    using value_type = std::tuple<Type, TypeInfo*>;
+    using value_type = std::tuple<TypeInfo*, ObjectView>;
     using reference = const value_type&;
     using pointer = const value_type*;
     using iterator_category = std::forward_iterator_tag;
 
     // true: begin
     // false: end
-    iterator(Type root, bool begin_or_end);
+    iterator(ObjectView obj, bool begin_or_end);
 
     iterator& operator++();
     iterator operator++(int);
@@ -35,32 +37,29 @@ class TypeTree {
     }
 
    private:
-    friend TypeTree;
+    friend ObjectTree;
 
     void update();
 
-    Type root;  // fixed
-
-    small_vector<Type, 8> visitedVBs;
-    small_vector<Ranges::Derived, 16> deriveds;
+    small_vector<Type, 4> visitedVBs;
+    small_vector<Ranges::Derived, 8> deriveds;
     bool curbase_valid;
     int mode;
 
     value_type value;
   };
 
-  constexpr explicit TypeTree(Type root) noexcept : root{root.RemoveCVRef()} {}
+  constexpr ObjectTree(ObjectView obj) noexcept
+      : obj{obj.RemoveConstReference()} {}
 
-  iterator begin() const { return {root, true}; }
+  iterator begin() const { return {obj, true}; }
 
-  iterator end() const noexcept { return {root, false}; }
-
-  Type GetType() const noexcept { return root; }
+  iterator end() const noexcept { return {obj, false}; }
 
  private:
-  Type root;  // raw
+  ObjectView obj;
 };
 
 template <typename T>
-static constexpr TypeTree TypeTree_of = TypeTree{Type_of<T>};
+static constexpr ObjectTree ObjectTree_of = ObjectTree{ObjectView_of<T>};
 }  // namespace My::MyDRefl

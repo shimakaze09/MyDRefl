@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TypeTree.h"
+#include "ObjectTree.h"
 
 namespace My::MyDRefl {
 // DFS
@@ -13,7 +13,7 @@ class MethodRange {
     using pointer = value_type*;
     using iterator_category = std::forward_iterator_tag;
 
-    iterator(TypeTree::iterator typeiter, MethodFlag flag = MethodFlag::All);
+    iterator(ObjectTree::iterator typeiter, MethodFlag flag = MethodFlag::All);
 
     iterator& operator++();
     iterator operator++(int);
@@ -31,31 +31,37 @@ class MethodRange {
       return typeiter.GetDeriveds();
     }
 
+    ObjectView GetObjectView() const { return std::get<ObjectView>(*typeiter); }
+
+    TypeInfo* GetTypeInfo() const { return std::get<TypeInfo*>(*typeiter); }
+
    private:
     void update();
-    TypeTree::iterator typeiter;
+    ObjectTree::iterator typeiter;
     MethodFlag flag;
     int mode;
     std::unordered_map<Name, MethodInfo>::iterator curmethod;
   };
 
-  constexpr MethodRange(Type root, MethodFlag flag) noexcept
-      : root_tree{TypeTree{root}}, flag{flag} {}
+  constexpr MethodRange(ObjectView obj, MethodFlag flag) noexcept
+      : objtree{ObjectTree{obj}}, flag{flag} {}
 
-  constexpr explicit MethodRange(Type root) noexcept
-      : MethodRange{root, MethodFlag::All} {}
+  constexpr explicit MethodRange(ObjectView obj) noexcept
+      : MethodRange{obj, MethodFlag::All} {}
 
-  iterator begin() const { return {root_tree.begin(), flag}; }
+  constexpr explicit MethodRange(Type type) noexcept
+      : MethodRange{ObjectView{type}, MethodFlag::All} {}
 
-  iterator end() const noexcept { return {root_tree.end(), flag}; }
+  iterator begin() const { return {objtree.begin(), flag}; }
 
-  Type GetType() const noexcept { return root_tree.GetType(); }
+  iterator end() const noexcept { return {objtree.end(), flag}; }
 
  private:
-  TypeTree root_tree;
+  ObjectTree objtree;
   MethodFlag flag;
 };
 
 template <typename T, MethodFlag flag = MethodFlag::All>
-static constexpr MethodRange MethodRange_of = MethodRange{Type_of<T>, flag};
+static constexpr MethodRange MethodRange_of =
+    MethodRange{ObjectView_of<T>, flag};
 }  // namespace My::MyDRefl

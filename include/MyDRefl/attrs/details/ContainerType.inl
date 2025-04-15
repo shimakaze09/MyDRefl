@@ -33,12 +33,12 @@ template <typename T>
 concept IsTuple = true && tuple_size<T>;
 
 template <typename T>
-concept IsArray = IsRawArray<T> && container_at_size<T> &&
-                  container_at_size<const T>
+concept IsArray =
+    IsRawArray<T> && container_at_size<T> && container_at_size<const T>
 
-                  && container_front<T> && container_front<const T>
+    && container_front<T> && container_front<const T>
 
-                  && container_back<T> && container_back<const T>;
+    && container_back<T> && container_back<const T>;
 
 template <typename T>
 concept IsVector =

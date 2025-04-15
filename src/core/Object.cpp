@@ -4,7 +4,7 @@
 
 #include <MyDRefl/ranges/FieldRange.h>
 #include <MyDRefl/ranges/MethodRange.h>
-#include <MyDRefl/ranges/TypeTree.h>
+#include <MyDRefl/ranges/ObjectTree.h>
 #include <MyDRefl/ranges/VarRange.h>
 
 using namespace My;
@@ -59,26 +59,6 @@ SharedObject ObjectView::Invoke(
   return Mngr.Invoke(*this, method_name, args, flag, temp_args_rsrc);
 }
 
-ObjectView ObjectView::RemoveConst() const {
-  return {type.RemoveConst(), ptr};
-}
-
-ObjectView ObjectView::RemoveLValueReference() const {
-  return {type.RemoveLValueReference(), ptr};
-}
-
-ObjectView ObjectView::RemoveRValueReference() const {
-  return {type.RemoveRValueReference(), ptr};
-}
-
-ObjectView ObjectView::RemoveReference() const {
-  return {type.RemoveReference(), ptr};
-}
-
-ObjectView ObjectView::RemoveConstReference() const {
-  return {type.RemoveCVRef(), ptr};
-}
-
 ObjectView ObjectView::AddConst() const {
   return {Mngr.tregistry.RegisterAddConst(type), ptr};
 }
@@ -128,16 +108,16 @@ ObjectView ObjectView::DynamicCast(Type type) const {
   return Mngr.DynamicCast(*this, type);
 }
 
-TypeTree ObjectView::GetTypeTree() const {
-  return TypeTree{type};
+ObjectTree ObjectView::GetObjectTree() const {
+  return ObjectTree{*this};
 }
 
 MethodRange ObjectView::GetMethods(MethodFlag flag) const {
-  return {type, flag};
+  return {*this, flag};
 }
 
 FieldRange ObjectView::GetFields(FieldFlag flag) const {
-  return {type, flag};
+  return {*this, flag};
 }
 
 VarRange ObjectView::GetVars(FieldFlag flag) const {

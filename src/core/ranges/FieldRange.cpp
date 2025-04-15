@@ -5,7 +5,7 @@
 using namespace My;
 using namespace My::MyDRefl;
 
-FieldRange::iterator::iterator(TypeTree::iterator typeiter, FieldFlag flag)
+FieldRange::iterator::iterator(ObjectTree::iterator typeiter, FieldFlag flag)
     : typeiter{std::move(typeiter)},
       flag{flag},
       mode{typeiter.Valid() ? 0 : -1} {

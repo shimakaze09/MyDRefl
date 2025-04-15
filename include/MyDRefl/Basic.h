@@ -105,7 +105,7 @@ struct FieldInfo;
 struct MethodInfo;
 class BaseInfo;
 
-class TypeTree;
+class ObjectTree;
 class VarRange;
 class FieldRange;
 class MethodRange;

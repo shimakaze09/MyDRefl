@@ -1,19 +1,18 @@
 #pragma once
 
-#include "../Basic.h"
+#include "../Object.h"
 
 #include <small_vector.h>
 
 namespace My::MyDRefl::Ranges {
 struct Derived {
-  Type type;
+  ObjectView obj;
   TypeInfo* typeinfo;  // not nullptr
   std::unordered_map<Type, BaseInfo>::iterator curbase;
 
-  void* ptr{nullptr};  // for VarRange
-
   friend bool operator==(const Derived& lhs, const Derived& rhs) {
-    return lhs.type == rhs.type && lhs.curbase == rhs.curbase;
+    return lhs.obj.GetType() == rhs.obj.GetType() &&
+           lhs.obj.GetPtr() == rhs.obj.GetPtr() && lhs.curbase == rhs.curbase;
   }
 };
 }  // namespace My::MyDRefl::Ranges
