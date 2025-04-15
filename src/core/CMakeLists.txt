@@ -42,6 +42,7 @@ ADD_TARGET(
         ${c_options_private}
         LIB
         My::MyTemplate_core
+        My::MySmallFlat_core
         DEFINE
         ${defines}
         PCH

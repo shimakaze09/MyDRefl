@@ -1573,10 +1573,9 @@ FieldPtr ReflMngr::GenerateFieldPtr() {
       return {Type_of<Value>, field_forward_offset_value(field_data)};
     }
   } else if constexpr (std::is_enum_v<FieldData>) {
-    using Value = std::remove_pointer_t<FieldData>;
-    RegisterType<Value>();
+    RegisterType<FieldData>();
     auto buffer = FieldPtr::ConvertToBuffer(field_data);
-    return {Type_of<Value>, buffer};
+    return {Type_of<const FieldData>, buffer};
   } else
     static_assert(always_false<FieldData>);
 }
@@ -1749,7 +1748,7 @@ template <auto field_data>
 bool ReflMngr::AddField(Name name, AttrSet attrs) {
   using FieldData = decltype(field_data);
   if constexpr (std::is_enum_v<FieldData>) {
-    return AddField(Type_of<std::remove_cv_t<FieldData>>, name,
+    return AddField(Type_of<const FieldData>, name,
                     {GenerateFieldPtr<field_data>(), std::move(attrs)});
   } else if constexpr (std::is_member_object_pointer_v<FieldData>) {
     return AddField(Type_of<member_pointer_traits_object<FieldData>>, name,
@@ -1768,7 +1767,7 @@ ReflMngr::AddField(Name name, T&& data, AttrSet attrs) {
     return AddField(Type_of<member_pointer_traits_object<RawT>>, name,
                     std::forward<T>(data), std::move(attrs));
   else if constexpr (std::is_enum_v<RawT>)
-    return AddField(Type_of<RawT>, name, std::forward<T>(data),
+    return AddField(Type_of<const RawT>, name, std::forward<T>(data),
                     std::move(attrs));
   else {
     using Traits = FuncTraits<RawT>;

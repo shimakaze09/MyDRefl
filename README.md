@@ -55,11 +55,11 @@ Mngr.AddMethod<&Vec::norm>("norm");
 ### Iterate over members
 
 ```c++
-for (auto&& field : Mngr.GetFields(Type_of<Vec>))
-  std::cout << field.name.GetView() << std::endl;
+for (auto&& [name, info] : FieldRange_of<Vec>)
+  std::cout << name.GetView() << std::endl;
 
-for (auto&& method : Mngr.GetMethods(Type_of<Vec>))
-  std::cout << method.name.GetView() << std::endl;
+for (auto&& [name, info] : MethodRange_of<Vec>)
+  std::cout << name.GetView() << std::endl;
 ```
 
 ### Constructing types
@@ -86,8 +86,8 @@ std::cout << "norm: " << v.Invoke("norm") << std::endl;
 ### Iterate over variables
 
 ```c++
-for (auto&& [type, field, var] : v.GetTypeFieldVars())
-  std::cout << field.name.GetView() << ": " << var << std::endl;
+for (auto&& [name, var] : v.GetVars())
+  std::cout << name.GetView() << ": " << var << std::endl;
 ```
 
 ### other example
@@ -99,7 +99,7 @@ for (auto&& [type, field, var] : v.GetTypeFieldVars())
 - [inheritance](src/test/06_inheritance/main.cpp)
 - [virtual inheritance](src/test/07_virtual/main.cpp)
 - [attr](src/test/08_attr/main.cpp)
-- [lifetime (ctor, dtor)](src/test/09_lifecycle/main.cpp)
+- [lifetime (ctor, dtor)](src/test/09_lifetime/main.cpp)
 - [dynamic field](src/test/10_dynamic/main.cpp)
 - [invoke](src/test/11_invoke/main.cpp)
 - [meta function](src/test/12_Meta/main.cpp)

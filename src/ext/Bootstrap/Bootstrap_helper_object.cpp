@@ -40,11 +40,7 @@ void My::MyDRefl::ext::details::Bootstrap_helper_object() {
                          return obj.Var(base, field_name);
                        });
 
-  Mngr.AddMethod<&ObjectView::GetTypeFieldVars>("GetTypeFieldVars");
   Mngr.AddMethod<&ObjectView::GetVars>("GetVars");
-  Mngr.AddMemberMethod("GetTypeFieldVars", [](const ObjectView& obj) {
-    return obj.GetTypeFieldVars();
-  });
   Mngr.AddMemberMethod("GetVars",
                        [](const ObjectView& obj) { return obj.GetVars(); });
 
