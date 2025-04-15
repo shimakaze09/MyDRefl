@@ -6,8 +6,9 @@
 
 - 0.8.3
     - rename meta
-    - refactor `BaseInfo` 
-    - `TypeInfo` += `bool is_polymorphic` 
+    - refactor `BaseInfo`
+    - `TypeInfo` += `bool is_polymorphic`
+    - data-driven `RegisterType`
 - 0.8.2
     - use concept for traits (operations, container API and flag)
     - let some APIs return fundamental type (`void`, `std::size_t`, `bool`)
@@ -37,13 +38,13 @@
    - operations: advance, distance, next, prev
    - `IsCompatible` support pointer and array (e.g. `const char[5]->const char*`)
 - :star: 0.8.0 [refactoring] : simplification, improve performance
-    - remove `ConstObjectPtr` and `SharedConstObject` 
-    - `TypeID` -> `Type`, `StrID` -> `Name` 
+    - remove `ConstObjectPtr` and `SharedConstObject`
+    - `TypeID` -> `Type`, `StrID` -> `Name`
     - simplify API
         - `IsInvocable`, ...
         - move APIs with `Type` to corresponding APIs with `ObjectView` 
         - use flag (`FieldFlag`, `MethodFlag`)
-    - remove `[aligned]malloc` and `[aligned]free` 
+    - remove `[aligned]malloc` and `[aligned]free`
     - fully support every type in C++ (reference, constant)
     
 ## 0.7
@@ -51,7 +52,7 @@
 - 0.7.3
     - support `std::pair` (first, second)
     - support `std::tuple`
-    - `IDRegistry` name require ending with `'\0'` 
+    - `IDRegistry` name require ending with `'\0'`
 - 0.7.2
     - add algorithm `Contains*`
     - `GetTemporaryResource` for user arguments buffer

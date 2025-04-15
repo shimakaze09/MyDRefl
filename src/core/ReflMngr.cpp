@@ -649,23 +649,12 @@ Name ReflMngr::AddTrivialDefaultConstructor(Type type) {
     assert(
         !baseinfo
              .IsPolymorphic());  // type isn't polymorphic => bases aren't polymorphic
-    if (baseinfo.IsVirtual() || !IsConstructible(basetype))
+    if (baseinfo.IsVirtual())
       return {};
   }
-  const auto& t = target->first;
   return AddMethod(
       type, NameIDRegistry::Meta::ctor,
-      MethodInfo{{[t](void* obj, void*, ArgsView) {
-                    auto& typeinfo = Mngr->typeinfos.at(t);
-                    for (const auto& [basetype, baseinfo] :
-                         typeinfo.baseinfos) {
-                      void* baseptr = baseinfo.StaticCast_DerivedToBase(obj);
-                      bool success =
-                          Mngr->Construct(ObjectView{basetype, baseptr});
-                      assert(success);
-                    }
-                  },
-                  MethodFlag::Variable}});
+      MethodInfo{{[](void* obj, void*, ArgsView) {}, MethodFlag::Variable}});
 }
 
 Name ReflMngr::AddTrivialCopyConstructor(Type type) {
@@ -673,11 +662,10 @@ Name ReflMngr::AddTrivialCopyConstructor(Type type) {
   if (target == typeinfos.end())
     return {};
   auto& typeinfo = target->second;
-  std::size_t size = typeinfo.size;
   return AddMethod(
       type, NameIDRegistry::Meta::ctor,
       MethodInfo{{
-          [size](void* obj, void*, ArgsView args) {
+          [size = typeinfo.size](void* obj, void*, ArgsView args) {
             memcpy(obj, args.At(0).GetPtr(), size);
           },
           MethodFlag::Variable,
@@ -695,22 +683,13 @@ Name ReflMngr::AddZeroDefaultConstructor(Type type) {
     assert(
         !baseinfo
              .IsPolymorphic());  // type isn't polymorphic => bases aren't polymorphic
-    if (baseinfo.IsVirtual() || !IsConstructible(basetype))
+    if (baseinfo.IsVirtual())
       return {};
   }
-  const auto& t = target->first;
   return AddMethod(
       type, NameIDRegistry::Meta::ctor,
-      MethodInfo{{[t](void* obj, void*, ArgsView) {
-                    auto& typeinfo = Mngr->typeinfos.at(t);
-                    std::memset(obj, 0, typeinfo.size);
-                    for (const auto& [basetype, baseinfo] :
-                         typeinfo.baseinfos) {
-                      void* baseptr = baseinfo.StaticCast_DerivedToBase(obj);
-                      bool success =
-                          Mngr->Construct(ObjectView{basetype, baseptr});
-                      assert(success);
-                    }
+      MethodInfo{{[size = target->second.size](void* obj, void*, ArgsView) {
+                    std::memset(obj, 0, size);
                   },
                   MethodFlag::Variable}});
 }
