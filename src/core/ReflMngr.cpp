@@ -785,7 +785,7 @@ Name ReflMngr::AddDestructor(Type type) {
                Mngr.Destruct(ObjectView{basetype, baseptr});
              }
            },
-           MethodFlag::Const}});
+           MethodFlag::Variable}});
 }
 
 Type ReflMngr::AddBase(Type derived, Type base, BaseInfo baseinfo) {
@@ -1285,7 +1285,7 @@ bool ReflMngr::IsDestructible(Type type) const {
   if (begin_iter == end_iter)
     return true;
   for (auto iter = begin_iter; iter != end_iter; ++iter) {
-    if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Const &&
+    if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Variable &&
         IsCompatible(iter->second.methodptr.GetParamList(), {}))
       return true;
   }
@@ -1324,7 +1324,7 @@ bool ReflMngr::Destruct(ObjectView obj) const {
   auto [begin_iter, end_iter] =
       typeinfo.methodinfos.equal_range(NameIDRegistry::Meta::dtor);
   for (auto iter = begin_iter; iter != end_iter; ++iter) {
-    if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Const &&
+    if (iter->second.methodptr.GetMethodFlag() == MethodFlag::Variable &&
         IsCompatible(iter->second.methodptr.GetParamList(), {})) {
       iter->second.methodptr.Invoke(obj.GetPtr(), nullptr, {});
       return true;
