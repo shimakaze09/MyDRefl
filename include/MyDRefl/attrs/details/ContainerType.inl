@@ -178,8 +178,10 @@ concept IsMultiMap = IsMultiSet<T> && container_mapped_type<T>;
 
 template <typename T>
 concept IsMap =
-    IsMultiMap<T> && container_at_key<T> && container_at_key<const T> &&
-    container_subscript_key_cl<T> && container_subscript_key_r<T>;
+    IsMultiMap<T> && container_at_key<T> && container_at_key<const T>
+    //&& container_subscript_key_cl<T>
+    //&& container_subscript_key_r<T>
+    ;
 
 template <typename T>
 concept IsUnorderedMultiSet =
@@ -215,9 +217,10 @@ concept IsUnorderedMultiMap =
 
 template <typename T>
 concept IsUnorderedMap =
-    IsUnorderedMultiMap<T> && container_at_key<T> &&
-    container_at_key<const T> && container_subscript_key_cl<T> &&
-    container_subscript_key_r<T>;
+    IsUnorderedMultiMap<T> && container_at_key<T> && container_at_key<const T>
+    //&& container_subscript_key_cl<T>
+    //&& container_subscript_key_r<T>
+    ;
 
 template <typename T>
 concept IsPair = IsTuple<T> && pair_first<T> && pair_second<T>;

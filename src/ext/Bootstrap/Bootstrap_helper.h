@@ -17,6 +17,7 @@ void Bootstrap_helper_info_4();
 void Bootstrap_helper_object();
 void Bootstrap_helper_ptr();
 void Bootstrap_helper_ranges_derived();
+void Bootstrap_helper_ranges_span_derived();
 void Bootstrap_helper_ranges_objecttree();
 void Bootstrap_helper_ranges_fieldrange();
 void Bootstrap_helper_ranges_methodrange();
