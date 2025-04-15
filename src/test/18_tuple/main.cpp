@@ -6,10 +6,10 @@ using namespace My;
 using namespace My::MyDRefl;
 
 int main() {
-  Mngr->RegisterType<std::tuple<int, float, double>>();
+  Mngr.RegisterType<std::tuple<int, float, double>>();
 
   for (auto&& method :
-       Mngr->GetMethods(Type_of<std::tuple<int, float, double>>)) {
+       Mngr.GetMethods(Type_of<std::tuple<int, float, double>>)) {
     std::cout << method.name.GetView() << ": ";
 
     std::cout << "[";
@@ -34,8 +34,8 @@ int main() {
     std::cout << ")" << std::endl;
   }
 
-  SharedObject v =
-      Mngr->MakeShared(Type_of<std::tuple<int, float, double>>, 3, 2, 1);
+  SharedObject v = Mngr.MakeShared(Type_of<std::tuple<int, float, double>>,
+                                   TempArgsView{3, 2, 1});
   std::cout << v.GetType().GetName() << std::endl;
 
   for (std::size_t i{0}; i < v.tuple_size(); i++)

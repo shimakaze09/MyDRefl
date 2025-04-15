@@ -6,9 +6,6 @@ namespace My::MyDRefl {
 constexpr Type GlobalType = TypeIDRegistry::Meta::global;
 constexpr ObjectView Global = {GlobalType, nullptr};
 
-extern ReflMngr* Mngr;
-extern const ObjectView MngrView;
-
 class ReflMngr {
  public:
   static ReflMngr& Instance() noexcept {
@@ -292,18 +289,20 @@ class ReflMngr {
   Type BInvoke(ObjectView obj, Name method_name, void* result_buffer = nullptr,
                ArgsView args = {}, MethodFlag flag = MethodFlag::All,
                std::pmr::memory_resource* temp_args_rsrc =
-                   Mngr->GetTemporaryResource()) const;
+                   ReflMngr_GetTemporaryResource()) const;
 
   SharedObject MInvoke(ObjectView obj, Name method_name,
-                       std::pmr::memory_resource* rst_rsrc,
-                       std::pmr::memory_resource* temp_args_rsrc,
-                       ArgsView args = {},
-                       MethodFlag flag = MethodFlag::All) const;
+                       std::pmr::memory_resource* rst_rsrc, ArgsView args = {},
+                       MethodFlag flag = MethodFlag::All,
+                       std::pmr::memory_resource* temp_args_rsrc =
+                           ReflMngr_GetTemporaryResource()) const;
 
   SharedObject Invoke(ObjectView obj, Name method_name, ArgsView args = {},
-                      MethodFlag flag = MethodFlag::All) const {
-    return MInvoke(obj, method_name, &object_resource, &temporary_resource,
-                   args, flag);
+                      MethodFlag flag = MethodFlag::All,
+                      std::pmr::memory_resource* temp_args_rsrc =
+                          ReflMngr_GetTemporaryResource()) const {
+    return MInvoke(obj, method_name, &object_resource, args, flag,
+                   temp_args_rsrc);
   }
 
   // -- template --
@@ -313,23 +312,10 @@ class ReflMngr {
                    MethodFlag flag = MethodFlag::All) const;
 
   template <typename T>
-  T BInvokeRet(ObjectView obj, Name method_name, ArgsView args = {},
-               MethodFlag flag = MethodFlag::All,
-               std::pmr::memory_resource* temp_args_rsrc =
-                   Mngr->GetTemporaryResource()) const;
-
-  template <typename T, typename... Args>
-  T BInvoke(ObjectView obj, Name method_name, MethodFlag flag,
-            std::pmr::memory_resource* temp_args_rsrc, Args&&... args) const;
-
-  template <typename... Args>
-  SharedObject MInvoke(ObjectView obj, Name method_name,
-                       std::pmr::memory_resource* rst_rsrc,
-                       std::pmr::memory_resource* temp_args_rsrc,
-                       MethodFlag flag, Args&&... args) const;
-
-  template <typename... Args>
-  SharedObject Invoke(ObjectView obj, Name method_name, Args&&... args) const;
+  T Invoke(ObjectView obj, Name method_name, ArgsView args = {},
+           MethodFlag flag = MethodFlag::All,
+           std::pmr::memory_resource* temp_args_rsrc =
+               Mngr.GetTemporaryResource()) const;
 
   //
   // Make
@@ -361,31 +347,6 @@ class ReflMngr {
 
   template <typename... Args>
   bool IsConstructible(Type type) const;
-
-  template <typename... Args>
-  bool Construct(ObjectView obj, Args&&... args) const;
-
-  template <typename... Args>
-  ObjectView MNew(Type type, std::pmr::memory_resource* rsrc,
-                  Args&&... args) const;
-  template <typename... Args>
-  SharedObject MMakeShared(Type type, std::pmr::memory_resource* rsrc,
-                           Args&&... args) const;
-
-  template <typename... Args>
-  ObjectView New(Type type, Args&&... args) const;
-  template <typename... Args>
-  SharedObject MakeShared(Type type, Args&&... args) const;
-
-  // - if T is not register, call RegisterType<T>()
-  // - call AddConstructor<T, Args...>()
-  template <typename T, typename... Args>
-  ObjectView NewAuto(Args... args);
-
-  // - if T is not register, call RegisterType<T>()
-  // - call AddConstructor<T, Args...>()
-  template <typename T, typename... Args>
-  SharedObject MakeSharedAuto(Args... args);
 
   //
   // Algorithm
@@ -458,6 +419,10 @@ class ReflMngr {
   // - New
   mutable std::pmr::synchronized_pool_resource object_resource;
 };
+
+inline static ReflMngr& Mngr = ReflMngr::Instance();
+inline static const ObjectView MngrView = {Type_of<ReflMngr>,
+                                           &ReflMngr::Instance()};
 }  // namespace My::MyDRefl
 
 #include "details/ReflMngr.inl"

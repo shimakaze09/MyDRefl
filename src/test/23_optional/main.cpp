@@ -6,8 +6,8 @@ using namespace My;
 using namespace My::MyDRefl;
 
 int main() {
-  Mngr->RegisterType<std::optional<float>>();
-  for (auto&& method : Mngr->GetMethods(Type_of<std::optional<float>>)) {
+  Mngr.RegisterType<std::optional<float>>();
+  for (auto&& method : Mngr.GetMethods(Type_of<std::optional<float>>)) {
     std::cout << method.name.GetView() << ": ";
 
     std::cout << "[";
@@ -32,7 +32,8 @@ int main() {
     std::cout << ")" << std::endl;
   }
 
-  SharedObject v = Mngr->MakeShared(Type_of<std::optional<float>>, 3);
+  SharedObject v =
+      Mngr.MakeShared(Type_of<std::optional<float>>, TempArgsView{3});
   std::cout << v.GetType().GetName() << std::endl;
 
   std::cout << v.has_value() << std::endl;

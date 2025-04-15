@@ -6,10 +6,10 @@ using namespace My;
 using namespace My::MyDRefl;
 
 int main() {
-  Mngr->RegisterType<std::variant<int, float, double>>();
+  Mngr.RegisterType<std::variant<int, float, double>>();
 
   for (auto&& method :
-       Mngr->GetMethods(Type_of<std::variant<int, float, double>>)) {
+       Mngr.GetMethods(Type_of<std::variant<int, float, double>>)) {
     std::cout << method.name.GetView() << ": ";
 
     std::cout << "[";
@@ -35,8 +35,8 @@ int main() {
   }
 
   {
-    SharedObject v =
-        Mngr->MakeShared(Type_of<std::variant<int, float, double>>, 3.);
+    SharedObject v = Mngr.MakeShared(Type_of<std::variant<int, float, double>>,
+                                     TempArgsView{3.});
     std::cout << v.GetType().GetName() << std::endl;
     std::cout << v.variant_visit_get().GetType().GetName() << std::endl;
 

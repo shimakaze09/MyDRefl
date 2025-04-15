@@ -1408,70 +1408,91 @@ struct TypeAutoRegister_Default {
           });
 
     if constexpr (IsVector<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::Vector));
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::Vector}));
     else if constexpr (IsArray<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::Array));
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::Array}));
     else if constexpr (IsRawArray<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::RawArray));
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::RawArray}));
     else if constexpr (IsDeque<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::Deque));
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::Deque}));
     else if constexpr (IsForwardList<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::ForwardList));
+      mngr.AddTypeAttr(
+          Type_of<T>,
+          mngr.MakeShared(Type_of<ContainerType>,
+                          TempArgsView{ContainerType::ForwardList}));
     else if constexpr (IsList<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::List));
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::List}));
     else if constexpr (IsMap<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::Map));
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::Map}));
     else if constexpr (IsMultiMap<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::MultiMap));
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::MultiMap}));
     else if constexpr (IsSet<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::Set));
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::Set}));
     else if constexpr (IsMultiSet<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::MultiSet));
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::MultiSet}));
     else if constexpr (IsUnorderedMap<T>)
       mngr.AddTypeAttr(
           Type_of<T>,
-          mngr.MakeShared(Type_of<ContainerType>, ContainerType::UnorderedMap));
+          mngr.MakeShared(Type_of<ContainerType>,
+                          TempArgsView{ContainerType::UnorderedMap}));
     else if constexpr (IsUnorderedMultiMap<T>)
-      mngr.AddTypeAttr(Type_of<T>,
-                       mngr.MakeShared(Type_of<ContainerType>,
-                                       ContainerType::UnorderedMultiMap));
+      mngr.AddTypeAttr(
+          Type_of<T>,
+          mngr.MakeShared(Type_of<ContainerType>,
+                          TempArgsView{ContainerType::UnorderedMultiMap}));
     else if constexpr (IsUnorderedSet<T>)
       mngr.AddTypeAttr(
           Type_of<T>,
-          mngr.MakeShared(Type_of<ContainerType>, ContainerType::UnorderedSet));
+          mngr.MakeShared(Type_of<ContainerType>,
+                          TempArgsView{ContainerType::UnorderedSet}));
     else if constexpr (IsUnorderedMultiSet<T>)
-      mngr.AddTypeAttr(Type_of<T>,
-                       mngr.MakeShared(Type_of<ContainerType>,
-                                       ContainerType::UnorderedMultiSet));
+      mngr.AddTypeAttr(
+          Type_of<T>,
+          mngr.MakeShared(Type_of<ContainerType>,
+                          TempArgsView{ContainerType::UnorderedMultiSet}));
     else if constexpr (IsStack<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::Stack));
-    else if constexpr (IsPriorityQueue<T>)
       mngr.AddTypeAttr(Type_of<T>,
                        mngr.MakeShared(Type_of<ContainerType>,
-                                       ContainerType::PriorityQueue));
+                                       TempArgsView{ContainerType::Stack}));
+    else if constexpr (IsPriorityQueue<T>)
+      mngr.AddTypeAttr(
+          Type_of<T>,
+          mngr.MakeShared(Type_of<ContainerType>,
+                          TempArgsView{ContainerType::PriorityQueue}));
     else if constexpr (IsQueue<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::Queue));
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::Queue}));
     else if constexpr (IsPair<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::Pair));
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::Pair}));
     else if constexpr (IsTuple<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::Tuple));
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::Tuple}));
     else if constexpr (IsSpan<T>)
-      mngr.AddTypeAttr(Type_of<T>, mngr.MakeShared(Type_of<ContainerType>,
-                                                   ContainerType::Span));
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::Span}));
 
     // - type
 
@@ -1638,7 +1659,8 @@ FieldPtr ReflMngr::GenerateDynamicFieldPtr(Args&&... args) {
         FieldPtr::ConvertToBuffer(T{std::forward<Args>(args)...});
     return FieldPtr{Type_of<T>, buffer};
   } else
-    return FieldPtr{MakeShared(Type_of<RawT>, std::forward<Args>(args)...)};
+    return FieldPtr{
+        MakeShared(Type_of<RawT>, TempArgsView{std::forward<Args>(args)...})};
 }
 
 template <typename... Params>
@@ -1822,65 +1844,22 @@ bool ReflMngr::AddBases() {
 template <typename... Args>
 Type ReflMngr::IsInvocable(Type type, Name method_name, MethodFlag flag) const {
   constexpr Type argTypes[] = {Type_of<Args>...};
-  return IsInvocable(type, method_name, std::span<const Type>{argTypes}, flag);
+  return IsInvocable(type, method_name, argTypes, flag);
 }
 
 template <typename T>
-T ReflMngr::BInvokeRet(ObjectView obj, Name method_name, ArgsView args,
-                       MethodFlag flag,
-                       std::pmr::memory_resource* temp_args_rsrc) const {
+T ReflMngr::Invoke(ObjectView obj, Name method_name, ArgsView args,
+                   MethodFlag flag,
+                   std::pmr::memory_resource* temp_args_rsrc) const {
   if constexpr (!std::is_void_v<T>) {
     using U =
         std::conditional_t<std::is_reference_v<T>, std::add_pointer_t<T>, T>;
     std::aligned_storage_t<sizeof(U), alignof(U)> result_buffer;
     Type result_type =
-        BInvoke(obj, method_name, static_cast<void*>(&result_buffer), args,
-                flag, temp_args_rsrc);
+        BInvoke(obj, method_name, &result_buffer, args, flag, temp_args_rsrc);
     return MoveResult<T>(result_type, &result_buffer);
   } else
-    BInvoke(obj, method_name, (void*)nullptr, args, flag, temp_args_rsrc);
-}
-
-template <typename T, typename... Args>
-T ReflMngr::BInvoke(ObjectView obj, Name method_name, MethodFlag flag,
-                    std::pmr::memory_resource* temp_args_rsrc,
-                    Args&&... args) const {
-  if constexpr (sizeof...(Args) > 0) {
-    constexpr Type argTypes[] = {Type_of<decltype(args)>...};
-    void* const argptr_buffer[] = {
-        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return BInvokeRet<T>(obj, method_name, ArgsView{argptr_buffer, argTypes},
-                         flag, temp_args_rsrc);
-  } else
-    return BInvokeRet<T>(obj, method_name, ArgsView{}, flag, temp_args_rsrc);
-}
-
-template <typename... Args>
-SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
-                               std::pmr::memory_resource* rst_rsrc,
-                               std::pmr::memory_resource* temp_args_rsrc,
-                               MethodFlag flag, Args&&... args) const {
-  if constexpr (sizeof...(Args) > 0) {
-    constexpr Type argTypes[] = {Type_of<decltype(args)>...};
-    void* const argptr_buffer[] = {
-        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return MInvoke(obj, method_name, rst_rsrc, temp_args_rsrc,
-                   ArgsView{argptr_buffer, argTypes}, flag);
-  } else
-    return MInvoke(obj, method_name, rst_rsrc, temp_args_rsrc, ArgsView{},
-                   flag);
-}
-
-template <typename... Args>
-SharedObject ReflMngr::Invoke(ObjectView obj, Name method_name,
-                              Args&&... args) const {
-  if constexpr (sizeof...(Args) > 0) {
-    constexpr Type argTypes[] = {Type_of<decltype(args)>...};
-    void* const argptr_buffer[] = {
-        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return Invoke(obj, method_name, ArgsView{argptr_buffer, argTypes});
-  } else
-    return Invoke(obj, method_name);
+    BInvoke(obj, method_name, nullptr, args, flag, temp_args_rsrc);
 }
 
 //
@@ -1891,68 +1870,5 @@ template <typename... Args>
 bool ReflMngr::IsConstructible(Type type) const {
   constexpr Type argTypes[] = {Type_of<Args>...};
   return IsConstructible(type, std::span<const Type>{argTypes});
-}
-
-template <typename... Args>
-bool ReflMngr::Construct(ObjectView obj, Args&&... args) const {
-  if constexpr (sizeof...(Args) > 0) {
-    constexpr Type argTypes[] = {Type_of<decltype(args)>...};
-    void* const argptr_buffer[] = {
-        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return Construct(obj, ArgsView{argptr_buffer, argTypes});
-  } else
-    return Construct(obj);
-}
-
-template <typename... Args>
-ObjectView ReflMngr::MNew(Type type, std::pmr::memory_resource* rsrc,
-                          Args&&... args) const {
-  if constexpr (sizeof...(Args) > 0) {
-    constexpr Type argTypes[] = {Type_of<decltype(args)>...};
-    void* const argptr_buffer[] = {
-        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return MNew(type, rsrc, ArgsView{argptr_buffer, argTypes});
-  } else
-    return MNew(type, rsrc);
-}
-
-template <typename... Args>
-SharedObject ReflMngr::MMakeShared(Type type, std::pmr::memory_resource* rsrc,
-                                   Args&&... args) const {
-  if constexpr (sizeof...(Args) > 0) {
-    constexpr Type argTypes[] = {Type_of<decltype(args)>...};
-    void* const argptr_buffer[] = {
-        const_cast<void*>(reinterpret_cast<const void*>(&args))...};
-    return MMakeShared(type, rsrc, ArgsView{argptr_buffer, argTypes});
-  } else
-    return MMakeShared(type, rsrc);
-}
-
-template <typename... Args>
-ObjectView ReflMngr::New(Type type, Args&&... args) const {
-  return MNew(type, &object_resource, std::forward<Args>(args)...);
-}
-
-template <typename... Args>
-SharedObject ReflMngr::MakeShared(Type type, Args&&... args) const {
-  return MMakeShared(type, &object_resource, std::forward<Args>(args)...);
-}
-
-template <typename T, typename... Args>
-ObjectView ReflMngr::NewAuto(Args... args) {
-  static_assert(!std::is_const_v<T> && !std::is_volatile_v<T> &&
-                !std::is_reference_v<T>);
-  RegisterType<T>();
-  AddConstructor<T, Args...>();
-  return New(Type_of<T>, std::forward<Args>(args)...);
-}
-
-template <typename T, typename... Args>
-SharedObject ReflMngr::MakeSharedAuto(Args... args) {
-  static_assert(!std::is_const_v<T> && !std::is_volatile_v<T> &&
-                !std::is_reference_v<T>);
-  RegisterType<T>();
-  AddConstructor<T, Args...>();
-  return MakeShared(Type_of<T>, std::forward<Args>(args)...);
 }
 }  // namespace My::MyDRefl

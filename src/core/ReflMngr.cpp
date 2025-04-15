@@ -9,15 +9,11 @@
 using namespace My;
 using namespace My::MyDRefl;
 
-ReflMngr* My::MyDRefl::Mngr = &ReflMngr::Instance();
-const ObjectView My::MyDRefl::MngrView = {Type_of<ReflMngr>,
-                                          &ReflMngr::Instance()};
-
 namespace My::MyDRefl::details {
 DeleteFunc GenerateDeleteFunc(Type type, std::pmr::memory_resource* result_rsrc,
                               size_t size, size_t alignment) {
   return [type, result_rsrc, size, alignment](void* ptr) {
-    Mngr->Destruct(ObjectView{type, ptr});
+    Mngr.Destruct(ObjectView{type, ptr});
     result_rsrc->deallocate(ptr, size, alignment);
   };
 }
@@ -28,8 +24,8 @@ static ObjectView StaticCast_DerivedToBase(ObjectView obj, Type type) {
   if (obj.GetType() == type)
     return obj;
 
-  auto target = Mngr->typeinfos.find(obj.GetType());
-  if (target == Mngr->typeinfos.end())
+  auto target = Mngr.typeinfos.find(obj.GetType());
+  if (target == Mngr.typeinfos.end())
     return {};
 
   const auto& typeinfo = target->second;
@@ -51,8 +47,8 @@ static ObjectView StaticCast_BaseToDerived(ObjectView obj, Type type) {
   if (obj.GetType() == type)
     return obj;
 
-  auto target = Mngr->typeinfos.find(type);
-  if (target == Mngr->typeinfos.end())
+  auto target = Mngr.typeinfos.find(type);
+  if (target == Mngr.typeinfos.end())
     return {};
 
   const auto& typeinfo = target->second;
@@ -74,8 +70,8 @@ static ObjectView DynamicCast_BaseToDerived(ObjectView obj, Type type) {
   if (obj.GetType() == type)
     return obj;
 
-  auto target = Mngr->typeinfos.find(obj.GetType());
-  if (target == Mngr->typeinfos.end())
+  auto target = Mngr.typeinfos.find(obj.GetType());
+  if (target == Mngr.typeinfos.end())
     return {};
 
   const auto& typeinfo = target->second;
@@ -96,8 +92,8 @@ static ObjectView DynamicCast_BaseToDerived(ObjectView obj, Type type) {
 static ObjectView Var(ObjectView obj, Name field_name, FieldFlag flag) {
   assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
-  auto ttarget = Mngr->typeinfos.find(obj.GetType());
-  if (ttarget == Mngr->typeinfos.end())
+  auto ttarget = Mngr.typeinfos.find(obj.GetType());
+  if (ttarget == Mngr.typeinfos.end())
     return {};
 
   auto& typeinfo = ttarget->second;
@@ -121,9 +117,9 @@ static ObjectView Var(ObjectView obj, Name field_name, FieldFlag flag) {
 static Type IsInvocable(bool is_priority, Type type, Name method_name,
                         std::span<const Type> argTypes, MethodFlag flag) {
   assert(type.GetCVRefMode() == CVRefMode::None);
-  auto typetarget = Mngr->typeinfos.find(type);
+  auto typetarget = Mngr.typeinfos.find(type);
 
-  if (typetarget == Mngr->typeinfos.end())
+  if (typetarget == Mngr.typeinfos.end())
     return {};
 
   const auto& typeinfo = typetarget->second;
@@ -137,8 +133,8 @@ static Type IsInvocable(bool is_priority, Type type, Name method_name,
           (is_priority
                ? IsPriorityCompatible(iter->second.methodptr.GetParamList(),
                                       argTypes)
-               : Mngr->IsCompatible(iter->second.methodptr.GetParamList(),
-                                    argTypes))) {
+               : Mngr.IsCompatible(iter->second.methodptr.GetParamList(),
+                                   argTypes))) {
         return iter->second.methodptr.GetResultType();
       }
     }
@@ -151,8 +147,8 @@ static Type IsInvocable(bool is_priority, Type type, Name method_name,
           (is_priority
                ? IsPriorityCompatible(iter->second.methodptr.GetParamList(),
                                       argTypes)
-               : Mngr->IsCompatible(iter->second.methodptr.GetParamList(),
-                                    argTypes))) {
+               : Mngr.IsCompatible(iter->second.methodptr.GetParamList(),
+                                   argTypes))) {
         return iter->second.methodptr.GetResultType();
       }
     }
@@ -171,9 +167,9 @@ static Type BInvoke(bool is_priority, std::pmr::memory_resource* args_rsrc,
                     ArgsView args, MethodFlag flag) {
   assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
-  auto typetarget = Mngr->typeinfos.find(obj.GetType());
+  auto typetarget = Mngr.typeinfos.find(obj.GetType());
 
-  if (typetarget == Mngr->typeinfos.end())
+  if (typetarget == Mngr.typeinfos.end())
     return {};
 
   const auto& typeinfo = typetarget->second;
@@ -228,9 +224,9 @@ static SharedObject MInvoke(bool is_priority,
   assert(args_rsrc);
   assert(rst_rsrc);
   assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
-  auto typetarget = Mngr->typeinfos.find(obj.GetType());
+  auto typetarget = Mngr.typeinfos.find(obj.GetType());
 
-  if (typetarget == Mngr->typeinfos.end())
+  if (typetarget == Mngr.typeinfos.end())
     return {};
 
   const auto& typeinfo = typetarget->second;
@@ -270,7 +266,7 @@ static SharedObject MInvoke(bool is_priority,
                                         guard.GetArgsView());
           return buffer;
         } else {
-          auto* result_typeinfo = Mngr->GetTypeInfo(rst_type);
+          auto* result_typeinfo = Mngr.GetTypeInfo(rst_type);
           if (!result_typeinfo)
             return {};
           void* result_buffer = rst_rsrc->allocate(result_typeinfo->size,
@@ -318,7 +314,7 @@ static SharedObject MInvoke(bool is_priority,
                                         guard.GetArgsView());
           return buffer;
         } else {
-          auto* result_typeinfo = Mngr->GetTypeInfo(rst_type);
+          auto* result_typeinfo = Mngr.GetTypeInfo(rst_type);
           if (!result_typeinfo)
             return {};
           void* result_buffer = rst_rsrc->allocate(result_typeinfo->size,
@@ -350,9 +346,9 @@ static bool ForEachTypeInfo(Type type,
                             const std::function<bool(InfoTypePair)>& func,
                             std::set<TypeID>& visitedVBs) {
   assert(type.GetCVRefMode() == CVRefMode::None);
-  auto target = Mngr->typeinfos.find(type);
+  auto target = Mngr.typeinfos.find(type);
 
-  if (target == Mngr->typeinfos.end())
+  if (target == Mngr.typeinfos.end())
     return true;
 
   auto& typeinfo = target->second;
@@ -380,9 +376,9 @@ static bool ForEachVar(
     FieldFlag flag, std::set<TypeID>& visitedVBs) {
   assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
-  auto target = Mngr->typeinfos.find(obj.GetType());
+  auto target = Mngr.typeinfos.find(obj.GetType());
 
-  if (target == Mngr->typeinfos.end())
+  if (target == Mngr.typeinfos.end())
     return true;
 
   auto& typeinfo = target->second;
@@ -415,8 +411,8 @@ static bool ForEachVar(
 static bool ContainsField(Type type, Name field_name, FieldFlag flag) {
   assert(type.GetCVRefMode() == CVRefMode::None);
 
-  auto ttarget = Mngr->typeinfos.find(type);
-  if (ttarget == Mngr->typeinfos.end())
+  auto ttarget = Mngr.typeinfos.find(type);
+  if (ttarget == Mngr.typeinfos.end())
     return false;
 
   auto& typeinfo = ttarget->second;
@@ -436,8 +432,8 @@ static bool ContainsField(Type type, Name field_name, FieldFlag flag) {
 static bool ContainsMethod(Type type, Name method_name, MethodFlag flag) {
   assert(type.GetCVRefMode() == CVRefMode::None);
 
-  auto ttarget = Mngr->typeinfos.find(type);
-  if (ttarget == Mngr->typeinfos.end())
+  auto ttarget = Mngr.typeinfos.find(type);
+  if (ttarget == Mngr.typeinfos.end())
     return false;
 
   auto& typeinfo = ttarget->second;
@@ -721,10 +717,10 @@ Name ReflMngr::AddDefaultConstructor(Type type) {
       type, NameIDRegistry::Meta::ctor,
       MethodInfo{
           {[t](void* obj, void*, ArgsView) {
-             const auto& typeinfo = Mngr->typeinfos.at(t);
+             const auto& typeinfo = Mngr.typeinfos.at(t);
              for (const auto& [basetype, baseinfo] : typeinfo.baseinfos) {
                void* baseptr = baseinfo.StaticCast_DerivedToBase(obj);
-               bool success = Mngr->Construct(ObjectView{basetype, baseptr});
+               bool success = Mngr.Construct(ObjectView{basetype, baseptr});
                assert(success);
              }
 
@@ -736,7 +732,7 @@ Name ReflMngr::AddDefaultConstructor(Type type) {
                  buffer_as<void*>(fieldinfo.fieldptr.Var(obj).GetPtr()) =
                      nullptr;
                else
-                 Mngr->Construct(fieldinfo.fieldptr.Var(obj));
+                 Mngr.Construct(fieldinfo.fieldptr.Var(obj));
              }
            },
            MethodFlag::Variable}});
@@ -768,7 +764,7 @@ Name ReflMngr::AddDestructor(Type type) {
       type, NameIDRegistry::Meta::dtor,
       MethodInfo{
           {[t](void* obj, void*, ArgsView) {
-             const auto& typeinfo = Mngr->typeinfos.at(t);
+             const auto& typeinfo = Mngr.typeinfos.at(t);
 
              for (const auto& [fieldname, fieldinfo] : typeinfo.fieldinfos) {
                if (fieldinfo.fieldptr.GetFieldFlag() == FieldFlag::Unowned)
@@ -776,12 +772,12 @@ Name ReflMngr::AddDestructor(Type type) {
                Type ftype = fieldinfo.fieldptr.GetType();
                if (ftype.IsReference())
                  continue;
-               Mngr->Destruct(fieldinfo.fieldptr.Var(obj));
+               Mngr.Destruct(fieldinfo.fieldptr.Var(obj));
              }
 
              for (const auto& [basetype, baseinfo] : typeinfo.baseinfos) {
                void* baseptr = baseinfo.StaticCast_DerivedToBase(obj);
-               Mngr->Destruct(ObjectView{basetype, baseptr});
+               Mngr.Destruct(ObjectView{basetype, baseptr});
              }
            },
            MethodFlag::Const}});
@@ -850,7 +846,7 @@ SharedObject ReflMngr::MMakeShared(Type type, std::pmr::memory_resource* rsrc,
     return {};
 
   return {obj, [rsrc, type](void* ptr) {
-            Mngr->MDelete({type, ptr}, rsrc);
+            Mngr.MDelete({type, ptr}, rsrc);
           }};
 }
 
@@ -1108,6 +1104,8 @@ Type ReflMngr::IsInvocable(Type type, Name method_name,
 Type ReflMngr::BInvoke(ObjectView obj, Name method_name, void* result_buffer,
                        ArgsView args, MethodFlag flag,
                        std::pmr::memory_resource* temp_args_rsrc) const {
+  assert(temp_args_rsrc);
+
   ObjectView rawObj;
   const CVRefMode cvref_mode = obj.GetType().GetCVRefMode();
   assert(!CVRefMode_IsVolatile(cvref_mode));
@@ -1143,10 +1141,10 @@ Type ReflMngr::BInvoke(ObjectView obj, Name method_name, void* result_buffer,
                           result_buffer, args, flag);
 }
 
-SharedObject ReflMngr::MInvoke(ObjectView obj, Name method_name,
-                               std::pmr::memory_resource* rst_rsrc,
-                               std::pmr::memory_resource* temp_args_rsrc,
-                               ArgsView args, MethodFlag flag) const {
+SharedObject ReflMngr::MInvoke(
+    ObjectView obj, Name method_name, std::pmr::memory_resource* rst_rsrc,
+    ArgsView args, MethodFlag flag,
+    std::pmr::memory_resource* temp_args_rsrc) const {
   assert(rst_rsrc);
   assert(temp_args_rsrc);
 
