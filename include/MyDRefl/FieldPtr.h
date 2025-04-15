@@ -59,33 +59,21 @@ class FieldPtr {
   }
 
   explicit constexpr FieldPtr(ObjectView static_obj) noexcept
-      : FieldPtr{static_obj.GetType(), static_obj.GetPtr()} {}
+      : type{static_obj.GetType()}, data{static_obj.GetPtr()} {
+    assert(type && static_obj.GetPtr());
+  }
 
   explicit FieldPtr(SharedObject obj) noexcept
       : type{obj.GetType()}, data{std::move(obj.GetBuffer())} {
     assert(type && std::get<3>(data));
   }
 
-  FieldPtr(Type type, const Buffer& buffer) noexcept
+  constexpr FieldPtr(Type type, const Buffer& buffer) noexcept
       : type{type}, data{buffer} {
     assert(type);
   }
 
   constexpr Type GetType() const noexcept { return type; }
-
-  constexpr bool IsBasic() const noexcept { return data.index() == 0; }
-
-  constexpr bool IsVirtual() const noexcept { return data.index() == 1; }
-
-  constexpr bool IsStatic() const noexcept { return data.index() == 2; }
-
-  constexpr bool IsDynamicShared() const noexcept { return data.index() == 3; }
-
-  constexpr bool IsDyanmicBuffer() const noexcept { return data.index() == 4; }
-
-  constexpr bool IsOwned() const noexcept { return data.index() < 2; }
-
-  constexpr bool IsUnowned() const noexcept { return data.index() >= 2; }
 
   constexpr FieldFlag GetFieldFlag() const noexcept;
 
