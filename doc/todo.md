@@ -42,4 +42,3 @@
 - [x] simplify `MethodPtr::func`
 - [ ] property
 - [x] data-driven API
-- [ ] const param in APIs

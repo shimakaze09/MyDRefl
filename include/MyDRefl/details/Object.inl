@@ -350,8 +350,8 @@ inline SharedObject ObjectView::crend() const {
 // - capacity
 
 inline bool ObjectView::empty() const {
-  Invoke<bool>(NameIDRegistry::Meta::container_empty, ArgsView{},
-               MethodFlag::Const);
+  return Invoke<bool>(NameIDRegistry::Meta::container_empty, ArgsView{},
+                      MethodFlag::Const);
 }
 
 inline std::size_t ObjectView::size() const {
