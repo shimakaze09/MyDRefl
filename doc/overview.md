@@ -46,3 +46,11 @@ Some basic operations are described in README.md.
 Additional details:
 - Retrieving a member variable will search the inheritance hierarchy.
 - Calling a member function will search the inheritance hierarchy, decide on an overloaded function by parameter types, and can convert arguments dynamically during the call (e.g., if the function requires an int but a float is provided, the library will convert the parameter).
+
+## 4. Extension
+
+### 4.1 Bootstrapping
+
+We have registered most of the library’s types into the dynamic reflection library, completing its bootstrapping process.
+
+Enable the `My_MyDRefl_Build_ext_Bootstrap` option in CMake to build the related project.
