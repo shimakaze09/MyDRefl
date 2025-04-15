@@ -20,9 +20,14 @@ struct Funcs {
     std::cout << "f(const std::uint8_t&&)" << std::endl;
   }
 
-  void g(const char*) { std::cout << "f(const char*)" << std::endl; }
+  void f(ObjectView obj) {
+    std::cout << "f(ObjectView) [" << obj.GetType().GetName() << "]" << obj
+              << std::endl;
+  }
 
-  void g(int (&&)[]) { std::cout << "f(int(&&)[])" << std::endl; }
+  void g(const char*) { std::cout << "g(const char*)" << std::endl; }
+
+  void g(int (&&)[]) { std::cout << "g(int(&&)[])" << std::endl; }
 };
 
 int main() {
@@ -34,6 +39,7 @@ int main() {
   Mngr->AddMethod<MemFuncOf<Funcs, void(std::uint8_t&&)>::get(&Funcs::f)>("f");
   Mngr->AddMethod<MemFuncOf<Funcs, void(const std::uint8_t&&)>::get(&Funcs::f)>(
       "f");
+  Mngr->AddMethod<MemFuncOf<Funcs, void(ObjectView)>::get(&Funcs::f)>("f");
   Mngr->AddMethod<MemFuncOf<Funcs, void(const char*)>::get(&Funcs::g)>("g");
   Mngr->AddMethod<MemFuncOf<Funcs, void(int (&&)[])>::get(&Funcs::g)>("g");
 
@@ -49,6 +55,8 @@ int main() {
   funcs.BInvoke<void>("f", MethodFlag::All, std::move(i));
   funcs.BInvoke<void>("f", MethodFlag::All,
                       static_cast<const std::uint8_t&&>(ci));
+  funcs.BInvoke<void>("f", MethodFlag::All, std::string_view{"hello world"});
+  funcs.BInvoke<void>("f", MethodFlag::All, std::string{"hello world"});
 
   int arr_i[5];
   funcs.BInvoke<void>("g", MethodFlag::All, "hello");  // const char(&)[6]

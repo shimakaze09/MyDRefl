@@ -28,10 +28,8 @@ void My::MyDRefl::ext::details::Bootstrap_helper_ptr() {
   Mngr->RegisterType<ArgPtrBuffer>();
 
   Mngr->RegisterType<ArgsView>();
-  Mngr->AddConstructor<ArgsView, ArgPtrBuffer, const ParamList&>();
-  Mngr->AddMethod<&ArgsView::GetBuffer>("GetBuffer");
-  Mngr->AddMethod<&ArgsView::GetParamList>("GetParamList");
-  Mngr->AddMethod<&ArgsView::At>("At");
+  Mngr->AddConstructor<ArgsView, ArgPtrBuffer, std::span<const Type>>();
+  Mngr->AddMethod<&ArgsView::Size>("Size");
 
   Mngr->RegisterType<MethodPtr::Func>();
   Mngr->RegisterType<MethodPtr>();

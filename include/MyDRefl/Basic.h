@@ -59,6 +59,9 @@ using SharedBuffer = std::shared_ptr<void>;
 class ObjectView;
 class SharedObject;
 
+// pointer const array type (pointer is const, and pointer to non - const / referenced object)
+using ArgPtrBuffer = void* const*;
+
 template <typename T>
 struct IsObjectOrView {
  private:
