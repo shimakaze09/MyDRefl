@@ -1571,9 +1571,9 @@ bool ReflMngr::AddField(Name name, AttrSet attrs) {
                   "field_data, attrs)");
 }
 
-template <typename T,
-          std::enable_if_t<!std::is_same_v<std::decay_t<T>, FieldInfo>, int>>
-bool ReflMngr::AddField(Name name, T&& data, AttrSet attrs) {
+template <typename T>
+requires std::negation_v<std::is_same<std::decay_t<T>, FieldInfo>> bool
+ReflMngr::AddField(Name name, T&& data, AttrSet attrs) {
   using RawT = std::remove_cv_t<std::remove_reference_t<T>>;
   if constexpr (std::is_member_object_pointer_v<RawT>)
     return AddField(Type_of<member_pointer_traits_object<RawT>>, name,

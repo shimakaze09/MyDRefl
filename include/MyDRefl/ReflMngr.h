@@ -29,11 +29,7 @@ class ReflMngr {
   std::unordered_map<Type, TypeInfo> typeinfos;
 
   // remove cvref
-  TypeInfo* GetTypeInfo(Type type);
-
-  const TypeInfo* GetTypeInfo(Type type) const {
-    return const_cast<ReflMngr*>(this)->GetTypeInfo(type);
-  }
+  TypeInfo* GetTypeInfo(Type type) const;
 
   std::pmr::synchronized_pool_resource* GetTemporaryResource() const {
     return &temporary_resource;
@@ -144,10 +140,9 @@ class ReflMngr {
   // 2. enumerator
   // 3. pointer to **non-void** and **non-function** type
   // 4. functor : Value*(Object*) / Value&(Object*)
-  template <
-      typename T,
-      std::enable_if_t<!std::is_same_v<std::decay_t<T>, FieldInfo>, int> = 0>
-  bool AddField(Type type, Name name, T&& data, AttrSet attrs = {}) {
+  template <typename T>
+  requires std::negation_v<std::is_same<std::decay_t<T>, FieldInfo>> bool
+  AddField(Type type, Name name, T&& data, AttrSet attrs = {}) {
     return AddField(
         type, name,
         {GenerateFieldPtr(std::forward<T>(data)), std::move(attrs)});
@@ -158,10 +153,9 @@ class ReflMngr {
   // 2. functor : Value*(Object*)
   // > - result must be an pointer of **non-void** type
   // 3. enumerator
-  template <
-      typename T,
-      std::enable_if_t<!std::is_same_v<std::decay_t<T>, FieldInfo>, int> = 0>
-  bool AddField(Name name, T&& data, AttrSet attrs = {});
+  template <typename T>
+  requires std::negation_v<std::is_same<std::decay_t<T>, FieldInfo>> bool
+  AddField(Name name, T&& data, AttrSet attrs = {});
 
   template <typename T, typename... Args>
   bool AddDynamicFieldWithAttr(Type type, Name name, AttrSet attrs,

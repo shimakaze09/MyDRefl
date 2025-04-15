@@ -227,17 +227,6 @@ NameIDRegistry::NameIDRegistry() {
                     Meta::container_upper_bound.GetView());
   RegisterUnmanaged(Meta::container_equal_range.GetID(),
                     Meta::container_equal_range.GetView());
-
-  RegisterUnmanaged(Meta::container_key_comp.GetID(),
-                    Meta::container_key_comp.GetView());
-  RegisterUnmanaged(Meta::container_value_comp.GetID(),
-                    Meta::container_value_comp.GetView());
-  RegisterUnmanaged(Meta::container_hash_function.GetID(),
-                    Meta::container_hash_function.GetView());
-  RegisterUnmanaged(Meta::container_key_eq.GetID(),
-                    Meta::container_key_eq.GetView());
-  RegisterUnmanaged(Meta::container_get_allocator.GetID(),
-                    Meta::container_get_allocator.GetView());
 }
 
 Name NameIDRegistry::Nameof(NameID ID) const {
@@ -249,7 +238,6 @@ Name NameIDRegistry::Nameof(NameID ID) const {
 
 TypeIDRegistry::TypeIDRegistry() {
   RegisterUnmanaged(Meta::global.GetID(), Meta::global.GetName());
-  RegisterUnmanaged(Meta::t_void.GetID(), Meta::t_void.GetName());
 }
 
 Type TypeIDRegistry::Typeof(TypeID ID) const {

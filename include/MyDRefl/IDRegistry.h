@@ -53,170 +53,154 @@ class IDRegistry {
 class NameIDRegistry : public IDRegistry<NameID, Name> {
  public:
   struct Meta {
-    static constexpr Name ctor{"MyDRefl::ctor"};
-    static constexpr Name dtor{"MyDRefl::dtor"};
+    static constexpr Name ctor{".ctor"};
+    static constexpr Name dtor{".dtor"};
 
-    static constexpr Name operator_bool{"MyDRefl::operator_bool"};
+    static constexpr Name operator_bool{".operator_bool"};
 
-    static constexpr Name operator_plus{"MyDRefl::operator+"};
-    static constexpr Name operator_minus{"MyDRefl::operator-"};
+    static constexpr Name operator_plus{".operator+"};
+    static constexpr Name operator_minus{".operator-"};
 
-    static constexpr Name operator_add{"MyDRefl::operator+"};
-    static constexpr Name operator_sub{"MyDRefl::operator-"};
-    static constexpr Name operator_mul{"MyDRefl::operator*"};
-    static constexpr Name operator_div{"MyDRefl::operator/"};
-    static constexpr Name operator_mod{"MyDRefl::operator%"};
+    static constexpr Name operator_add{".operator+"};
+    static constexpr Name operator_sub{".operator-"};
+    static constexpr Name operator_mul{".operator*"};
+    static constexpr Name operator_div{".operator/"};
+    static constexpr Name operator_mod{".operator%"};
 
-    static constexpr Name operator_bnot{"MyDRefl::operator~"};
-    static constexpr Name operator_band{"MyDRefl::operator&"};
-    static constexpr Name operator_bor{"MyDRefl::operator|"};
-    static constexpr Name operator_bxor{"MyDRefl::operator^"};
-    static constexpr Name operator_lshift{"MyDRefl::operator<<"};
-    static constexpr Name operator_rshift{"MyDRefl::operator>>"};
+    static constexpr Name operator_bnot{".operator~"};
+    static constexpr Name operator_band{".operator&"};
+    static constexpr Name operator_bor{".operator|"};
+    static constexpr Name operator_bxor{".operator^"};
+    static constexpr Name operator_lshift{".operator<<"};
+    static constexpr Name operator_rshift{".operator>>"};
 
-    static constexpr Name operator_pre_inc{"MyDRefl::operator++"};
-    static constexpr Name operator_pre_dec{"MyDRefl::operator--"};
-    static constexpr Name operator_post_inc{"MyDRefl::operator++"};
-    static constexpr Name operator_post_dec{"MyDRefl::operator--"};
+    static constexpr Name operator_pre_inc{".operator++"};
+    static constexpr Name operator_pre_dec{".operator--"};
+    static constexpr Name operator_post_inc{".operator++"};
+    static constexpr Name operator_post_dec{".operator--"};
 
-    static constexpr Name operator_assign{"MyDRefl::operator="};
-    static constexpr Name operator_assign_add{"MyDRefl::operator+="};
-    static constexpr Name operator_assign_sub{"MyDRefl::operator-="};
-    static constexpr Name operator_assign_mul{"MyDRefl::operator*="};
-    static constexpr Name operator_assign_div{"MyDRefl::operator/="};
-    static constexpr Name operator_assign_mod{"MyDRefl::operator%="};
-    static constexpr Name operator_assign_band{"MyDRefl::operator&="};
-    static constexpr Name operator_assign_bor{"MyDRefl::operator|="};
-    static constexpr Name operator_assign_bxor{"MyDRefl::operator^="};
-    static constexpr Name operator_assign_lshift{"MyDRefl::operator<<="};
-    static constexpr Name operator_assign_rshift{"MyDRefl::operator>>="};
+    static constexpr Name operator_assign{".operator="};
+    static constexpr Name operator_assign_add{".operator+="};
+    static constexpr Name operator_assign_sub{".operator-="};
+    static constexpr Name operator_assign_mul{".operator*="};
+    static constexpr Name operator_assign_div{".operator/="};
+    static constexpr Name operator_assign_mod{".operator%="};
+    static constexpr Name operator_assign_band{".operator&="};
+    static constexpr Name operator_assign_bor{".operator|="};
+    static constexpr Name operator_assign_bxor{".operator^="};
+    static constexpr Name operator_assign_lshift{".operator<<="};
+    static constexpr Name operator_assign_rshift{".operator>>="};
 
-    static constexpr Name operator_eq{"MyDRefl::operator=="};
-    static constexpr Name operator_ne{"MyDRefl::operator!="};
-    static constexpr Name operator_lt{"MyDRefl::operator<"};
-    static constexpr Name operator_le{"MyDRefl::operator<="};
-    static constexpr Name operator_gt{"MyDRefl::operator>"};
-    static constexpr Name operator_ge{"MyDRefl::operator>="};
+    static constexpr Name operator_eq{".operator=="};
+    static constexpr Name operator_ne{".operator!="};
+    static constexpr Name operator_lt{".operator<"};
+    static constexpr Name operator_le{".operator<="};
+    static constexpr Name operator_gt{".operator>"};
+    static constexpr Name operator_ge{".operator>="};
 
-    static constexpr Name operator_and{"MyDRefl::operator&&"};
-    static constexpr Name operator_or{"MyDRefl::operator||"};
-    static constexpr Name operator_not{"MyDRefl::operator!"};
+    static constexpr Name operator_and{".operator&&"};
+    static constexpr Name operator_or{".operator||"};
+    static constexpr Name operator_not{".operator!"};
 
-    static constexpr Name operator_subscript{"MyDRefl::operator[]"};
-    static constexpr Name operator_deref{"MyDRefl::operator*"};
-    static constexpr Name operator_ref{"MyDRefl::operator&"};
-    static constexpr Name operator_member{"MyDRefl::operator->"};
-    static constexpr Name operator_member_of_pointer{"MyDRefl::operator->*"};
+    static constexpr Name operator_subscript{".operator[]"};
+    static constexpr Name operator_deref{".operator*"};
+    static constexpr Name operator_ref{".operator&"};
+    static constexpr Name operator_member{".operator->"};
+    static constexpr Name operator_member_of_pointer{".operator->*"};
 
-    static constexpr Name operator_call{"MyDRefl::operator()"};
-    static constexpr Name operator_comma{"MyDRefl::operator,"};
+    static constexpr Name operator_call{".operator()"};
+    static constexpr Name operator_comma{".operator,"};
 
     // tuple
 
-    static constexpr Name tuple_size{"MyDRefl::tuple_size"};
-    static constexpr Name tuple_get{"MyDRefl::tuple_get"};
-    static constexpr Name tuple_element{"MyDRefl::tuple_element"};
+    static constexpr Name tuple_size{".tuple_size"};
+    static constexpr Name tuple_get{".tuple_get"};
+    static constexpr Name tuple_element{".tuple_element"};
 
     // variant
 
-    static constexpr Name variant_index{"MyDRefl::variant_index"};
+    static constexpr Name variant_index{".variant_index"};
     static constexpr Name variant_valueless_by_exception{
-        "MyDRefl::variant_valueless_by_exception"};
+        ".variant_valueless_by_exception"};
     static constexpr Name variant_holds_alternative{
-        "MyDRefl::variant_holds_alternative"};
-    static constexpr Name variant_get{"MyDRefl::variant_get"};
-    static constexpr Name variant_get_if{"MyDRefl::variant_get_if"};
-    static constexpr Name variant_size{"MyDRefl::variant_size"};
-    static constexpr Name variant_alternative{"MyDRefl::variant_alternative"};
-    static constexpr Name variant_visit_get{"MyDRefl::variant_visit_get"};
+        ".variant_holds_alternative"};
+    static constexpr Name variant_get{".variant_get"};
+    static constexpr Name variant_get_if{".variant_get_if"};
+    static constexpr Name variant_size{".variant_size"};
+    static constexpr Name variant_alternative{".variant_alternative"};
+    static constexpr Name variant_visit_get{".variant_visit_get"};
 
     // optional
 
-    static constexpr Name optional_has_value{"MyDRefl::optional_has_value"};
-    static constexpr Name optional_value{"MyDRefl::optional_value"};
-    static constexpr Name optional_reset{"MyDRefl::optional_reset"};
+    static constexpr Name optional_has_value{".optional_has_value"};
+    static constexpr Name optional_value{".optional_value"};
+    static constexpr Name optional_reset{".optional_reset"};
 
     // iterator
 
-    static constexpr Name iterator_advance{"MyDRefl::iterator_advance"};
-    static constexpr Name iterator_distance{"MyDRefl::iterator_distance"};
-    static constexpr Name iterator_next{"MyDRefl::iterator_next"};
-    static constexpr Name iterator_prev{"MyDRefl::iterator_prev"};
+    static constexpr Name iterator_advance{".iterator_advance"};
+    static constexpr Name iterator_distance{".iterator_distance"};
+    static constexpr Name iterator_next{".iterator_next"};
+    static constexpr Name iterator_prev{".iterator_prev"};
 
     // container
 
-    static constexpr Name container_assign{"MyDRefl::container_assign"};
+    static constexpr Name container_assign{".container_assign"};
 
-    static constexpr Name container_begin{"MyDRefl::container_begin"};
-    static constexpr Name container_cbegin{"MyDRefl::container_cbegin"};
-    static constexpr Name container_end{"MyDRefl::container_end"};
-    static constexpr Name container_cend{"MyDRefl::container_cend"};
-    static constexpr Name container_rbegin{"MyDRefl::container_rbegin"};
-    static constexpr Name container_crbegin{"MyDRefl::container_crbegin"};
-    static constexpr Name container_rend{"MyDRefl::container_rend"};
-    static constexpr Name container_crend{"MyDRefl::container_crend"};
+    static constexpr Name container_begin{".container_begin"};
+    static constexpr Name container_cbegin{".container_cbegin"};
+    static constexpr Name container_end{".container_end"};
+    static constexpr Name container_cend{".container_cend"};
+    static constexpr Name container_rbegin{".container_rbegin"};
+    static constexpr Name container_crbegin{".container_crbegin"};
+    static constexpr Name container_rend{".container_rend"};
+    static constexpr Name container_crend{".container_crend"};
 
-    static constexpr Name container_at{"MyDRefl::container_at"};
-    static constexpr Name container_data{"MyDRefl::container_data"};
-    static constexpr Name container_front{"MyDRefl::container_front"};
-    static constexpr Name container_back{"MyDRefl::container_back"};
-    static constexpr Name container_top{"MyDRefl::container_top"};
+    static constexpr Name container_at{".container_at"};
+    static constexpr Name container_data{".container_data"};
+    static constexpr Name container_front{".container_front"};
+    static constexpr Name container_back{".container_back"};
+    static constexpr Name container_top{".container_top"};
 
-    static constexpr Name container_empty{"MyDRefl::container_empty"};
-    static constexpr Name container_size{"MyDRefl::container_size"};
-    static constexpr Name container_size_bytes{"MyDRefl::container_size_bytes"};
-    static constexpr Name container_max_size{"MyDRefl::container_max_size"};
-    static constexpr Name container_resize{"MyDRefl::container_resize"};
-    static constexpr Name container_capacity{"MyDRefl::container_capacity"};
-    static constexpr Name container_bucket_count{
-        "MyDRefl::container_bucket_count"};
-    static constexpr Name container_reserve{"MyDRefl::container_reserve"};
-    static constexpr Name container_shrink_to_fit{
-        "MyDRefl::container_shrink_to_fit"};
+    static constexpr Name container_empty{".container_empty"};
+    static constexpr Name container_size{".container_size"};
+    static constexpr Name container_size_bytes{".container_size_bytes"};
+    static constexpr Name container_max_size{".container_max_size"};
+    static constexpr Name container_resize{".container_resize"};
+    static constexpr Name container_capacity{".container_capacity"};
+    static constexpr Name container_bucket_count{".container_bucket_count"};
+    static constexpr Name container_reserve{".container_reserve"};
+    static constexpr Name container_shrink_to_fit{".container_shrink_to_fit"};
 
-    static constexpr Name container_clear{"MyDRefl::container_clear"};
-    static constexpr Name container_insert{"MyDRefl::container_insert"};
-    static constexpr Name container_insert_after{
-        "MyDRefl::container_insert_after"};
+    static constexpr Name container_clear{".container_clear"};
+    static constexpr Name container_insert{".container_insert"};
+    static constexpr Name container_insert_after{".container_insert_after"};
     static constexpr Name container_insert_or_assign{
-        "MyDRefl::container_insert_or_assign"};
-    static constexpr Name container_erase{"MyDRefl::container_erase"};
-    static constexpr Name container_erase_after{
-        "MyDRefl::container_erase_after"};
-    static constexpr Name container_push_front{"MyDRefl::container_push_front"};
-    static constexpr Name container_pop_front{"MyDRefl::container_pop_front"};
-    static constexpr Name container_push_back{"MyDRefl::container_push_back"};
-    static constexpr Name container_pop_back{"MyDRefl::container_pop_back"};
-    static constexpr Name container_push{"MyDRefl::container_push"};
-    static constexpr Name container_pop{"MyDRefl::container_pop"};
-    static constexpr Name container_swap{"MyDRefl::container_swap"};
-    static constexpr Name container_merge{"MyDRefl::container_merge"};
-    static constexpr Name container_extract{"MyDRefl::container_extract"};
+        ".container_insert_or_assign"};
+    static constexpr Name container_erase{".container_erase"};
+    static constexpr Name container_erase_after{".container_erase_after"};
+    static constexpr Name container_push_front{".container_push_front"};
+    static constexpr Name container_pop_front{".container_pop_front"};
+    static constexpr Name container_push_back{".container_push_back"};
+    static constexpr Name container_pop_back{".container_pop_back"};
+    static constexpr Name container_push{".container_push"};
+    static constexpr Name container_pop{".container_pop"};
+    static constexpr Name container_swap{".container_swap"};
+    static constexpr Name container_merge{".container_merge"};
+    static constexpr Name container_extract{".container_extract"};
 
-    static constexpr Name container_splice_after{
-        "MyDRefl::container_splice_after"};
-    static constexpr Name container_splice{"MyDRefl::container_splice"};
-    static constexpr Name container_remove{"MyDRefl::container_remove"};
-    static constexpr Name container_reverse{"MyDRefl::container_reverse"};
-    static constexpr Name container_unique{"MyDRefl::container_unique"};
-    static constexpr Name container_sort{"MyDRefl::container_sort"};
+    static constexpr Name container_splice_after{".container_splice_after"};
+    static constexpr Name container_splice{".container_splice"};
+    static constexpr Name container_remove{".container_remove"};
+    static constexpr Name container_reverse{".container_reverse"};
+    static constexpr Name container_unique{".container_unique"};
+    static constexpr Name container_sort{".container_sort"};
 
-    static constexpr Name container_count{"MyDRefl::container_count"};
-    static constexpr Name container_find{"MyDRefl::container_find"};
-    static constexpr Name container_lower_bound{
-        "MyDRefl::container_lower_bound"};
-    static constexpr Name container_upper_bound{
-        "MyDRefl::container_upper_bound"};
-    static constexpr Name container_equal_range{
-        "MyDRefl::container_equal_range"};
-
-    static constexpr Name container_key_comp{"MyDRefl::container_key_comp"};
-    static constexpr Name container_value_comp{"MyDRefl::container_value_comp"};
-    static constexpr Name container_hash_function{
-        "MyDRefl::container_hash_function"};
-    static constexpr Name container_key_eq{"MyDRefl::container_key_eq"};
-    static constexpr Name container_get_allocator{
-        "MyDRefl::container_get_allocator"};
+    static constexpr Name container_count{".container_count"};
+    static constexpr Name container_find{".container_find"};
+    static constexpr Name container_lower_bound{".container_lower_bound"};
+    static constexpr Name container_upper_bound{".container_upper_bound"};
+    static constexpr Name container_equal_range{".container_equal_range"};
   };
 
   NameIDRegistry();
@@ -231,8 +215,7 @@ class NameIDRegistry : public IDRegistry<NameID, Name> {
 class TypeIDRegistry : public IDRegistry<TypeID, Type> {
  public:
   struct Meta {
-    static constexpr Type global{"MyDRefl::global"};
-    static constexpr Type t_void{"void"};
+    static constexpr Type global{".global"};
   };
 
   using IDRegistry<TypeID, Type>::Register;
