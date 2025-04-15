@@ -99,7 +99,7 @@ template <template <typename> class get_size, std::size_t TargetIdx, typename T>
 ObjectView runtime_get_impl(T&& obj, std::size_t i) {
   using U = std::remove_cvref_t<T>;
   if constexpr (TargetIdx == get_size<U>::value)
-    return nullptr;
+    return {};
   else {
     if (i == TargetIdx)
       return ObjectView{std::get<TargetIdx>(std::forward<T>(obj))};
@@ -121,7 +121,7 @@ template <template <typename> class get_size,
 ObjectView runtime_get_impl(T&& obj, const Type& type) {
   using U = std::remove_cvref_t<T>;
   if constexpr (TargetIdx == get_size<U>::value)
-    return nullptr;
+    return {};
   else {
     if (type == Type_of<typename get_type<TargetIdx, U>::type>)
       return ObjectView{std::get<TargetIdx>(std::forward<T>(obj))};

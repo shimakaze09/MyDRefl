@@ -1,3 +1,4 @@
+
 #include <MyDRefl/ReflMngr.h>
 
 #include "InvokeUtil.h"
@@ -30,7 +31,7 @@ static ObjectView StaticCast_DerivedToBase(ObjectView obj, Type type) {
 
   auto target = Mngr->typeinfos.find(obj.GetType());
   if (target == Mngr->typeinfos.end())
-    return nullptr;
+    return {};
 
   const auto& typeinfo = target->second;
 
@@ -42,7 +43,7 @@ static ObjectView StaticCast_DerivedToBase(ObjectView obj, Type type) {
       return ptr;
   }
 
-  return nullptr;
+  return {};
 }
 
 static ObjectView StaticCast_BaseToDerived(ObjectView obj, Type type) {
@@ -53,7 +54,7 @@ static ObjectView StaticCast_BaseToDerived(ObjectView obj, Type type) {
 
   auto target = Mngr->typeinfos.find(type);
   if (target == Mngr->typeinfos.end())
-    return nullptr;
+    return {};
 
   const auto& typeinfo = target->second;
 
@@ -65,7 +66,7 @@ static ObjectView StaticCast_BaseToDerived(ObjectView obj, Type type) {
                         : baseinfo.StaticCast_BaseToDerived(obj.GetPtr())};
   }
 
-  return nullptr;
+  return {};
 }
 
 static ObjectView DynamicCast_BaseToDerived(ObjectView obj, Type type) {
@@ -76,7 +77,7 @@ static ObjectView DynamicCast_BaseToDerived(ObjectView obj, Type type) {
 
   auto target = Mngr->typeinfos.find(obj.GetType());
   if (target == Mngr->typeinfos.end())
-    return nullptr;
+    return {};
 
   const auto& typeinfo = target->second;
 
@@ -90,7 +91,7 @@ static ObjectView DynamicCast_BaseToDerived(ObjectView obj, Type type) {
                         : nullptr};
   }
 
-  return nullptr;
+  return {};
 }
 
 static ObjectView Var(ObjectView obj, Name field_name, FieldFlag flag) {
@@ -98,7 +99,7 @@ static ObjectView Var(ObjectView obj, Name field_name, FieldFlag flag) {
 
   auto ttarget = Mngr->typeinfos.find(obj.GetType());
   if (ttarget == Mngr->typeinfos.end())
-    return nullptr;
+    return {};
 
   auto& typeinfo = ttarget->second;
 
@@ -115,7 +116,7 @@ static ObjectView Var(ObjectView obj, Name field_name, FieldFlag flag) {
       return bptr;
   }
 
-  return nullptr;
+  return {};
 }
 
 static Type IsInvocable(bool is_priority, Type type, Name method_name,
@@ -342,7 +343,7 @@ static SharedObject MInvoke(bool is_priority,
       return rst;
   }
 
-  return nullptr;
+  return {};
 }
 
 static bool ForEachTypeInfo(Type type,
@@ -648,7 +649,7 @@ SharedObject ReflMngr::MMakeShared(Type type, std::pmr::memory_resource* rsrc,
   ObjectView obj = MNew(type, rsrc, argTypes, argptr_buffer);
 
   if (!obj.GetType().Valid())
-    return nullptr;
+    return {};
 
   return {obj, [rsrc, type](void* ptr) {
             Mngr->MDelete({type, ptr}, rsrc);
@@ -754,7 +755,7 @@ ObjectView ReflMngr::StaticCast(ObjectView obj, Type type) const {
   if (ptr_b2d.GetType())
     return ptr_b2d;
 
-  return nullptr;
+  return {};
 }
 
 ObjectView ReflMngr::DynamicCast(ObjectView obj, Type type) const {
@@ -766,7 +767,7 @@ ObjectView ReflMngr::DynamicCast(ObjectView obj, Type type) const {
   if (ptr_d2b.GetType())
     return ptr_d2b;
 
-  return nullptr;
+  return {};
 }
 
 ObjectView ReflMngr::Var(ObjectView obj, Name field_name,
@@ -800,7 +801,7 @@ ObjectView ReflMngr::Var(ObjectView obj, Type base, Name field_name,
                          FieldFlag flag) const {
   auto base_obj = StaticCast_DerivedToBase(obj, base);
   if (!base_obj.GetType())
-    return nullptr;
+    return {};
   return Var(base_obj, field_name);
 }
 
@@ -1006,14 +1007,14 @@ ObjectView ReflMngr::MNonCopiedArgNew(Type type,
   assert(rsrc);
 
   if (!IsConstructible(type, argTypes))
-    return nullptr;
+    return {};
 
   const auto& typeinfo = typeinfos.at(type);
 
   void* buffer = rsrc->allocate(typeinfo.size, typeinfo.alignment);
 
   if (!buffer)
-    return nullptr;
+    return {};
 
   ObjectView obj{type, buffer};
   bool success = NonCopiedArgConstruct(obj, argTypes, argptr_buffer);
@@ -1028,14 +1029,14 @@ ObjectView ReflMngr::MNew(Type type, std::pmr::memory_resource* rsrc,
   assert(rsrc);
 
   if (!IsConstructible(type, argTypes))
-    return nullptr;
+    return {};
 
   const auto& typeinfo = typeinfos.at(type);
 
   void* buffer = rsrc->allocate(typeinfo.size, typeinfo.alignment);
 
   if (!buffer)
-    return nullptr;
+    return {};
 
   ObjectView obj{type, buffer};
   bool success = Construct(obj, argTypes, argptr_buffer);

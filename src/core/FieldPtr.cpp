@@ -7,10 +7,10 @@ ObjectView FieldPtr::Var() noexcept {
       [this]<typename T>(T& value) -> ObjectView {
         if constexpr (std::is_same_v<T, size_t>) {
           assert(false);
-          return nullptr;
+          return {};
         } else if constexpr (std::is_same_v<T, Offsetor>) {
           assert(false);
-          return nullptr;
+          return {};
         } else if constexpr (std::is_same_v<T, void*>) {
           return {type, value};
         } else if constexpr (std::is_same_v<T, SharedBuffer>) {

@@ -10,11 +10,12 @@ class ObjectView {
  public:
   constexpr ObjectView() noexcept : ptr{nullptr} {}
 
-  constexpr ObjectView(std::nullptr_t) noexcept : ObjectView{} {}
+  explicit constexpr ObjectView(std::nullptr_t) noexcept : ObjectView{} {}
 
   constexpr ObjectView(Type type, void* ptr) noexcept : type{type}, ptr{ptr} {}
 
-  constexpr ObjectView(Type type) noexcept : ObjectView{type, nullptr} {}
+  explicit constexpr ObjectView(Type type) noexcept
+      : ObjectView{type, nullptr} {}
 
   template <typename T>
   requires std::negation_v<std::is_same<std::remove_cvref_t<T>, Type>>&&
@@ -417,7 +418,7 @@ class SharedObject : public ObjectView {
 };
 
 template <typename T>
-constexpr ObjectView ObjectView_of = {Type_of<T>};
+constexpr ObjectView ObjectView_of = {Type_of<T>, nullptr};
 }  // namespace My::MyDRefl
 
 #include "details/Object.inl"
