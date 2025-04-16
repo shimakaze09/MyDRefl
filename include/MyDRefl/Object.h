@@ -3,13 +3,14 @@
 #include "Basic.h"
 #include "IDRegistry.h"
 
-//#include <span>
+// #include <span>
 
 namespace My::MyDRefl {
-// pointer const array type (pointer is const, and pointer to non - const / referenced object)
+// pointer const array type (pointer is const, and pointer to non - const /
+// referenced object)
 using ArgPtrBuffer = void* const*;
 
-class ArgsView {
+class MyDRefl_core_CLASS_API ArgsView {
  public:
   constexpr ArgsView() noexcept : buffer{nullptr} {}
 
@@ -44,9 +45,10 @@ class TempArgsView {
 template <typename... Args>
 TempArgsView(Args&&... args) -> TempArgsView<sizeof...(Args)>;
 
-std::pmr::synchronized_pool_resource* ReflMngr_GetTemporaryResource();
+MyDRefl_core_API std::pmr::synchronized_pool_resource*
+ReflMngr_GetTemporaryResource();
 
-class ObjectView {
+class MyDRefl_core_CLASS_API ObjectView {
  public:
   constexpr ObjectView() noexcept : ptr{nullptr} {}
 
@@ -56,9 +58,10 @@ class ObjectView {
       : ObjectView{type, nullptr} {}
 
   template <typename T>
-  requires std::negation_v<std::is_reference<T>>&&
-      std::negation_v<std::is_same<std::remove_cvref_t<T>, Type>>&&
-          NonObjectAndView<T> constexpr explicit ObjectView(T& obj) noexcept
+    requires std::negation_v<std::is_reference<T>> &&
+             std::negation_v<std::is_same<std::remove_cvref_t<T>, Type>> &&
+             NonObjectAndView<T>
+  constexpr explicit ObjectView(T& obj) noexcept
       : ObjectView{Type_of<T>,
                    const_cast<void*>(static_cast<const void*>(&obj))} {}
 
@@ -196,8 +199,8 @@ class ObjectView {
   bool operator>=(const T& rhs) const;
 
   template <typename T>
-  requires NonObjectAndView<std::decay_t<T>> ObjectView
-  operator=(T&& rhs) const;
+    requires NonObjectAndView<std::decay_t<T>>
+  ObjectView operator=(T&& rhs) const;
 
   template <typename T>
   ObjectView operator+=(T&& rhs) const;
@@ -383,7 +386,7 @@ class ObjectView {
   void* ptr;  // if type is reference, ptr is a pointer of referenced object
 };
 
-class SharedObject : public ObjectView {
+class MyDRefl_core_CLASS_API SharedObject : public ObjectView {
  public:
   using ObjectView::ObjectView;
   using ObjectView::operator=;

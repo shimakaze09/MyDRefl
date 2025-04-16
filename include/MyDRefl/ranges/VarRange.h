@@ -3,11 +3,11 @@
 #include "common.h"
 
 namespace My::MyDRefl {
-class VarRange {
+class MyDRefl_core_CLASS_API VarRange {
  public:
   // DFS
   // TypeInfo* and BaseInfo* maybe nullptr
-  class iterator {
+  class MyDRefl_core_CLASS_API iterator {
    public:
     using value_type = std::tuple<Name, ObjectView>;
     using reference = const value_type&;
@@ -31,8 +31,10 @@ class VarRange {
 
     pointer operator->() const noexcept { return &value; }
 
-    friend bool operator==(const iterator& lhs, const iterator& rhs);
-    friend bool operator!=(const iterator& lhs, const iterator& rhs);
+    MyDRefl_core_API friend bool operator==(const iterator& lhs,
+                                            const iterator& rhs);
+    MyDRefl_core_API friend bool operator!=(const iterator& lhs,
+                                            const iterator& rhs);
 
     bool Valid() const noexcept { return mode != -1; }
 

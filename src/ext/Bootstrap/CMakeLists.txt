@@ -12,7 +12,7 @@ ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 ENDIF ()
  
 ADD_TARGET(
-        MODE STATIC
+        MODE SHARED
         SOURCE
         "${PROJECT_SOURCE_DIR}/include/MyDRefl_ext/Bootstrap.h"
         INC

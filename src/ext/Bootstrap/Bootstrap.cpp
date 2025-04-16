@@ -2,27 +2,24 @@
 
 #include "Bootstrap_helper.h"
 
-using namespace My;
-using namespace My::MyDRefl;
-
-void My::MyDRefl::ext::Bootstrap() {
-  details::Bootstrap_helper_mytemplate();
-  details::Bootstrap_helper_basic();
-  details::Bootstrap_helper_registry();
-  details::Bootstrap_helper_info_0();
-  details::Bootstrap_helper_info_1();
-  details::Bootstrap_helper_info_2();
-  details::Bootstrap_helper_info_3();
-  details::Bootstrap_helper_info_4();
-  details::Bootstrap_helper_object();
-  details::Bootstrap_helper_ptr();
-  details::Bootstrap_helper_ranges_derived();
-  details::Bootstrap_helper_ranges_span_derived();
-  details::Bootstrap_helper_ranges_objecttree();
-  details::Bootstrap_helper_ranges_fieldrange();
-  details::Bootstrap_helper_ranges_methodrange();
-  details::Bootstrap_helper_ranges_varrange();
-  details::Bootstrap_helper_reflmngr_0();
-  details::Bootstrap_helper_reflmngr_1();
-  details::Bootstrap_helper_reflmngr_2();
+MyDRefl_ext_Bootstrap_API void My_MyDRefl_ext_Bootstrap() {
+  My::MyDRefl::ext::details::Bootstrap_helper_utemplate();
+  My::MyDRefl::ext::details::Bootstrap_helper_basic();
+  My::MyDRefl::ext::details::Bootstrap_helper_registry();
+  My::MyDRefl::ext::details::Bootstrap_helper_info_0();
+  My::MyDRefl::ext::details::Bootstrap_helper_info_1();
+  My::MyDRefl::ext::details::Bootstrap_helper_info_2();
+  My::MyDRefl::ext::details::Bootstrap_helper_info_3();
+  My::MyDRefl::ext::details::Bootstrap_helper_info_4();
+  My::MyDRefl::ext::details::Bootstrap_helper_object();
+  My::MyDRefl::ext::details::Bootstrap_helper_ptr();
+  My::MyDRefl::ext::details::Bootstrap_helper_ranges_derived();
+  My::MyDRefl::ext::details::Bootstrap_helper_ranges_span_derived();
+  My::MyDRefl::ext::details::Bootstrap_helper_ranges_objecttree();
+  My::MyDRefl::ext::details::Bootstrap_helper_ranges_fieldrange();
+  My::MyDRefl::ext::details::Bootstrap_helper_ranges_methodrange();
+  My::MyDRefl::ext::details::Bootstrap_helper_ranges_varrange();
+  My::MyDRefl::ext::details::Bootstrap_helper_reflmngr_0();
+  My::MyDRefl::ext::details::Bootstrap_helper_reflmngr_1();
+  My::MyDRefl::ext::details::Bootstrap_helper_reflmngr_2();
 }

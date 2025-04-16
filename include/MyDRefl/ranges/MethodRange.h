@@ -4,9 +4,9 @@
 
 namespace My::MyDRefl {
 // DFS
-class MethodRange {
+class MyDRefl_core_CLASS_API MethodRange {
  public:
-  class iterator {
+  class MyDRefl_core_CLASS_API iterator {
    public:
     using value_type = std::pair<const Name, MethodInfo>;
     using reference = value_type&;
@@ -22,8 +22,10 @@ class MethodRange {
 
     pointer operator->() const noexcept { return curmethod.operator->(); }
 
-    friend bool operator==(const iterator& lhs, const iterator& rhs);
-    friend bool operator!=(const iterator& lhs, const iterator& rhs);
+    MyDRefl_core_API friend bool operator==(const iterator& lhs,
+                                            const iterator& rhs);
+    MyDRefl_core_API friend bool operator!=(const iterator& lhs,
+                                            const iterator& rhs);
 
     bool Valid() const noexcept { return typeiter.Valid(); }
 

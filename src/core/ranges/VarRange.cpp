@@ -1,6 +1,5 @@
-#include <MyDRefl/ranges/VarRange.h>
-
 #include <MyDRefl/ReflMngr.h>
+#include <MyDRefl/ranges/VarRange.h>
 
 using namespace My;
 using namespace My::MyDRefl;
@@ -12,8 +11,7 @@ VarRange::iterator::iterator(ObjectTree::iterator typeiter,
       flag{flag},
       mode{typeiter.Valid() ? 0 : -1} {
   assert(!enum_contain_any(cvref_mode, CVRefMode::Volatile));
-  if (typeiter.Valid())
-    update();
+  if (typeiter.Valid()) update();
 }
 
 void VarRange::iterator::update() {
@@ -88,7 +86,8 @@ VarRange::iterator VarRange::iterator::operator++(int) {
 }
 
 namespace My::MyDRefl {
-bool operator==(const VarRange::iterator& lhs, const VarRange::iterator& rhs) {
+MyDRefl_core_API bool operator==(const VarRange::iterator& lhs,
+                                 const VarRange::iterator& rhs) {
   assert(lhs.flag == rhs.flag);
   assert(lhs.cvref_mode == rhs.cvref_mode);
   if (lhs.Valid()) {
@@ -105,7 +104,8 @@ bool operator==(const VarRange::iterator& lhs, const VarRange::iterator& rhs) {
     return lhs.typeiter == rhs.typeiter;
 }
 
-bool operator!=(const VarRange::iterator& lhs, const VarRange::iterator& rhs) {
+MyDRefl_core_API bool operator!=(const VarRange::iterator& lhs,
+                                 const VarRange::iterator& rhs) {
   return !(lhs == rhs);
 }
 }  // namespace My::MyDRefl

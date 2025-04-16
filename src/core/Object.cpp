@@ -1,7 +1,5 @@
 #include <MyDRefl/Object.h>
-
 #include <MyDRefl/ReflMngr.h>
-
 #include <MyDRefl/ranges/FieldRange.h>
 #include <MyDRefl/ranges/MethodRange.h>
 #include <MyDRefl/ranges/ObjectTree.h>
@@ -10,7 +8,7 @@
 using namespace My;
 using namespace My::MyDRefl;
 
-std::pmr::synchronized_pool_resource*
+MyDRefl_core_API std::pmr::synchronized_pool_resource*
 My::MyDRefl::ReflMngr_GetTemporaryResource() {
   return Mngr.GetTemporaryResource();
 }
@@ -108,30 +106,22 @@ ObjectView ObjectView::DynamicCast(Type type) const {
   return Mngr.DynamicCast(*this, type);
 }
 
-ObjectTree ObjectView::GetObjectTree() const {
-  return ObjectTree{*this};
-}
+ObjectTree ObjectView::GetObjectTree() const { return ObjectTree{*this}; }
 
 MethodRange ObjectView::GetMethods(MethodFlag flag) const {
   return {*this, flag};
 }
 
-FieldRange ObjectView::GetFields(FieldFlag flag) const {
-  return {*this, flag};
-}
+FieldRange ObjectView::GetFields(FieldFlag flag) const { return {*this, flag}; }
 
-VarRange ObjectView::GetVars(FieldFlag flag) const {
-  return {*this, flag};
-}
+VarRange ObjectView::GetVars(FieldFlag flag) const { return {*this, flag}; }
 
 ContainerType ObjectView::get_container_type() const {
   auto* typeinfo = Mngr.GetTypeInfo(type);
-  if (!typeinfo)
-    return ContainerType::None;
+  if (!typeinfo) return ContainerType::None;
 
   auto target = typeinfo->attrs.find(Type_of<ContainerType>);
-  if (target == typeinfo->attrs.end())
-    return ContainerType::None;
+  if (target == typeinfo->attrs.end()) return ContainerType::None;
 
   return target->As<ContainerType>();
 }

@@ -26,12 +26,28 @@ ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     LIST(APPEND defines "")
 ENDIF ()
 
+SET(MODE "")
+IF (My_MyDRefl_Build_Shared)
+    SET(MODE SHARED)
+    LIST(APPEND defines "MY_MYDREFL_SHARED")
+    IF (MSVC)
+        LIST(APPEND c_options "/wd4251;/wd4275")
+        LIST(APPEND c_options_private "/wd4651")
+    ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        #
+    ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        #
+    ENDIF ()
+ELSE ()
+    SET(MODE STATIC)
+ENDIF ()
+
 IF (My_MyDRefl_include_all_StdName)
     LIST(APPEND defines "MY_MYDREFL_INCLUDE_ALL_STD_NAME")
 ENDIF ()
 
 ADD_TARGET(
-        MODE STATIC
+        MODE ${MODE}
         SOURCE
         "${PROJECT_SOURCE_DIR}/include/MyDRefl"
         INC

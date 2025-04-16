@@ -5,7 +5,7 @@
 #include <variant>
 
 namespace My::MyDRefl {
-class FieldPtr {
+class MyDRefl_core_CLASS_API  FieldPtr {
  public:
   //
   // Buffer

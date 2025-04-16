@@ -6,12 +6,9 @@ namespace My::MyDRefl {
 constexpr Type GlobalType = TypeIDRegistry::Meta::global;
 constexpr ObjectView Global = {GlobalType, nullptr};
 
-class ReflMngr {
+class MyDRefl_core_CLASS_API ReflMngr {
  public:
-  static ReflMngr& Instance() noexcept {
-    static ReflMngr instance;
-    return instance;
-  }
+  static ReflMngr& Instance() noexcept;
 
   //
   // Data
@@ -57,7 +54,8 @@ class ReflMngr {
   // Factory
   ////////////
   //
-  // - we will register the value type when generating FieldPtr, so those APIs aren't static
+  // - we will register the value type when generating FieldPtr, so those APIs
+  // aren't static
   //
 
   // field_data can be:
@@ -144,7 +142,8 @@ class ReflMngr {
   // -- template --
 
   // call
-  // - RegisterType(type_name<T>(), sizeof(T), alignof(T), std::is_polymorphic<T>, std::is_trivial_v<T>)
+  // - RegisterType(type_name<T>(), sizeof(T), alignof(T),
+  // std::is_polymorphic<T>, std::is_trivial_v<T>)
   // - details::TypeAutoRegister<T>::run
   // you can custom type register by specialize details::TypeAutoRegister<T>
   template <typename T>
@@ -163,8 +162,8 @@ class ReflMngr {
   // 3. pointer to **non-void** and **non-function** type
   // 4. functor : Value*(Object*) / Value&(Object*)
   template <typename T>
-  requires std::negation_v<std::is_same<std::decay_t<T>, FieldInfo>> bool
-  AddField(Type type, Name name, T&& data, AttrSet attrs = {}) {
+    requires std::negation_v<std::is_same<std::decay_t<T>, FieldInfo>>
+  bool AddField(Type type, Name name, T&& data, AttrSet attrs = {}) {
     return AddField(
         type, name,
         {GenerateFieldPtr(std::forward<T>(data)), std::move(attrs)});
@@ -176,8 +175,8 @@ class ReflMngr {
   // > - result must be an pointer of **non-void** type
   // 3. enumerator
   template <typename T>
-  requires std::negation_v<std::is_same<std::decay_t<T>, FieldInfo>> bool
-  AddField(Name name, T&& data, AttrSet attrs = {});
+    requires std::negation_v<std::is_same<std::decay_t<T>, FieldInfo>>
+  bool AddField(Name name, T&& data, AttrSet attrs = {});
 
   template <typename T, typename... Args>
   bool AddDynamicFieldWithAttr(Type type, Name name, AttrSet attrs,
@@ -257,7 +256,8 @@ class ReflMngr {
   // - MInvoke will allocate buffer for result, and move to SharedObject
   // - if result is a reference, SharedObject is a ObjectView actually
   // - if result is ObjectView or SharedObject, then MInvoke's result is it.
-  // - temp_args_rsrc is used for temporary allocation of arguments (release before return)
+  // - temp_args_rsrc is used for temporary allocation of arguments (release
+  // before return)
   //
 
   // parameter <- argument
@@ -322,8 +322,10 @@ class ReflMngr {
   // Make
   /////////
   //
-  // - if the type doesn't contains any ctor, then we use trivial ctor (do nothing)
-  // - if the type doesn't contains any dtor, then we use trivial dtor (do nothing)
+  // - if the type doesn't contains any ctor, then we use trivial ctor (do
+  // nothing)
+  // - if the type doesn't contains any dtor, then we use trivial dtor (do
+  // nothing)
   //
 
   bool IsConstructible(Type type, std::span<const Type> argTypes = {}) const;

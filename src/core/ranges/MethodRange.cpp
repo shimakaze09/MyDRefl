@@ -1,6 +1,5 @@
-#include <MyDRefl/ranges/MethodRange.h>
-
 #include <MyDRefl/ReflMngr.h>
+#include <MyDRefl/ranges/MethodRange.h>
 
 using namespace My;
 using namespace My::MyDRefl;
@@ -9,8 +8,7 @@ MethodRange::iterator::iterator(ObjectTree::iterator typeiter, MethodFlag flag)
     : typeiter{std::move(typeiter)},
       flag{flag},
       mode{typeiter.Valid() ? 0 : -1} {
-  if (typeiter.Valid())
-    update();
+  if (typeiter.Valid()) update();
 }
 
 void MethodRange::iterator::update() {
@@ -60,8 +58,8 @@ MethodRange::iterator MethodRange::iterator::operator++(int) {
 }
 
 namespace My::MyDRefl {
-bool operator==(const MethodRange::iterator& lhs,
-                const MethodRange::iterator& rhs) {
+MyDRefl_core_API bool operator==(const MethodRange::iterator& lhs,
+                                 const MethodRange::iterator& rhs) {
   assert(lhs.flag == rhs.flag);
   if (lhs.Valid()) {
     if (rhs.Valid()) {
@@ -77,8 +75,8 @@ bool operator==(const MethodRange::iterator& lhs,
     return lhs.typeiter == rhs.typeiter;
 }
 
-bool operator!=(const MethodRange::iterator& lhs,
-                const MethodRange::iterator& rhs) {
+MyDRefl_core_API bool operator!=(const MethodRange::iterator& lhs,
+                                 const MethodRange::iterator& rhs) {
   return !(lhs == rhs);
 }
 }  // namespace My::MyDRefl

@@ -2,10 +2,9 @@
 
 #include "Basic.h"
 
-//#include <string>
-//#include <unordered_map>
+// #include <string>
+// #include <unordered_map>
 #include <memory_resource>
-
 #include <shared_mutex>
 
 #ifndef NDEBUG
@@ -50,7 +49,7 @@ class IDRegistry {
 #endif  // NDEBUG
 };
 
-class NameIDRegistry : public IDRegistry<NameID, Name> {
+class MyDRefl_core_CLASS_API NameIDRegistry : public IDRegistry<NameID, Name> {
  public:
   struct Meta {
     // operators

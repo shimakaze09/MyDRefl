@@ -1,5 +1,6 @@
 #include <MyDRefl/MyDRefl.h>
 #include <MyDRefl_ext/Bootstrap.h>
+
 #include <iostream>
 
 using namespace My;
@@ -12,7 +13,7 @@ struct A {
 int main() {
   Mngr.RegisterType<A>();
   Mngr.AddField<&A::data>("data");
-  ext::Bootstrap();
+  My_MyDRefl_ext_Bootstrap();
   A a;
   ObjectView{a}.Var("data") = 3;
   std::cout << a.data << std::endl;

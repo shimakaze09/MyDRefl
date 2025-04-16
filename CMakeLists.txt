@@ -13,6 +13,7 @@ ADD_DEP(MySmallFlat 0.1.0)
 
 INCLUDE(cmake/Platform.cmake)
 
+OPTION(My_MyDRefl_Build_Shared "build shared library" OFF)
 OPTION(My_MyDRefl_Build_ext_Bootstrap "build ext Bootstrap" OFF)
 OPTION(My_MyDRefl_include_all_StdName "switch MY_MYDREFL_INCLUDE_ALL_STD_NAME" OFF)
 

@@ -2,12 +2,12 @@
 
 #include "Object.h"
 
-//#include <vector>
+// #include <vector>
 
 namespace My::MyDRefl {
 using ParamList = std::vector<Type>;
 
-class MethodPtr {
+class MyDRefl_core_CLASS_API MethodPtr {
  public:
   using Func = std::function<void(void*, void*, ArgsView)>;
 

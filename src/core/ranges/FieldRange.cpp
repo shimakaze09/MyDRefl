@@ -1,6 +1,5 @@
-#include <MyDRefl/ranges/FieldRange.h>
-
 #include <MyDRefl/ReflMngr.h>
+#include <MyDRefl/ranges/FieldRange.h>
 
 using namespace My;
 using namespace My::MyDRefl;
@@ -9,8 +8,7 @@ FieldRange::iterator::iterator(ObjectTree::iterator typeiter, FieldFlag flag)
     : typeiter{std::move(typeiter)},
       flag{flag},
       mode{typeiter.Valid() ? 0 : -1} {
-  if (typeiter.Valid())
-    update();
+  if (typeiter.Valid()) update();
 }
 
 void FieldRange::iterator::update() {
@@ -60,8 +58,8 @@ FieldRange::iterator FieldRange::iterator::operator++(int) {
 }
 
 namespace My::MyDRefl {
-bool operator==(const FieldRange::iterator& lhs,
-                const FieldRange::iterator& rhs) {
+MyDRefl_core_API bool operator==(const FieldRange::iterator& lhs,
+                                 const FieldRange::iterator& rhs) {
   assert(lhs.flag == rhs.flag);
   if (lhs.Valid()) {
     if (rhs.Valid()) {
@@ -77,8 +75,8 @@ bool operator==(const FieldRange::iterator& lhs,
     return lhs.typeiter == rhs.typeiter;
 }
 
-bool operator!=(const FieldRange::iterator& lhs,
-                const FieldRange::iterator& rhs) {
+MyDRefl_core_API bool operator!=(const FieldRange::iterator& lhs,
+                                 const FieldRange::iterator& rhs) {
   return !(lhs == rhs);
 }
 }  // namespace My::MyDRefl

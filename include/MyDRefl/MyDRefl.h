@@ -1,5 +1,7 @@
 #pragma once
 
+#include "config.h"
+
 #include "Basic.h"
 #include "FieldPtr.h"
 #include "IDRegistry.h"
@@ -8,7 +10,6 @@
 #include "Object.h"
 #include "ReflMngr.h"
 #include "Util.h"
-#include "config.h"
 
 #include "attrs/ContainerType.h"
 

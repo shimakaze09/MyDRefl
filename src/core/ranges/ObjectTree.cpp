@@ -1,6 +1,5 @@
-#include <MyDRefl/ranges/ObjectTree.h>
-
 #include <MyDRefl/ReflMngr.h>
+#include <MyDRefl/ranges/ObjectTree.h>
 
 using namespace My;
 using namespace My::MyDRefl;
@@ -43,8 +42,7 @@ mode_0:
 
     while (deriveds.back().curbase !=
            deriveds.back().typeinfo->baseinfos.end()) {
-      if (!deriveds.back().curbase->second.IsVirtual())
-        break;
+      if (!deriveds.back().curbase->second.IsVirtual()) break;
 
       if (std::find(visitedVBs.begin(), visitedVBs.end(),
                     deriveds.back().curbase->first) == visitedVBs.end()) {
@@ -113,13 +111,13 @@ ObjectTree::iterator ObjectTree::iterator::operator++(int) {
 }
 
 namespace My::MyDRefl {
-bool operator==(const ObjectTree::iterator& lhs,
-                const ObjectTree::iterator& rhs) {
+MyDRefl_core_API bool operator==(const ObjectTree::iterator& lhs,
+                                 const ObjectTree::iterator& rhs) {
   return lhs.deriveds == rhs.deriveds && lhs.mode == rhs.mode;
 }
 
-bool operator!=(const ObjectTree::iterator& lhs,
-                const ObjectTree::iterator& rhs) {
+MyDRefl_core_API bool operator!=(const ObjectTree::iterator& lhs,
+                                 const ObjectTree::iterator& rhs) {
   return !(lhs == rhs);
 }
 }  // namespace My::MyDRefl
