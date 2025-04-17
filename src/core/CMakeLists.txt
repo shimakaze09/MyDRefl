@@ -62,5 +62,5 @@ ADD_TARGET(
         DEFINE
         ${defines}
         PCH
-        "${PROJECT_SOURCE_DIR}/include/MyDRefl/MyDRefl.h"
+        "${PROJECT_SOURCE_DIR}/include/MyDRefl/MyDRefl.hpp"
 )
