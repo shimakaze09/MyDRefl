@@ -1,10 +1,8 @@
 #pragma once
 
-#include <MyDRefl/Util.h>
-#include <MyDRefl/config.h>
-
-#include <MyTemplate/Type.h>
-
+#include <MyDRefl/Util.hpp>
+#include <MyDRefl/config.hpp>
+#include <MyTemplate/Type.hpp>
 #include <span>
 
 namespace My::MyDRefl::details {
@@ -56,7 +54,6 @@ bool RefConstruct(ObjectView obj, ArgsView args);
 class BufferGuard {
  public:
   BufferGuard() : rsrc{nullptr}, size{0}, alignment{0}, buffer{nullptr} {}
-
   BufferGuard(std::pmr::memory_resource* rsrc, std::size_t size,
               std::size_t alignment)
       : rsrc{rsrc},
@@ -65,12 +62,10 @@ class BufferGuard {
         buffer{rsrc->allocate(size, alignment)} {}
 
   ~BufferGuard() {
-    if (rsrc)
-      rsrc->deallocate(buffer, size, alignment);
+    if (rsrc) rsrc->deallocate(buffer, size, alignment);
   }
 
   void* Get() const noexcept { return buffer; }
-
   operator void*() const noexcept { return Get(); }
 
   BufferGuard(const BufferGuard&) = delete;
@@ -91,12 +86,10 @@ class NewArgsGuard {
     std::uint16_t name_size;
     std::uint8_t idx;
     bool is_pointer_or_array;
-
     Type GetType() const {
       return {std::string_view{name, name_size}, TypeID{name_hash}};
     }
   };  // 24 bytes
-
   // MaxArgNum <= 2^8
   static_assert(sizeof(ArgInfo) * MaxArgNum < 16384);
 

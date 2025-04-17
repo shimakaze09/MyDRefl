@@ -1,8 +1,8 @@
 #pragma once
 
-#include <MyDRefl/Object.h>
+#include <MyDRefl/Object.hpp>
 
-#include "common.h"
+#include "common.hpp"
 
 namespace My::MyDRefl {
 class MyDRefl_core_CLASS_API ObjectTree {
@@ -24,7 +24,6 @@ class MyDRefl_core_CLASS_API ObjectTree {
     iterator operator++(int);
 
     reference operator*() const noexcept { return value; }
-
     pointer operator->() const noexcept { return &value; }
 
     MyDRefl_core_API friend bool operator==(const iterator& lhs,
@@ -33,7 +32,6 @@ class MyDRefl_core_CLASS_API ObjectTree {
                                             const iterator& rhs);
 
     bool Valid() const noexcept { return mode != -1; }
-
     std::span<const Ranges::Derived> GetDeriveds() const noexcept {
       return {deriveds.begin(), deriveds.end()};
     }
@@ -57,7 +55,6 @@ class MyDRefl_core_CLASS_API ObjectTree {
   constexpr ObjectTree(Type type) noexcept : obj{ObjectView{type}} {}
 
   iterator begin() const { return {obj, true}; }
-
   iterator end() const noexcept { return {obj, false}; }
 
  private:

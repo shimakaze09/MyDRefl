@@ -1,5 +1,4 @@
-#include <MyDRefl/MyDRefl.h>
-
+#include <MyDRefl/MyDRefl.hpp>
 #include <array>
 #include <cmath>
 #include <iostream>
@@ -10,11 +9,8 @@ using namespace My::MyDRefl;
 struct Vec {
   float x;
   float y;
-
   float norm() const noexcept { return std::sqrt(x * x + y * y); }
-
   Vec copy() const noexcept { return *this; }
-
   Vec operator+(const Vec& v) const noexcept {
     Vec rst;
     rst.x = x + v.x;

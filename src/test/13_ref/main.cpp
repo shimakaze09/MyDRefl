@@ -1,5 +1,4 @@
-#include <MyDRefl/MyDRefl.h>
-
+#include <MyDRefl/MyDRefl.hpp>
 #include <iostream>
 
 using namespace My;
@@ -7,48 +6,34 @@ using namespace My::MyDRefl;
 
 struct Data {
   Data(float value) : value{value} {}
-
   Data(const Data& f) : value{f.value} {
     std::cout << "copy ctor" << std::endl;
   }
-
   Data(Data&& f) noexcept : value{f.value} {
     std::cout << "move ctor" << std::endl;
   }
-
   Data& operator=(const Data& rhs) {
     value = rhs.value;
     return *this;
   }
-
   Data& operator=(Data&& rhs) noexcept {
     value = rhs.value;
     return *this;
   }
-
   float value;
 };
 
 struct A {
   A(Data& lref, Data&& rref) : lref{lref}, rref{std::move(rref)} {}
-
   Data& lref;
   Data&& rref;
-
   Data get() { return lref; }
-
   const Data& get_c() const { return lref; }
-
   Data& get_l() { return lref; }
-
   Data&& get_r() { return std::move(lref); }
-
   void set(Data d) { lref = d; }
-
   void set_c(const Data& d) { lref = d; }
-
   void set_l(Data& d) { lref = d; }
-
   void set_r(Data&& d) { lref = std::move(d); }
 };
 

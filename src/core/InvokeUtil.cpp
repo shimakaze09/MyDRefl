@@ -1,17 +1,15 @@
-#include "InvokeUtil.h"
+#include "InvokeUtil.hpp"
 
-#include <MyDRefl/MyDRefl.h>
+#include <MyDRefl/MyDRefl.hpp>
 
 using namespace My::MyDRefl;
 
 bool details::IsPriorityCompatible(std::span<const Type> params,
                                    std::span<const Type> argTypes) {
-  if (params.size() != argTypes.size())
-    return false;
+  if (params.size() != argTypes.size()) return false;
 
   for (size_t i = 0; i < params.size(); i++) {
-    if (params[i] == argTypes[i])
-      continue;
+    if (params[i] == argTypes[i]) continue;
 
     const auto& lhs = params[i];
     const auto& rhs = argTypes[i];
@@ -27,8 +25,7 @@ bool details::IsPriorityCompatible(std::span<const Type> params,
       if (type_name_is_const(unref_lhs) && rhs.Is(unref_lhs))
         continue;  // &{const{T}} <- const{T}
     } else {
-      if (lhs.Is(rhs.Name_RemoveRValueReference()))
-        continue;  // T <- &&{T}
+      if (lhs.Is(rhs.Name_RemoveRValueReference())) continue;  // T <- &&{T}
     }
 
     return false;
@@ -39,12 +36,10 @@ bool details::IsPriorityCompatible(std::span<const Type> params,
 
 bool details::IsRefCompatible(std::span<const Type> paramTypes,
                               std::span<const Type> argTypes) {
-  if (paramTypes.size() != argTypes.size())
-    return false;
+  if (paramTypes.size() != argTypes.size()) return false;
 
   for (size_t i = 0; i < paramTypes.size(); i++) {
-    if (!is_ref_compatible(paramTypes[i], argTypes[i]))
-      return false;
+    if (!is_ref_compatible(paramTypes[i], argTypes[i])) return false;
   }
 
   return true;
@@ -53,11 +48,9 @@ bool details::IsRefCompatible(std::span<const Type> paramTypes,
 bool details::IsRefConstructible(Type paramType,
                                  std::span<const Type> argTypes) {
   auto target = Mngr.typeinfos.find(paramType);
-  if (target == Mngr.typeinfos.end())
-    return false;
+  if (target == Mngr.typeinfos.end()) return false;
   const auto& typeinfo = target->second;
-  if (argTypes.empty() && typeinfo.is_trivial)
-    return true;
+  if (argTypes.empty() && typeinfo.is_trivial) return true;
   auto [begin_iter, end_iter] =
       typeinfo.methodinfos.equal_range(NameIDRegistry::Meta::ctor);
   for (auto iter = begin_iter; iter != end_iter; ++iter) {
@@ -69,8 +62,7 @@ bool details::IsRefConstructible(Type paramType,
 
 bool details::RefConstruct(ObjectView obj, ArgsView args) {
   auto target = Mngr.typeinfos.find(obj.GetType());
-  if (target == Mngr.typeinfos.end())
-    return false;
+  if (target == Mngr.typeinfos.end()) return false;
 
   const auto& typeinfo = target->second;
 
@@ -97,8 +89,7 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
   auto argTypes = args.Types();
   auto orig_argptr_buffer = args.Buffer();
 
-  if (argTypes.size() != paramTypes.size())
-    return;
+  if (argTypes.size() != paramTypes.size()) return;
 
   if (is_priority) {
     is_compatible = IsPriorityCompatible(paramTypes, argTypes);
@@ -116,8 +107,7 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
   std::uint8_t num_copied_nonptr_args = 0;
   bool contains_objview = false;
   for (std::uint8_t i = 0; i < argTypes.size(); i++) {
-    if (paramTypes[i] == argTypes[i])
-      continue;
+    if (paramTypes[i] == argTypes[i]) continue;
 
     if (paramTypes[i] == Type_of<ObjectView>) {
       contains_objview = true;
@@ -156,13 +146,11 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
     } else if (lhs.IsRValueReference()) {  // &&{T} | &&{const{T}}
       const auto unref_lhs = lhs.Name_RemoveRValueReference();  // T | const{T}
       if (type_name_is_const(unref_lhs)) {                      // &&{const{T}}
-        if (rhs.Is(unref_lhs))
-          continue;  // &&{const{T}} <- const{T}
+        if (rhs.Is(unref_lhs)) continue;  // &&{const{T}} <- const{T}
 
         const auto raw_lhs = type_name_remove_const(unref_lhs);  // T
 
-        if (rhs.Is(raw_lhs))
-          continue;  // &&{const{T}} <- T
+        if (rhs.Is(raw_lhs)) continue;  // &&{const{T}} <- T
 
         if (raw_lhs == rhs.Name_RemoveRValueReference())
           continue;  // &&{const{T}} <- &&{T}
@@ -182,9 +170,8 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
 
           continue;  // &&{const{T}} <- T{arg}
         }
-      } else {  // &&{T}
-        if (rhs.Is(unref_lhs))
-          continue;  // &&{T} <- T
+      } else {                            // &&{T}
+        if (rhs.Is(unref_lhs)) continue;  // &&{T} <- T
 
         Type raw_lhs_type{unref_lhs};
         if (IsRefConstructible(raw_lhs_type, std::span<const Type>{&rhs, 1}) &&
@@ -202,9 +189,8 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
           continue;  // &&{T} <- T{arg}
         }
       }
-    } else {  // T
-      if (lhs.Is(rhs.Name_RemoveRValueReference()))
-        continue;  // T <- &&{T}
+    } else {                                                   // T
+      if (lhs.Is(rhs.Name_RemoveRValueReference())) continue;  // T <- &&{T}
 
       if (IsRefConstructible(lhs, std::span<const Type>{&rhs, 1}) &&
           Mngr.IsDestructible(lhs)) {
@@ -274,8 +260,7 @@ details::NewArgsGuard::NewArgsGuard(bool is_priority,
     info_copiedargs[k].offset = offset;
     size_copiedargs = offset + size;
 
-    if (alignment > max_alignment)
-      max_alignment = alignment;
+    if (alignment > max_alignment) max_alignment = alignment;
   }
 
   // 3. fill buffer

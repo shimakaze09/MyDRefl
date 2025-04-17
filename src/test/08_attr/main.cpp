@@ -1,5 +1,4 @@
-#include <MyDRefl/MyDRefl.h>
-
+#include <MyDRefl/MyDRefl.hpp>
 #include <iostream>
 
 using namespace My;
@@ -10,7 +9,6 @@ struct Range {
   float min_value;
   float max_value;
 };
-
 class A {
  public:
   ~A() { std::cout << "delete A" << std::endl; }

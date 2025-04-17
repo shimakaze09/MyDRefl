@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common.h"
+#include "common.hpp"
 
 namespace My::MyDRefl {
 class MyDRefl_core_CLASS_API VarRange {
@@ -28,7 +28,6 @@ class MyDRefl_core_CLASS_API VarRange {
     iterator operator++(int);
 
     reference operator*() const noexcept { return value; }
-
     pointer operator->() const noexcept { return &value; }
 
     MyDRefl_core_API friend bool operator==(const iterator& lhs,
@@ -43,9 +42,7 @@ class MyDRefl_core_CLASS_API VarRange {
     }
 
     ObjectView GetObjectView() const { return std::get<ObjectView>(*typeiter); }
-
     TypeInfo* GetTypeInfo() const { return std::get<TypeInfo*>(*typeiter); }
-
     FieldInfo& GetFieldInfo() const { return curfield->second; }
 
    private:
@@ -70,12 +67,10 @@ class MyDRefl_core_CLASS_API VarRange {
 
   constexpr explicit VarRange(ObjectView obj) noexcept
       : VarRange{obj, FieldFlag::All} {}
-
   constexpr explicit VarRange(Type type) noexcept
       : VarRange{ObjectView{type}, FieldFlag::Unowned} {}
 
   iterator begin() const { return {objtree.begin(), cvref_mode, flag}; }
-
   iterator end() const noexcept { return {objtree.end(), cvref_mode, flag}; }
 
  private:

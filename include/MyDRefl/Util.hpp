@@ -1,8 +1,7 @@
 #pragma once
 
-#include <MyTemplate/Func.h>
-#include <MyTemplate/Type.h>
-
+#include <MyTemplate/Func.hpp>
+#include <MyTemplate/Type.hpp>
 #include <cstdint>
 #include <functional>
 #include <iterator>
@@ -60,7 +59,6 @@ struct field_offsetor_impl;
 template <typename Obj, typename T, T Obj::* fieldptr>
 struct field_offsetor_impl<fieldptr> {
   static_assert(!std::is_function_v<T>);
-
   static constexpr auto get() noexcept {
     return [](void* ptr) noexcept -> void* {
       return &(reinterpret_cast<Obj*>(ptr)->*fieldptr);
@@ -73,7 +71,8 @@ constexpr auto field_offsetor() noexcept {
   return field_offsetor_impl<fieldptr>::get();
 }
 
-// result size of field_offsetor(fieldptr) > result size of field_offsetor<fieldptr>
+// result size of field_offsetor(fieldptr) > result size of
+// field_offsetor<fieldptr>
 template <typename T, typename Obj>
 constexpr auto field_offsetor(T Obj::* fieldptr) noexcept {
   static_assert(!std::is_function_v<T>);
@@ -138,9 +137,7 @@ Destructor destructor() {
   else {
     static_assert(std::is_destructible_v<T>);
     if constexpr (!std::is_trivially_destructible_v<T>) {
-      return [](const void* ptr) {
-        reinterpret_cast<const T*>(ptr)->~T();
-      };
+      return [](const void* ptr) { reinterpret_cast<const T*>(ptr)->~T(); };
     } else
       return {};
   }
@@ -191,28 +188,29 @@ constexpr T* ptr_const_cast(const T* ptr) noexcept {
 }
 
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr decltype(auto) enum_cast(
-    Enum&& e) noexcept;
+  requires std::is_enum_v<Enum>
+constexpr decltype(auto) enum_cast(Enum&& e) noexcept;
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr bool enum_empty(const Enum& e) noexcept;
+  requires std::is_enum_v<Enum>
+constexpr bool enum_empty(const Enum& e) noexcept;
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr bool enum_single(
-    const Enum& e) noexcept;
+  requires std::is_enum_v<Enum>
+constexpr bool enum_single(const Enum& e) noexcept;
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr bool enum_contain_any(
-    const Enum& e, const Enum& flag) noexcept;
+  requires std::is_enum_v<Enum>
+constexpr bool enum_contain_any(const Enum& e, const Enum& flag) noexcept;
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr bool enum_contain(
-    const Enum& e, const Enum& flag) noexcept;
+  requires std::is_enum_v<Enum>
+constexpr bool enum_contain(const Enum& e, const Enum& flag) noexcept;
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr Enum enum_combine(
-    std::initializer_list<Enum> flags) noexcept;
+  requires std::is_enum_v<Enum>
+constexpr Enum enum_combine(std::initializer_list<Enum> flags) noexcept;
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr Enum enum_remove(
-    const Enum& e, const Enum& flag) noexcept;
+  requires std::is_enum_v<Enum>
+constexpr Enum enum_remove(const Enum& e, const Enum& flag) noexcept;
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr Enum enum_within(
-    const Enum& e, const Enum& flag) noexcept;
+  requires std::is_enum_v<Enum>
+constexpr Enum enum_within(const Enum& e, const Enum& flag) noexcept;
 
 // to <- from
 // - same
@@ -245,9 +243,7 @@ constexpr bool is_pointer_array_compatible(std::string_view to,
 ////////////
 
 template <typename From, typename To>
-concept static_castable_to = requires(From from) {
-  static_cast<To>(from);
-};
+concept static_castable_to = requires(From from) { static_cast<To>(from); };
 
 //
 // operation
@@ -257,84 +253,50 @@ template <typename T>
 concept operator_bool = static_castable_to<T, bool>;
 
 template <typename T>
-concept operator_plus = requires(T t) {
-  +t;
-};
+concept operator_plus = requires(T t) { +t; };
 template <typename T>
-concept operator_minus = !std::is_unsigned_v<T> && requires(T t) {
-  -t;
-};
+concept operator_minus = !std::is_unsigned_v<T> && requires(T t) { -t; };
 
 template <typename T>
-concept operator_add = requires(T lhs, T rhs) {
-  lhs + rhs;
-};
+concept operator_add = requires(T lhs, T rhs) { lhs + rhs; };
 template <typename T>
-concept operator_sub =
-    !std::is_same_v<std::decay_t<T>, void*> && requires(T lhs, T rhs) {
-  lhs - rhs;
-};
+concept operator_sub = !std::is_same_v<std::decay_t<T>, void*> &&
+                       requires(T lhs, T rhs) { lhs - rhs; };
 template <typename T>
-concept operator_mul = requires(T lhs, T rhs) {
-  lhs* rhs;
-};
+concept operator_mul = requires(T lhs, T rhs) { lhs * rhs; };
 template <typename T>
-concept operator_div =
-    !std::is_same_v<std::remove_cvref_t<T>, bool> && requires(T lhs, T rhs) {
-  lhs / rhs;
-};
+concept operator_div = !std::is_same_v<std::remove_cvref_t<T>, bool> &&
+                       requires(T lhs, T rhs) { lhs / rhs; };
 template <typename T>
-concept operator_mod =
-    !std::is_same_v<std::remove_cvref_t<T>, bool> && requires(T lhs, T rhs) {
-  lhs % rhs;
-};
+concept operator_mod = !std::is_same_v<std::remove_cvref_t<T>, bool> &&
+                       requires(T lhs, T rhs) { lhs % rhs; };
 
 template <typename T>
 concept operator_bnot =
-    !std::is_same_v<std::remove_cvref_t<T>, bool> && requires(T t) {
-  ~t;
-};
+    !std::is_same_v<std::remove_cvref_t<T>, bool> && requires(T t) { ~t; };
 template <typename T>
-concept operator_band = requires(T lhs, T rhs) {
-  lhs & rhs;
-};
+concept operator_band = requires(T lhs, T rhs) { lhs & rhs; };
 template <typename T>
-concept operator_bor = requires(T lhs, T rhs) {
-  lhs | rhs;
-};
+concept operator_bor = requires(T lhs, T rhs) { lhs | rhs; };
 template <typename T>
-concept operator_bxor = requires(T lhs, T rhs) {
-  lhs ^ rhs;
-};
+concept operator_bxor = requires(T lhs, T rhs) { lhs ^ rhs; };
 template <typename T, typename U>
-concept operator_shl = requires(T lhs, U rhs) {
-  lhs << rhs;
-};
+concept operator_shl = requires(T lhs, U rhs) { lhs << rhs; };
 template <typename T, typename U>
-concept operator_shr = requires(T lhs, U rhs) {
-  lhs >> rhs;
-};
+concept operator_shr = requires(T lhs, U rhs) { lhs >> rhs; };
 
 template <typename T>
-concept operator_pre_inc = !std::is_same_v<T, bool> && requires(T t) {
-  ++t;
-};
+concept operator_pre_inc = !std::is_same_v<T, bool> && requires(T t) { ++t; };
 template <typename T>
-concept operator_post_inc = !std::is_same_v<T, bool> && requires(T t) {
-  t++;
-};
+concept operator_post_inc = !std::is_same_v<T, bool> && requires(T t) { t++; };
 template <typename T>
-concept operator_pre_dec = !std::is_same_v<T, bool> && requires(T t) {
-  --t;
-};
+concept operator_pre_dec = !std::is_same_v<T, bool> && requires(T t) { --t; };
 template <typename T>
-concept operator_post_dec = !std::is_same_v<T, bool> && requires(T t) {
-  t--;
-};
+concept operator_post_dec = !std::is_same_v<T, bool> && requires(T t) { t--; };
 
 template <typename T, typename U>
 concept operator_assignment = requires(T lhs, U rhs) {
-  {lhs = std::forward<U>(rhs)}->std::same_as<T&>;
+  { lhs = std::forward<U>(rhs) } -> std::same_as<T&>;
 };
 template <typename T>
 concept operator_assignment_copy =
@@ -345,109 +307,101 @@ concept operator_assignment_move =
 template <typename T>
 concept operator_assignment_add =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
-  {lhs += rhs}->std::same_as<T&>;
-};
+      { lhs += rhs } -> std::same_as<T&>;
+    };
 template <typename T>
 concept operator_assignment_sub =
     !std::is_same_v<std::decay_t<T>, void*> && !std::is_same_v<T, void> &&
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
-  {lhs -= rhs}->std::same_as<T&>;
-};
+      { lhs -= rhs } -> std::same_as<T&>;
+    };
 template <typename T>
 concept operator_assignment_mul =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
-  {lhs *= rhs}->std::same_as<T&>;
-};
+      { lhs *= rhs } -> std::same_as<T&>;
+    };
 template <typename T>
 concept operator_assignment_div =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
-  {lhs /= rhs}->std::same_as<T&>;
-};
+      { lhs /= rhs } -> std::same_as<T&>;
+    };
 template <typename T>
 concept operator_assignment_mod =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
-  {lhs %= rhs}->std::same_as<T&>;
-};
+      { lhs %= rhs } -> std::same_as<T&>;
+    };
 template <typename T>
 concept operator_assignment_band =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
-  {lhs &= rhs}->std::same_as<T&>;
-};
+      { lhs &= rhs } -> std::same_as<T&>;
+    };
 template <typename T>
 concept operator_assignment_bor =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
-  {lhs |= rhs}->std::same_as<T&>;
-};
+      { lhs |= rhs } -> std::same_as<T&>;
+    };
 template <typename T>
 concept operator_assignment_bxor =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
-  {lhs ^= rhs}->std::same_as<T&>;
-};
+      { lhs ^= rhs } -> std::same_as<T&>;
+    };
 template <typename T>
 concept operator_assignment_shl =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
-  {lhs <<= rhs}->std::same_as<T&>;
-};
+      { lhs <<= rhs } -> std::same_as<T&>;
+    };
 template <typename T>
 concept operator_assignment_shr =
     !std::is_same_v<T, bool> && requires(T lhs, const T& rhs) {
-  {lhs >>= rhs}->std::same_as<T&>;
-};
+      { lhs >>= rhs } -> std::same_as<T&>;
+    };
 
 template <typename T>
 concept operator_eq =
     !std::is_array_v<T> && requires(const T& lhs, const T& rhs) {
-  {lhs == rhs}->static_castable_to<bool>;
-};
+      { lhs == rhs } -> static_castable_to<bool>;
+    };
 template <typename T>
 concept operator_ne =
     !std::is_array_v<T> && requires(const T& lhs, const T& rhs) {
-  {lhs != rhs}->static_castable_to<bool>;
-};
+      { lhs != rhs } -> static_castable_to<bool>;
+    };
 template <typename T>
 concept operator_lt =
     !std::is_array_v<T> && requires(const T& lhs, const T& rhs) {
-  {lhs < rhs}->static_castable_to<bool>;
-};
+      { lhs < rhs } -> static_castable_to<bool>;
+    };
 template <typename T>
 concept operator_le =
     !std::is_array_v<T> && requires(const T& lhs, const T& rhs) {
-  {lhs <= rhs}->static_castable_to<bool>;
-};
+      { lhs <= rhs } -> static_castable_to<bool>;
+    };
 template <typename T>
 concept operator_gt =
     !std::is_array_v<T> && requires(const T& lhs, const T& rhs) {
-  {lhs > rhs}->static_castable_to<bool>;
-};
+      { lhs > rhs } -> static_castable_to<bool>;
+    };
 template <typename T>
 concept operator_ge =
     !std::is_array_v<T> && requires(const T& lhs, const T& rhs) {
-  {lhs >= rhs}->static_castable_to<bool>;
-};
+      { lhs >= rhs } -> static_castable_to<bool>;
+    };
 
 template <typename T, typename U>
-concept operator_subscript =
-    !std::is_void_v<std::remove_pointer_t<T>> && requires(T lhs, const U& rhs) {
-  lhs[rhs];
-};
+concept operator_subscript = !std::is_void_v<std::remove_pointer_t<T>> &&
+                             requires(T lhs, const U& rhs) { lhs[rhs]; };
 template <typename T>
 concept operator_indirection =
-    !std::is_same_v<std::decay_t<T>, void*> && requires(T t) {
-  *t;
-};
+    !std::is_same_v<std::decay_t<T>, void*> && requires(T t) { *t; };
 
 //
 // pair
 ///////////
 
 template <typename T>
-concept pair_first_type = requires {
-  typename T::first_type;
-};
+concept pair_first_type = requires { typename T::first_type; };
 template <typename T>
-concept pair_second_type = requires {
-  typename T::second_type;
-};
+concept pair_second_type = requires { typename T::second_type; };
 template <typename T>
 concept pair_first = std::is_member_object_pointer_v<decltype(&T::first)>;
 template <typename T>
@@ -458,27 +412,23 @@ concept pair_second = std::is_member_object_pointer_v<decltype(&T::second)>;
 //////////
 
 template <typename T>
-concept tuple_size = requires() {
-  std::tuple_size<T>::value;
-};
+concept tuple_size = requires() { std::tuple_size<T>::value; };
 
 //
 // variant
 ////////////
 
 template <typename T>
-concept variant_size = requires() {
-  std::variant_size<T>::value;
-};
+concept variant_size = requires() { std::variant_size<T>::value; };
 
 template <typename T>
 concept variant_index = requires(const T& t) {
-  {t.index()}->static_castable_to<std::size_t>;
+  { t.index() } -> static_castable_to<std::size_t>;
 };
 
 template <typename T>
 concept variant_valueless_by_exception = requires(const T& t) {
-  {t.valueless_by_exception()}->static_castable_to<bool>;
+  { t.valueless_by_exception() } -> static_castable_to<bool>;
 };
 
 //
@@ -487,16 +437,12 @@ concept variant_valueless_by_exception = requires(const T& t) {
 
 template <typename T>
 concept optional_has_value = requires(const T& t) {
-  {t.has_value()}->static_castable_to<bool>;
+  { t.has_value() } -> static_castable_to<bool>;
 };
 template <typename T>
-concept optional_value = requires(T t) {
-  t.value();
-};
+concept optional_value = requires(T t) { t.value(); };
 template <typename T>
-concept optional_reset = requires(T t) {
-  t.reset();
-};
+concept optional_reset = requires(T t) { t.reset(); };
 
 //
 // container
@@ -526,77 +472,45 @@ concept optional_reset = requires(T t) {
 // - > > node
 
 template <typename T>
-concept container_key_type = requires {
-  typename T::key_type;
-};
+concept container_key_type = requires { typename T::key_type; };
 template <typename T>
-concept container_mapped_type = requires {
-  typename T::mapped_type;
-};
+concept container_mapped_type = requires { typename T::mapped_type; };
 template <typename T>
-concept container_value_type = requires {
-  typename T::value_type;
-};
+concept container_value_type = requires { typename T::value_type; };
 template <typename T>
-concept container_allocator_type = requires {
-  typename T::allocator_type;
-};
+concept container_allocator_type = requires { typename T::allocator_type; };
 template <typename T>
-concept container_size_type = std::is_array_v<T> || requires {
-  typename T::size_type;
-};
+concept container_size_type =
+    std::is_array_v<T> || requires { typename T::size_type; };
 template <typename T>
-concept container_difference_type = requires {
-  typename T::difference_type;
-};
+concept container_difference_type = requires { typename T::difference_type; };
 template <typename T>
-concept container_pointer_type = requires {
-  typename T::pointer;
-};
+concept container_pointer_type = requires { typename T::pointer; };
 template <typename T>
-concept container_const_pointer_type = requires {
-  typename T::const_pointer;
-};
+concept container_const_pointer_type = requires { typename T::const_pointer; };
 template <typename T>
-concept container_key_compare = requires {
-  typename T::key_compare;
-};
+concept container_key_compare = requires { typename T::key_compare; };
 template <typename T>
-concept container_value_compare = requires {
-  typename T::value_coompare;
-};
+concept container_value_compare = requires { typename T::value_coompare; };
 template <typename T>
-concept container_iterator = requires {
-  typename T::iterator;
-};
+concept container_iterator = requires { typename T::iterator; };
 template <typename T>
-concept container_const_iterator = requires {
-  typename T::const_iterator;
-};
+concept container_const_iterator = requires { typename T::const_iterator; };
 template <typename T>
-concept container_reverse_iterator = requires {
-  typename T::reverse_iterator;
-};
+concept container_reverse_iterator = requires { typename T::reverse_iterator; };
 template <typename T>
-concept container_const_reverse_iterator = requires {
-  typename T::const_reverse_iterator;
-};
+concept container_const_reverse_iterator =
+    requires { typename T::const_reverse_iterator; };
 template <typename T>
-concept container_local_iterator = requires {
-  typename T::local_iterator;
-};
+concept container_local_iterator = requires { typename T::local_iterator; };
 template <typename T>
-concept container_const_local_iterator = requires {
-  typename T::const_local_iterator;
-};
+concept container_const_local_iterator =
+    requires { typename T::const_local_iterator; };
 template <typename T>
-concept container_node_type = requires {
-  typename T::node_type;
-};
+concept container_node_type = requires { typename T::node_type; };
 template <typename T>
-concept container_insert_return_type = requires {
-  typename T::insert_return_type;
-};
+concept container_insert_return_type =
+    requires { typename T::insert_return_type; };
 
 template <typename T>
 struct get_container_size_type;
@@ -606,10 +520,8 @@ using get_container_size_type_t = typename get_container_size_type<T>::type;
 // ctor
 
 template <typename T, typename... Args>
-concept type_ctor =
-    std::is_constructible_v<T, Args...> && requires(Args... args) {
-  T{std::forward<Args>(args)...};
-};
+concept type_ctor = std::is_constructible_v<T, Args...> &&
+                    requires(Args... args) { T{std::forward<Args>(args)...}; };
 template <typename T>
 concept type_ctor_copy =
     std::is_copy_constructible_v<T> && type_ctor<T, const T&>;
@@ -647,53 +559,34 @@ concept container_ctor_ptr_ptr =
 // assign
 
 template <typename T>
-concept container_assign = container_size_type<T> && container_value_type<T> &&
-                           requires(T t, const typename T::size_type& s,
-                                    const typename T::value_type& v) {
-  t.assign(s, v);
-};
+concept container_assign =
+    container_size_type<T> && container_value_type<T> &&
+    requires(T t, const typename T::size_type& s,
+             const typename T::value_type& v) { t.assign(s, v); };
 
 // - iterator
 
 template <typename T>
-concept container_begin = requires(T t) {
-  std::begin(t);
-};
+concept container_begin = requires(T t) { std::begin(t); };
 template <typename T>
-concept container_cbegin = requires(const T& t) {
-  std::cbegin(t);
-};
+concept container_cbegin = requires(const T& t) { std::cbegin(t); };
 template <typename T>
-concept container_rbegin = requires(T t) {
-  std::rbegin(t);
-};
+concept container_rbegin = requires(T t) { std::rbegin(t); };
 template <typename T>
-concept container_crbegin = requires(const T& t) {
-  std::crbegin(t);
-};
+concept container_crbegin = requires(const T& t) { std::crbegin(t); };
 template <typename T>
-concept container_end = requires(T t) {
-  std::end(t);
-};
+concept container_end = requires(T t) { std::end(t); };
 template <typename T>
-concept container_cend = requires(const T& t) {
-  std::cend(t);
-};
+concept container_cend = requires(const T& t) { std::cend(t); };
 template <typename T>
-concept container_rend = requires(T t) {
-  std::rend(t);
-};
+concept container_rend = requires(T t) { std::rend(t); };
 template <typename T>
-concept container_crend = requires(const T& t) {
-  std::crend(t);
-};
+concept container_crend = requires(const T& t) { std::crend(t); };
 
 // - element access
 
 template <typename T, typename U>
-concept container_at = requires(T t, const U& key) {
-  t.at(key);
-};
+concept container_at = requires(T t, const U& key) { t.at(key); };
 template <typename T>
 concept container_at_size =
     container_size_type<T> && container_at<T, typename T::size_type>;
@@ -701,9 +594,7 @@ template <typename T>
 concept container_at_key =
     container_key_type<T> && container_at<T, typename T::key_type>;
 template <typename T, typename U>
-concept container_subscript = requires(T t, U key) {
-  t[std::forward<U>(key)];
-};
+concept container_subscript = requires(T t, U key) { t[std::forward<U>(key)]; };
 template <typename T>
 concept container_subscript_size =
     container_size_type<std::remove_reference_t<T>> &&
@@ -716,77 +607,62 @@ template <typename T>
 concept container_subscript_key_r =
     container_key_type<T> && container_subscript<T, typename T::key_type>;
 template <typename T>
-concept container_data = requires(T t) {
-  std::data(t);
-};
+concept container_data = requires(T t) { std::data(t); };
 template <typename T>
-concept container_front = requires(T t) {
-  t.front();
-};
+concept container_front = requires(T t) { t.front(); };
 template <typename T>
-concept container_back = requires(T t) {
-  t.back();
-};
+concept container_back = requires(T t) { t.back(); };
 template <typename T>
-concept container_top = requires(T t) {
-  t.top();
-};
+concept container_top = requires(T t) { t.top(); };
 
 // - capacity
 
 template <typename T>
 concept container_empty = requires(const T& t) {
-  {std::empty(t)}->static_castable_to<bool>;
+  { std::empty(t) } -> static_castable_to<bool>;
 };
 template <typename T>
 concept container_size = requires(const T& t) {
-  {std::size(t)}->static_castable_to<std::size_t>;
+  { std::size(t) } -> static_castable_to<std::size_t>;
 };
 template <typename T>
 concept container_size_bytes = requires(const T& t) {
-  {t.size_bytes()}->static_castable_to<std::size_t>;
+  { t.size_bytes() } -> static_castable_to<std::size_t>;
 };
 template <typename T>
 concept container_resize_cnt =
-    container_size_type<T> && requires(T t, const typename T::size_type& cnt) {
-  t.resize(cnt);
-};
+    container_size_type<T> &&
+    requires(T t, const typename T::size_type& cnt) { t.resize(cnt); };
 template <typename T>
 concept container_resize_cnt_value =
     container_size_type<T> && container_value_type<T> &&
     requires(T t, const typename T::size_type& cnt,
-             const typename T::value_type& value) {
-  t.resize(cnt, value);
-};
+             const typename T::value_type& value) { t.resize(cnt, value); };
 template <typename T>
 concept container_capacity = requires(const T& t) {
-  {t.capacity()}->static_castable_to<std::size_t>;
+  { t.capacity() } -> static_castable_to<std::size_t>;
 };
 template <typename T>
 concept container_bucket_count = requires(const T& t) {
-  {t.bucket_count()}->static_castable_to<std::size_t>;
+  { t.bucket_count() } -> static_castable_to<std::size_t>;
 };
 template <typename T>
 concept container_reserve =
-    container_size_type<T> && requires(T t, const typename T::size_type& cnt) {
-  t.reserve(cnt);
-};
+    container_size_type<T> &&
+    requires(T t, const typename T::size_type& cnt) { t.reserve(cnt); };
 template <typename T>
-concept container_shrink_to_fit = container_size_type<T> && requires(T t) {
-  t.shrink_to_fit();
-};
+concept container_shrink_to_fit =
+    container_size_type<T> && requires(T t) { t.shrink_to_fit(); };
 
 // - modifiers
 
 template <typename T>
-concept container_clear = container_size_type<T> && requires(T t) {
-  t.clear();
-};
+concept container_clear =
+    container_size_type<T> && requires(T t) { t.clear(); };
 
 template <typename T, typename V>
-concept container_insert = requires(T t, V value) {
-  t.insert(std::forward<V>(value));
-};
+concept container_insert =
+    requires(T t, V value) { t.insert(std::forward<V>(value)); };
 template <typename T>
 concept container_insert_clvalue =
     container_value_type<T> &&
@@ -802,8 +678,8 @@ template <typename T, typename V>
 concept container_insert_citer =
     container_const_iterator<T> &&
     requires(T t, const typename T::const_iterator& iter, V value) {
-  t.insert(iter, std::forward<V>(value));
-};
+      t.insert(iter, std::forward<V>(value));
+    };
 template <typename T>
 concept container_insert_citer_clvalue =
     container_value_type<T> &&
@@ -824,8 +700,8 @@ concept container_insert_citer_cnt =
     requires(T t, const typename T::const_iterator& iter,
              const typename T::size_type& cnt,
              const typename T::value_type& value) {
-  t.insert(iter, cnt, value);
-};
+      t.insert(iter, cnt, value);
+    };
 
 template <typename T, typename U, typename V>
 concept container_insert_or_assign = requires(T t, U u, V v) {
@@ -846,8 +722,8 @@ template <typename T, typename U, typename V>
 concept container_insert_or_assign_citer =
     container_const_iterator<T> &&
     requires(T t, const typename T::const_iterator& citer, U u, V v) {
-  t.insert_or_assign(citer, std::forward<U>(u), std::forward<V>(v));
-};
+      t.insert_or_assign(citer, std::forward<U>(u), std::forward<V>(v));
+    };
 template <typename T>
 concept container_insert_or_assign_citer_clkey_rmap =
     container_key_type<T> && container_mapped_type<T> &&
@@ -863,8 +739,8 @@ template <typename T, typename V>
 concept container_insert_after =
     container_const_iterator<T> &&
     requires(T t, const typename T::const_iterator& pos, V value) {
-  t.insert_after(pos, std::forward<V>(value));
-};
+      t.insert_after(pos, std::forward<V>(value));
+    };
 template <typename T>
 concept container_insert_after_clvalue =
     container_value_type<T> &&
@@ -881,13 +757,11 @@ concept container_insert_after_cnt =
     requires(T t, const typename T::const_iterator& pos,
              const typename T::size_type& cnt,
              const typename T::value_type& value) {
-  t.insert_after(pos, cnt, value);
-};
+      t.insert_after(pos, cnt, value);
+    };
 
 template <typename T, typename U>
-concept container_erase = requires(T t, const U& u) {
-  t.erase(u);
-};
+concept container_erase = requires(T t, const U& u) { t.erase(u); };
 template <typename T>
 concept container_erase_citer = container_const_iterator<T> &&
                                 container_erase<T, typename T::const_iterator>;
@@ -896,9 +770,8 @@ concept container_erase_key =
     container_key_type<T> && container_erase<T, typename T::key_type>;
 
 template <typename T, typename U>
-concept container_erase_range = requires(T t, const U& b, const U& e) {
-  t.erase(b, e);
-};
+concept container_erase_range =
+    requires(T t, const U& b, const U& e) { t.erase(b, e); };
 template <typename T>
 concept container_erase_range_citer =
     container_const_iterator<T> &&
@@ -908,21 +781,20 @@ template <typename T>
 concept container_erase_after =
     container_const_iterator<T> &&
     requires(T t, const typename T::const_iterator& pos) {
-  t.erase_after(pos);
-};
+      t.erase_after(pos);
+    };
 
 template <typename T>
 concept container_erase_after_range =
     container_const_iterator<T> &&
     requires(T t, const typename T::const_iterator& first,
              const typename T::const_iterator& last) {
-  t.erase_after(first, last);
-};
+      t.erase_after(first, last);
+    };
 
 template <typename T, typename U>
-concept container_push_front = requires(T t, U u) {
-  t.push_front(std::forward<U>(u));
-};
+concept container_push_front =
+    requires(T t, U u) { t.push_front(std::forward<U>(u)); };
 template <typename T>
 concept container_push_front_clvalue =
     container_value_type<T> &&
@@ -933,14 +805,11 @@ concept container_push_front_rvalue =
     container_push_front<T, typename T::value_type&&>;
 
 template <typename T>
-concept container_pop_front = requires(T t) {
-  t.pop_front();
-};
+concept container_pop_front = requires(T t) { t.pop_front(); };
 
 template <typename T, typename U>
-concept container_push_back = requires(T t, U u) {
-  t.push_back(std::forward<U>(u));
-};
+concept container_push_back =
+    requires(T t, U u) { t.push_back(std::forward<U>(u)); };
 template <typename T>
 concept container_push_back_clvalue =
     container_value_type<T> &&
@@ -950,14 +819,10 @@ concept container_push_back_rvalue =
     container_value_type<T> && container_push_back<T, typename T::value_type&&>;
 
 template <typename T>
-concept container_pop_back = requires(T t) {
-  t.pop_back();
-};
+concept container_pop_back = requires(T t) { t.pop_back(); };
 
 template <typename T, typename U>
-concept container_push = requires(T t, U u) {
-  t.push(std::forward<U>(u));
-};
+concept container_push = requires(T t, U u) { t.push(std::forward<U>(u)); };
 template <typename T>
 concept container_push_clvalue =
     container_value_type<T> && container_push<T, const typename T::value_type&>;
@@ -966,28 +831,20 @@ concept container_push_rvalue =
     container_value_type<T> && container_push<T, typename T::value_type&&>;
 
 template <typename T>
-concept container_pop = requires(T t) {
-  t.pop();
-};
+concept container_pop = requires(T t) { t.pop(); };
 
 template <typename T>
-concept container_swap = requires(T lhs, T rhs) {
-  std::swap(lhs, rhs);
-};
+concept container_swap = requires(T lhs, T rhs) { std::swap(lhs, rhs); };
 
 template <typename T, typename U>
-concept container_merge = requires(T t, U u) {
-  t.merge(std::forward<U>(u));
-};
+concept container_merge = requires(T t, U u) { t.merge(std::forward<U>(u)); };
 template <typename T>
 concept container_merge_l = container_merge<T, T&>;
 template <typename T>
 concept container_merge_r = container_merge<T, T&&>;
 
 template <typename T, typename U>
-concept container_extract = requires(T t, const U& u) {
-  t.extract(u);
-};
+concept container_extract = requires(T t, const U& u) { t.extract(u); };
 template <typename T>
 concept container_extract_citer =
     container_const_iterator<T> &&
@@ -1001,39 +858,35 @@ concept container_extract_key =
 template <typename T>
 concept container_count = container_key_type<T> &&
                           requires(const T& t, const typename T::key_type& u) {
-  {t.count(u)}->static_castable_to<std::size_t>;
-};
+                            { t.count(u) } -> static_castable_to<std::size_t>;
+                          };
 
 template <typename T>
 concept container_find =
-    container_key_type<T> && requires(T t, const typename T::key_type& u) {
-  t.find(u);
-};
+    container_key_type<T> &&
+    requires(T t, const typename T::key_type& u) { t.find(u); };
 
 template <typename T>
 concept container_contains =
     container_key_type<T> &&
     requires(const T& t, const typename T::key_type& u) {
-  {t.count(u)}->static_castable_to<bool>;
-};
+      { t.count(u) } -> static_castable_to<bool>;
+    };
 
 template <typename T>
 concept container_lower_bound =
-    container_key_type<T> && requires(T t, const typename T::key_type& u) {
-  t.lower_bound(u);
-};
+    container_key_type<T> &&
+    requires(T t, const typename T::key_type& u) { t.lower_bound(u); };
 
 template <typename T>
 concept container_upper_bound =
-    container_key_type<T> && requires(T t, const typename T::key_type& u) {
-  t.upper_bound(u);
-};
+    container_key_type<T> &&
+    requires(T t, const typename T::key_type& u) { t.upper_bound(u); };
 
 template <typename T>
 concept container_equal_range =
-    container_key_type<T> && requires(T t, const typename T::key_type& u) {
-  t.equal_range(u);
-};
+    container_key_type<T> &&
+    requires(T t, const typename T::key_type& u) { t.equal_range(u); };
 
 // - list operations
 
@@ -1041,8 +894,8 @@ template <typename T, typename Other>
 concept container_splice_after =
     container_const_iterator<T> &&
     requires(T t, const typename T::const_iterator& pos, Other other) {
-  t.splice_after(pos, std::forward<Other>(other));
-};
+      t.splice_after(pos, std::forward<Other>(other));
+    };
 
 template <typename T>
 concept container_splice_after_l = container_splice_after<T, T&>;
@@ -1054,8 +907,8 @@ concept container_splice_after_it =
     container_const_iterator<T> &&
     requires(T t, const typename T::const_iterator& pos, Other other,
              const typename T::const_iterator& it) {
-  t.splice_after(pos, std::forward<Other>(other), it);
-};
+      t.splice_after(pos, std::forward<Other>(other), it);
+    };
 
 template <typename T>
 concept container_splice_after_it_l = container_splice_after_it<T, T&>;
@@ -1068,8 +921,8 @@ concept container_splice_after_range =
     requires(T t, const typename T::const_iterator& pos, Other other,
              const typename T::const_iterator& first,
              const typename T::const_iterator& last) {
-  t.splice_after(pos, std::forward<Other>(other), first, last);
-};
+      t.splice_after(pos, std::forward<Other>(other), first, last);
+    };
 
 template <typename T>
 concept container_splice_after_range_l = container_splice_after_range<T, T&>;
@@ -1080,8 +933,8 @@ template <typename T, typename Other>
 concept container_splice =
     container_const_iterator<T> &&
     requires(T t, const typename T::const_iterator& pos, Other other) {
-  t.splice(pos, std::forward<Other>(other));
-};
+      t.splice(pos, std::forward<Other>(other));
+    };
 
 template <typename T>
 concept container_splice_l = container_splice<T, T&>;
@@ -1093,8 +946,8 @@ concept container_splice_it =
     container_const_iterator<T> &&
     requires(T t, const typename T::const_iterator& pos, Other other,
              const typename T::const_iterator& it) {
-  t.splice(pos, std::forward<Other>(other), it);
-};
+      t.splice(pos, std::forward<Other>(other), it);
+    };
 
 template <typename T>
 concept container_splice_it_l = container_splice_it<T, T&>;
@@ -1107,8 +960,8 @@ concept container_splice_range =
     requires(T t, const typename T::const_iterator& pos, Other other,
              const typename T::const_iterator& first,
              const typename T::const_iterator& last) {
-  t.splice(pos, std::forward<Other>(other), first, last);
-};
+      t.splice(pos, std::forward<Other>(other), first, last);
+    };
 
 template <typename T>
 concept container_splice_range_l = container_splice_range<T, T&>;
@@ -1118,23 +971,19 @@ concept container_splice_range_r = container_splice_range<T, T&&>;
 template <typename T>
 concept container_remove =
     container_value_type<T> && requires(T t, const typename T::value_type& v) {
-  {t.remove(v)}->static_castable_to<std::size_t>;
-};
+      { t.remove(v) } -> static_castable_to<std::size_t>;
+    };
 
 template <typename T>
-concept container_reverse = requires(T t) {
-  t.reverse();
-};
+concept container_reverse = requires(T t) { t.reverse(); };
 
 template <typename T>
 concept container_unique = requires(T t) {
-  {t.unique()}->static_castable_to<std::size_t>;
+  { t.unique() } -> static_castable_to<std::size_t>;
 };
 
 template <typename T>
-concept container_sort = requires(T t) {
-  t.sort();
-};
+concept container_sort = requires(T t) { t.sort(); };
 }  // namespace My::MyDRefl
 
 #include "details/Util.inl"

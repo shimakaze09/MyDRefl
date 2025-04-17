@@ -1,11 +1,11 @@
 #pragma once
 
-#include <MyDRefl/MyDRefl.h>
-
 #include <MyDRefl_ext/Bootstrap.h>
 
+#include <MyDRefl/MyDRefl.hpp>
+
 namespace My::MyDRefl::ext::details {
-void Bootstrap_helper_mytemplate();
+void Bootstrap_helper_utemplate();
 void Bootstrap_helper_attrs_ContainerType();
 void Bootstrap_helper_basic();
 void Bootstrap_helper_registry();

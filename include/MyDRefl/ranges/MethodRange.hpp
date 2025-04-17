@@ -1,26 +1,25 @@
 #pragma once
 
-#include "ObjectTree.h"
+#include "ObjectTree.hpp"
 
 namespace My::MyDRefl {
 // DFS
-class MyDRefl_core_CLASS_API FieldRange {
+class MyDRefl_core_CLASS_API MethodRange {
  public:
   class MyDRefl_core_CLASS_API iterator {
    public:
-    using value_type = std::pair<const Name, FieldInfo>;
+    using value_type = std::pair<const Name, MethodInfo>;
     using reference = value_type&;
     using pointer = value_type*;
     using iterator_category = std::forward_iterator_tag;
 
-    iterator(ObjectTree::iterator typeiter, FieldFlag flag = FieldFlag::All);
+    iterator(ObjectTree::iterator typeiter, MethodFlag flag = MethodFlag::All);
 
     iterator& operator++();
     iterator operator++(int);
 
-    reference operator*() const noexcept { return *curfield; }
-
-    pointer operator->() const noexcept { return curfield.operator->(); }
+    reference operator*() const noexcept { return *curmethod; }
+    pointer operator->() const noexcept { return curmethod.operator->(); }
 
     MyDRefl_core_API friend bool operator==(const iterator& lhs,
                                             const iterator& rhs);
@@ -28,41 +27,36 @@ class MyDRefl_core_CLASS_API FieldRange {
                                             const iterator& rhs);
 
     bool Valid() const noexcept { return typeiter.Valid(); }
-
     std::span<const Ranges::Derived> GetDeriveds() const noexcept {
       return typeiter.GetDeriveds();
     }
-
     ObjectView GetObjectView() const { return std::get<ObjectView>(*typeiter); }
-
     TypeInfo* GetTypeInfo() const { return std::get<TypeInfo*>(*typeiter); }
 
    private:
     void update();
     ObjectTree::iterator typeiter;
-    FieldFlag flag;
+    MethodFlag flag;
     int mode;
-    std::unordered_map<Name, FieldInfo>::iterator curfield;
+    std::unordered_map<Name, MethodInfo>::iterator curmethod;
   };
 
-  constexpr FieldRange(ObjectView obj, FieldFlag flag) noexcept
+  constexpr MethodRange(ObjectView obj, MethodFlag flag) noexcept
       : objtree{ObjectTree{obj}}, flag{flag} {}
-
-  constexpr explicit FieldRange(ObjectView obj) noexcept
-      : FieldRange{obj, FieldFlag::All} {}
-
-  constexpr explicit FieldRange(Type type) noexcept
-      : FieldRange{ObjectView{type}, FieldFlag::All} {}
+  constexpr explicit MethodRange(ObjectView obj) noexcept
+      : MethodRange{obj, MethodFlag::All} {}
+  constexpr explicit MethodRange(Type type) noexcept
+      : MethodRange{ObjectView{type}, MethodFlag::All} {}
 
   iterator begin() const { return {objtree.begin(), flag}; }
-
   iterator end() const noexcept { return {objtree.end(), flag}; }
 
  private:
   ObjectTree objtree;
-  FieldFlag flag;
+  MethodFlag flag;
 };
 
-template <typename T, FieldFlag flag = FieldFlag::All>
-static constexpr FieldRange FieldRange_of = FieldRange{ObjectView_of<T>, flag};
+template <typename T, MethodFlag flag = MethodFlag::All>
+static constexpr MethodRange MethodRange_of =
+    MethodRange{ObjectView_of<T>, flag};
 }  // namespace My::MyDRefl

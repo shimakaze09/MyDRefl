@@ -98,19 +98,15 @@ constexpr decltype(auto) ObjectView::As() const noexcept {
 constexpr ObjectView ObjectView::RemoveConst() const noexcept {
   return {type.RemoveConst(), ptr};
 }
-
 constexpr ObjectView ObjectView::RemoveLValueReference() const noexcept {
   return {type.RemoveLValueReference(), ptr};
 }
-
 constexpr ObjectView ObjectView::RemoveRValueReference() const noexcept {
   return {type.RemoveRValueReference(), ptr};
 }
-
 constexpr ObjectView ObjectView::RemoveReference() const noexcept {
   return {type.RemoveReference(), ptr};
 }
-
 constexpr ObjectView ObjectView::RemoveConstReference() const noexcept {
   return {type.RemoveCVRef(), ptr};
 }
@@ -149,31 +145,24 @@ T ObjectView::Invoke(Name method_name, ArgsView args, MethodFlag flag,
 inline SharedObject ObjectView::operator++() const {
   return Invoke(NameIDRegistry::Meta::operator_pre_inc);
 }
-
 inline SharedObject ObjectView::operator++(int) const {
   return Invoke(NameIDRegistry::Meta::operator_post_inc);
 }
-
 inline SharedObject ObjectView::operator--() const {
   return Invoke(NameIDRegistry::Meta::operator_pre_dec);
 }
-
 inline SharedObject ObjectView::operator--(int) const {
   return Invoke(NameIDRegistry::Meta::operator_post_dec);
 }
-
 inline SharedObject ObjectView::operator+() const {
   return Invoke(NameIDRegistry::Meta::operator_add);
 }
-
 inline SharedObject ObjectView::operator-() const {
   return Invoke(NameIDRegistry::Meta::operator_sub);
 }
-
 inline SharedObject ObjectView::operator~() const {
   return Invoke(NameIDRegistry::Meta::operator_bnot);
 }
-
 inline SharedObject ObjectView::operator*() const {
   return Invoke(NameIDRegistry::Meta::operator_indirection);
 }
@@ -196,19 +185,16 @@ bool ObjectView::operator<(const T& rhs) const {
   return Invoke<bool>(NameIDRegistry::Meta::operator_lt, TempArgsView{rhs},
                       MethodFlag::Const);
 }
-
 template <typename T>
 bool ObjectView::operator<=(const T& rhs) const {
   return Invoke<bool>(NameIDRegistry::Meta::operator_le, TempArgsView{rhs},
                       MethodFlag::Const);
 }
-
 template <typename T>
 bool ObjectView::operator>(const T& rhs) const {
   return Invoke<bool>(NameIDRegistry::Meta::operator_gt, TempArgsView{rhs},
                       MethodFlag::Const);
 }
-
 template <typename T>
 bool ObjectView::operator>=(const T& rhs) const {
   return Invoke<bool>(NameIDRegistry::Meta::operator_ge, TempArgsView{rhs},
@@ -216,8 +202,8 @@ bool ObjectView::operator>=(const T& rhs) const {
 }
 
 template <typename T>
-requires NonObjectAndView<std::decay_t<T>> ObjectView
-ObjectView::operator=(T&& rhs) const {
+  requires NonObjectAndView<std::decay_t<T>>
+ObjectView ObjectView::operator=(T&& rhs) const {
   Invoke<void>(NameIDRegistry::Meta::operator_assignment,
                TempArgsView{std::forward<T>(rhs)}, MethodFlag::Variable);
   return AddLValueReference();
@@ -248,12 +234,10 @@ inline ObjectView ObjectView::get(std::size_t i) const {
   return Invoke<ObjectView>(NameIDRegistry::Meta::get,
                             TempArgsView{std::move(i)}, MethodFlag::Member);
 }
-
 inline ObjectView ObjectView::get(Type type) const {
   return Invoke<ObjectView>(NameIDRegistry::Meta::get,
                             TempArgsView{std::move(type)}, MethodFlag::Member);
 }
-
 inline ObjectView ObjectView::variant_visit_get() const {
   return Invoke<ObjectView>(NameIDRegistry::Meta::variant_visit_get, ArgsView{},
                             MethodFlag::Member);
@@ -263,7 +247,6 @@ inline std::size_t ObjectView::tuple_size() const {
   return Invoke<std::size_t>(NameIDRegistry::Meta::tuple_size, ArgsView{},
                              MethodFlag::Static);
 }
-
 inline Type ObjectView::tuple_element(std::size_t i) const {
   return Invoke<Type>(NameIDRegistry::Meta::tuple_element,
                       TempArgsView{std::move(i)}, MethodFlag::Static);
@@ -273,7 +256,6 @@ inline std::size_t ObjectView::variant_size() const {
   return Invoke<std::size_t>(NameIDRegistry::Meta::variant_size, ArgsView{},
                              MethodFlag::Static);
 }
-
 inline Type ObjectView::variant_alternative(std::size_t i) const {
   return Invoke<Type>(NameIDRegistry::Meta::variant_alternative,
                       TempArgsView{std::move(i)}, MethodFlag::Static);
@@ -284,21 +266,17 @@ void ObjectView::advance(T&& arg) const {
   Invoke<void>(NameIDRegistry::Meta::advance,
                TempArgsView{std::forward<T>(arg)}, MethodFlag::Variable);
 };
-
 template <typename T>
 std::size_t ObjectView::distance(T&& arg) const {
   return Invoke<std::size_t>(NameIDRegistry::Meta::distance,
                              TempArgsView{std::forward<T>(arg)},
                              MethodFlag::Const);
 };
-
 OBJECT_VIEW_DEFINE_META_T(next, next);
 OBJECT_VIEW_DEFINE_META_T(prev, prev);
-
 inline SharedObject ObjectView::next() const {
   return Invoke(NameIDRegistry::Meta::next);
 }
-
 inline SharedObject ObjectView::prev() const {
   return Invoke(NameIDRegistry::Meta::prev);
 }
@@ -316,19 +294,15 @@ void ObjectView::assign(Args&&... args) const {
 // - element access
 
 OBJECT_VIEW_DEFINE_CONTAINER_META_T(at)
-
 inline SharedObject ObjectView::data() const {
   return Invoke(NameIDRegistry::Meta::container_data);
 }
-
 inline SharedObject ObjectView::front() const {
   return Invoke(NameIDRegistry::Meta::container_front);
 }
-
 inline SharedObject ObjectView::back() const {
   return Invoke(NameIDRegistry::Meta::container_back);
 }
-
 inline SharedObject ObjectView::top() const {
   return Invoke(NameIDRegistry::Meta::container_top);
 }
@@ -338,31 +312,24 @@ inline SharedObject ObjectView::top() const {
 inline SharedObject ObjectView::begin() const {
   return Invoke(NameIDRegistry::Meta::container_begin);
 }
-
 inline SharedObject ObjectView::end() const {
   return Invoke(NameIDRegistry::Meta::container_end);
 }
-
 inline SharedObject ObjectView::rbegin() const {
   return Invoke(NameIDRegistry::Meta::container_rbegin);
 }
-
 inline SharedObject ObjectView::rend() const {
   return Invoke(NameIDRegistry::Meta::container_rend);
 }
-
 inline SharedObject ObjectView::cbegin() const {
   return Invoke(NameIDRegistry::Meta::container_cbegin);
 }
-
 inline SharedObject ObjectView::cend() const {
   return Invoke(NameIDRegistry::Meta::container_cend);
 }
-
 inline SharedObject ObjectView::crbegin() const {
   return Invoke(NameIDRegistry::Meta::container_crbegin);
 }
-
 inline SharedObject ObjectView::crend() const {
   return Invoke(NameIDRegistry::Meta::container_crend);
 }
@@ -373,33 +340,27 @@ inline bool ObjectView::empty() const {
   return Invoke<bool>(NameIDRegistry::Meta::container_empty, ArgsView{},
                       MethodFlag::Const);
 }
-
 inline std::size_t ObjectView::size() const {
   return Invoke<std::size_t>(NameIDRegistry::Meta::container_size, ArgsView{},
                              MethodFlag::Const);
 }
-
 inline std::size_t ObjectView::capacity() const {
   return Invoke<std::size_t>(NameIDRegistry::Meta::container_capacity,
                              ArgsView{}, MethodFlag::Const);
 }
-
 inline std::size_t ObjectView::bucket_count() const {
   return Invoke<std::size_t>(NameIDRegistry::Meta::container_bucket_count,
                              ArgsView{}, MethodFlag::Const);
 }
-
 template <typename... Args>
 void ObjectView::resize(Args&&... args) const {
   Invoke<void>(NameIDRegistry::Meta::container_resize,
                TempArgsView{std::forward<Args>(args)...}, MethodFlag::Variable);
 };
-
 inline void ObjectView::reserve(std::size_t n) const {
   Invoke<void>(NameIDRegistry::Meta::container_reserve,
                TempArgsView{std::move(n)}, MethodFlag::Variable);
 }
-
 inline void ObjectView::shrink_to_fit() const {
   Invoke<void>(NameIDRegistry::Meta::container_shrink_to_fit, ArgsView{},
                MethodFlag::Variable);
@@ -416,46 +377,38 @@ OBJECT_VIEW_DEFINE_META_VARS_T(container, insert_after)
 OBJECT_VIEW_DEFINE_META_VARS_T(container, insert_or_assign)
 OBJECT_VIEW_DEFINE_META_VARS_T(container, erase)
 OBJECT_VIEW_DEFINE_META_VARS_T(container, erase_after)
-
 template <typename T>
 void ObjectView::push_front(T&& arg) const {
   Invoke<void>(NameIDRegistry::Meta::container_push_front,
                TempArgsView{std::forward<T>(arg)}, MethodFlag::Variable);
 };
-
 template <typename T>
 void ObjectView::push_back(T&& arg) const {
   Invoke<void>(NameIDRegistry::Meta::container_push_back,
                TempArgsView{std::forward<T>(arg)}, MethodFlag::Variable);
 };
-
 inline void ObjectView::pop_front() const {
   Invoke<void>(NameIDRegistry::Meta::container_pop_front, ArgsView{},
                MethodFlag::Variable);
 }
-
 inline void ObjectView::pop_back() const {
   Invoke<void>(NameIDRegistry::Meta::container_pop_back, ArgsView{},
                MethodFlag::Variable);
 }
-
 template <typename T>
 void ObjectView::push(T&& arg) const {
   Invoke<void>(NameIDRegistry::Meta::container_push,
                TempArgsView{std::forward<T>(arg)}, MethodFlag::Variable);
 };
-
 inline void ObjectView::pop() const {
   Invoke<void>(NameIDRegistry::Meta::container_pop, ArgsView{},
                MethodFlag::Variable);
 }
-
 template <typename T>
 void ObjectView::swap(T&& arg) const {
   Invoke<void>(NameIDRegistry::Meta::container_swap,
                TempArgsView{std::forward<T>(arg)}, MethodFlag::Variable);
 };
-
 template <typename T>
 void ObjectView::merge(T&& arg) const {
   Invoke<void>(NameIDRegistry::Meta::container_merge,
@@ -470,32 +423,27 @@ void ObjectView::splice_after(Args&&... args) const {
   Invoke<void>(NameIDRegistry::Meta::container_splice_after,
                TempArgsView{std::forward<Args>(args)...}, MethodFlag::Variable);
 };
-
 template <typename... Args>
 void ObjectView::splice(Args&&... args) const {
   Invoke<void>(NameIDRegistry::Meta::container_splice,
                TempArgsView{std::forward<Args>(args)...}, MethodFlag::Variable);
 };
-
 template <typename T>
 std::size_t ObjectView::remove(T&& arg) const {
   return Invoke<std::size_t>(NameIDRegistry::Meta::container_remove,
                              TempArgsView{std::forward<T>(arg)},
                              MethodFlag::Variable);
 };
-
 inline void ObjectView::reverse() const {
   Invoke<void>(NameIDRegistry::Meta::container_reverse, ArgsView{},
                MethodFlag::Variable);
 }
-
 template <typename T>
 std::size_t ObjectView::unique(T&& arg) const {
   return Invoke<std::size_t>(NameIDRegistry::Meta::container_unique,
                              TempArgsView{std::forward<T>(arg)},
                              MethodFlag::Variable);
 };
-
 inline void ObjectView::sort() const {
   Invoke<void>(NameIDRegistry::Meta::container_sort, ArgsView{},
                MethodFlag::Variable);
@@ -519,7 +467,6 @@ inline std::size_t ObjectView::index() const {
   return Invoke<std::size_t>(NameIDRegistry::Meta::variant_index, ArgsView{},
                              MethodFlag::Const);
 }
-
 inline bool ObjectView::holds_alternative(Type type) const {
   return Invoke<bool>(NameIDRegistry::Meta::holds_alternative,
                       TempArgsView{std::move(type)}, MethodFlag::Const);
@@ -531,12 +478,10 @@ inline bool ObjectView::has_value() const {
   return Invoke<bool>(NameIDRegistry::Meta::optional_has_value, ArgsView{},
                       MethodFlag::Const);
 }
-
 inline ObjectView ObjectView::value() const {
   return Invoke<ObjectView>(NameIDRegistry::Meta::optional_value, ArgsView{},
                             MethodFlag::Member);
 }
-
 inline void ObjectView::reset() const {
   Invoke<void>(NameIDRegistry::Meta::optional_reset, ArgsView{},
                MethodFlag::Variable);
@@ -582,27 +527,22 @@ template <NonObjectAndView T>
 bool operator==(const T& lhs, ObjectView ptr) {
   return ObjectView{lhs} == ptr;
 }
-
 template <NonObjectAndView T>
 bool operator!=(const T& lhs, ObjectView ptr) {
   return ObjectView{lhs} != ptr;
 }
-
 template <NonObjectAndView T>
 bool operator<(const T& lhs, ObjectView ptr) {
   return ObjectView{lhs} < ptr;
 }
-
 template <NonObjectAndView T>
 bool operator<=(const T& lhs, ObjectView ptr) {
   return ObjectView{lhs} <= ptr;
 }
-
 template <NonObjectAndView T>
 bool operator>(const T& lhs, ObjectView ptr) {
   return ObjectView{lhs} > ptr;
 }
-
 template <NonObjectAndView T>
 bool operator>=(const T& lhs, ObjectView ptr) {
   return ObjectView{lhs} >= ptr;

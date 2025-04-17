@@ -1,7 +1,7 @@
-#include <MyDRefl/MyDRefl.h>
+#include <MyDRefl/MyDRefl.hpp>
 #include <iostream>
 
-#include "Vector.h"
+#include "Vector.hpp"
 
 using namespace My;
 using namespace My::MyDRefl;
@@ -18,8 +18,7 @@ void Serializer(ObjectView obj) {
         std::cout << "\"Vector\":[";
         for (size_t i = 0; i < obj.size(); i++) {
           Serializer(obj[i].RemoveReference());
-          if (i + 1 != obj.size())
-            std::cout << ",";
+          if (i + 1 != obj.size()) std::cout << ",";
         }
         std::cout << "]";
       }
@@ -31,8 +30,7 @@ void Serializer(ObjectView obj) {
         std::cout << "\"" << name.GetView() << "\":";
         Serializer(var);
 
-        if (++iter != vars.end())
-          std::cout << ",";
+        if (++iter != vars.end()) std::cout << ",";
       }
     }
     std::cout << "}";
@@ -46,8 +44,7 @@ int main() {
 
   for (size_t i = 0; i < 10; i++) {
     std::vector<size_t> row;
-    for (size_t j = 0; j < 10; j++)
-      row.push_back(j);
+    for (size_t j = 0; j < 10; j++) row.push_back(j);
     a.Var("data").push_back(std::move(row));
   }
 

@@ -1,4 +1,4 @@
-#include "Bootstrap_helper.h"
+#include "Bootstrap_helper.hpp"
 
 using namespace My;
 using namespace My::MyDRefl;
@@ -7,7 +7,7 @@ template <typename T, typename U>
 void RegisterIDRegistry() {
   using W = IDRegistry<T, U>;
   Mngr.RegisterType<W>();
-Mngr.AddMethod<MemFuncOf<W, std::string_view(T, std::string_view)>::get(
+  Mngr.AddMethod<MemFuncOf<W, std::string_view(T, std::string_view)>::get(
       &W::Register)>("Register");
   Mngr.AddMethod<MemFuncOf<W, U(std::string_view)>::get(&W::Register)>(
       "Register");

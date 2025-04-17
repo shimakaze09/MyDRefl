@@ -1,4 +1,4 @@
-#include <MyDRefl/MyDRefl.h>
+#include <MyDRefl/MyDRefl.hpp>
 #include <cmath>
 #include <iostream>
 
@@ -8,7 +8,6 @@ using namespace My::MyDRefl;
 struct Vec {
   float x;
   float y;
-
   float norm() const { return std::sqrt(x * x + y * y); }
 };
 

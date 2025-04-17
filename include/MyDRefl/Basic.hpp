@@ -1,32 +1,32 @@
 #pragma once
 
-#include "Util.h"
-
-#include "attrs/ContainerType.h"
+#include "Util.hpp"
+#include "attrs/ContainerType.hpp"
 
 // here we just include necessary StdName/Name_*.h
-// if you want to include all, you can define macro MY_MYDREFL_INCLUDE_ALL_STD_NAME
+// if you want to include all, you can define macro
+// MY_MYDREFL_INCLUDE_ALL_STD_NAME
 
-#include <MyTemplate/StdName/Name_memory.h>
-#include <MyTemplate/StdName/Name_set.h>
-#include <MyTemplate/StdName/Name_span.h>
-#include <MyTemplate/StdName/Name_string.h>
-#include <MyTemplate/StdName/Name_unordered_map.h>
-#include <MyTemplate/StdName/Name_vector.h>
+#include <MyTemplate/StdName/Name_memory.hpp>
+#include <MyTemplate/StdName/Name_set.hpp>
+#include <MyTemplate/StdName/Name_span.hpp>
+#include <MyTemplate/StdName/Name_string.hpp>
+#include <MyTemplate/StdName/Name_unordered_map.hpp>
+#include <MyTemplate/StdName/Name_vector.hpp>
 
 #ifdef MY_MYDREFL_INCLUDE_ALL_STD_NAME
-#include <MyTemplate/StdName/Name_deque.h>
-#include <MyTemplate/StdName/Name_forward_list.h>
-#include <MyTemplate/StdName/Name_list.h>
-#include <MyTemplate/StdName/Name_map.h>
-#include <MyTemplate/StdName/Name_queue.h>
-#include <MyTemplate/StdName/Name_stack.h>
-#include <MyTemplate/StdName/Name_string.h>
-#include <MyTemplate/StdName/Name_string_view.h>
-#include <MyTemplate/StdName/Name_unordered_set.h>
+#include <MyTemplate/StdName/Name_deque.hpp>
+#include <MyTemplate/StdName/Name_forward_list.hpp>
+#include <MyTemplate/StdName/Name_list.hpp>
+#include <MyTemplate/StdName/Name_map.hpp>
+#include <MyTemplate/StdName/Name_queue.hpp>
+#include <MyTemplate/StdName/Name_stack.hpp>
+#include <MyTemplate/StdName/Name_string.hpp>
+#include <MyTemplate/StdName/Name_string_view.hpp>
+#include <MyTemplate/StdName/Name_unordered_set.hpp>
 #endif  // MY_MYDREFL_INCLUDE_ALL_STD_NAME
 
-//#include <memory>
+// #include <memory>
 
 namespace My::MyDRefl {
 enum class MethodFlag {
@@ -68,7 +68,6 @@ struct IsObjectOrView {
   static constexpr bool value =
       std::is_same_v<U, ObjectView> || std::is_same_v<U, SharedObject>;
 };
-
 template <typename T>
 constexpr bool IsObjectOrView_v = IsObjectOrView<T>::value;
 template <typename T>
@@ -83,8 +82,7 @@ T MoveResult(Type type, void* result_buffer) noexcept(
 
     if constexpr (!std::is_reference_v<T> &&
                   std::is_default_constructible_v<T>) {
-      if (type != Type_of<T>)
-        return {};
+      if (type != Type_of<T>) return {};
     } else
       assert(type == Type_of<T>);
 

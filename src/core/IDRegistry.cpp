@@ -1,4 +1,4 @@
-#include <MyDRefl/IDRegistry.h>
+#include <MyDRefl/IDRegistry.hpp>
 
 using namespace My;
 using namespace My::MyDRefl;
@@ -148,8 +148,7 @@ NameIDRegistry::NameIDRegistry() {
 
 Name NameIDRegistry::Nameof(NameID ID) const {
   auto view = Viewof(ID);
-  if (view.empty())
-    return {};
+  if (view.empty()) return {};
   return {view, ID};
 }
 
@@ -159,8 +158,7 @@ TypeIDRegistry::TypeIDRegistry() {
 
 Type TypeIDRegistry::Typeof(TypeID ID) const {
   auto view = Viewof(ID);
-  if (view.empty())
-    return {};
+  if (view.empty()) return {};
   return {view, ID};
 }
 
@@ -170,8 +168,7 @@ Type TypeIDRegistry::Typeof(TypeID ID) const {
 
 Type TypeIDRegistry::RegisterAddConst(Type type) {
   std::string_view name = type.GetName();
-  if (name.empty())
-    return {};
+  if (name.empty()) return {};
 
   TypeID ref_ID{type_name_add_const_hash(name)};
   if (auto ref_name = Viewof(ref_ID); !ref_name.empty())
@@ -189,8 +186,7 @@ Type TypeIDRegistry::RegisterAddConst(Type type) {
 
 Type TypeIDRegistry::RegisterAddLValueReference(Type type) {
   std::string_view name = type.GetName();
-  if (name.empty())
-    return {};
+  if (name.empty()) return {};
 
   TypeID ref_ID{type_name_add_lvalue_reference_hash(name)};
   if (auto ref_name = Viewof(ref_ID); !ref_name.empty())
@@ -208,8 +204,7 @@ Type TypeIDRegistry::RegisterAddLValueReference(Type type) {
 
 Type TypeIDRegistry::RegisterAddLValueReferenceWeak(Type type) {
   std::string_view name = type.GetName();
-  if (name.empty())
-    return {};
+  if (name.empty()) return {};
 
   TypeID ref_ID{type_name_add_lvalue_reference_weak_hash(name)};
   if (auto ref_name = Viewof(ref_ID); !ref_name.empty())
@@ -228,8 +223,7 @@ Type TypeIDRegistry::RegisterAddLValueReferenceWeak(Type type) {
 
 Type TypeIDRegistry::RegisterAddRValueReference(Type type) {
   std::string_view name = type.GetName();
-  if (name.empty())
-    return {};
+  if (name.empty()) return {};
 
   TypeID ref_ID{type_name_add_rvalue_reference_hash(name)};
   if (auto ref_name = Viewof(ref_ID); !ref_name.empty())
@@ -248,8 +242,7 @@ Type TypeIDRegistry::RegisterAddRValueReference(Type type) {
 
 Type TypeIDRegistry::RegisterAddConstLValueReference(Type type) {
   std::string_view name = type.GetName();
-  if (name.empty())
-    return {};
+  if (name.empty()) return {};
 
   TypeID ref_ID{type_name_add_const_lvalue_reference_hash(name)};
   if (auto ref_name = Viewof(ref_ID); !ref_name.empty())
@@ -268,8 +261,7 @@ Type TypeIDRegistry::RegisterAddConstLValueReference(Type type) {
 
 Type TypeIDRegistry::RegisterAddConstRValueReference(Type type) {
   std::string_view name = type.GetName();
-  if (name.empty())
-    return {};
+  if (name.empty()) return {};
 
   TypeID ref_ID{type_name_add_const_rvalue_reference_hash(name)};
   if (auto ref_name = Viewof(ref_ID); !ref_name.empty())

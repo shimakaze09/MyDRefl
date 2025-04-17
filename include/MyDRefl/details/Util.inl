@@ -1,8 +1,8 @@
 #pragma once
 
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr decltype(auto) My::MyDRefl::enum_cast(
-    Enum&& e) noexcept {
+  requires std::is_enum_v<Enum>
+constexpr decltype(auto) My::MyDRefl::enum_cast(Enum&& e) noexcept {
   using E = decltype(e);
   using T = std::underlying_type_t<std::remove_cvref_t<Enum>>;
   if constexpr (std::is_reference_v<E>) {
@@ -27,61 +27,64 @@ requires std::is_enum_v<Enum> constexpr decltype(auto) My::MyDRefl::enum_cast(
 }
 
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr bool My::MyDRefl::enum_empty(
-    const Enum& e) noexcept {
+  requires std::is_enum_v<Enum>
+constexpr bool My::MyDRefl::enum_empty(const Enum& e) noexcept {
   using T = std::underlying_type_t<Enum>;
   return static_cast<T>(e);
 }
 
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr bool My::MyDRefl::enum_single(
-    const Enum& e) noexcept {
+  requires std::is_enum_v<Enum>
+constexpr bool My::MyDRefl::enum_single(const Enum& e) noexcept {
   using T = std::underlying_type_t<Enum>;
   return (static_cast<T>(e) & (static_cast<T>(e) - 1)) == static_cast<T>(0);
 }
 
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr bool My::MyDRefl::enum_contain_any(
-    const Enum& e, const Enum& flag) noexcept {
+  requires std::is_enum_v<Enum>
+constexpr bool My::MyDRefl::enum_contain_any(const Enum& e,
+                                             const Enum& flag) noexcept {
   using T = std::underlying_type_t<Enum>;
   return static_cast<T>(e) & static_cast<T>(flag);
 }
 
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr bool My::MyDRefl::enum_contain(
-    const Enum& e, const Enum& flag) noexcept {
+  requires std::is_enum_v<Enum>
+constexpr bool My::MyDRefl::enum_contain(const Enum& e,
+                                         const Enum& flag) noexcept {
   using T = std::underlying_type_t<Enum>;
   const auto flag_T = static_cast<T>(flag);
   return (static_cast<T>(e) & flag_T) == flag_T;
 }
 
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr Enum My::MyDRefl::enum_combine(
+  requires std::is_enum_v<Enum>
+constexpr Enum My::MyDRefl::enum_combine(
     std::initializer_list<Enum> flags) noexcept {
   using T = std::underlying_type_t<Enum>;
   T rst = 0;
-  for (const auto& flag : flags)
-    rst |= static_cast<T>(flag);
+  for (const auto& flag : flags) rst |= static_cast<T>(flag);
   return static_cast<Enum>(rst);
 }
 
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr Enum My::MyDRefl::enum_remove(
-    const Enum& e, const Enum& flag) noexcept {
+  requires std::is_enum_v<Enum>
+constexpr Enum My::MyDRefl::enum_remove(const Enum& e,
+                                        const Enum& flag) noexcept {
   using T = std::underlying_type_t<Enum>;
   return static_cast<Enum>(static_cast<T>(e) & (~static_cast<T>(flag)));
 }
 
 template <typename Enum>
-requires std::is_enum_v<Enum> constexpr Enum My::MyDRefl::enum_within(
-    const Enum& e, const Enum& flag) noexcept {
+  requires std::is_enum_v<Enum>
+constexpr Enum My::MyDRefl::enum_within(const Enum& e,
+                                        const Enum& flag) noexcept {
   using T = std::underlying_type_t<Enum>;
   return static_cast<Enum>(static_cast<T>(e) & (static_cast<T>(flag)));
 }
 
 constexpr bool My::MyDRefl::is_ref_compatible(Type lhs, Type rhs) noexcept {
-  if (lhs == rhs)
-    return true;
+  if (lhs == rhs) return true;
 
   if (lhs.IsLValueReference()) {  // &{T} | &{const{T}}
     const auto unref_lhs = lhs.Name_RemoveLValueReference();  // T | const{T}
@@ -97,24 +100,20 @@ constexpr bool My::MyDRefl::is_ref_compatible(Type lhs, Type rhs) noexcept {
   } else if (lhs.IsRValueReference()) {  // &&{T} | &&{const{T}}
     const auto unref_lhs = lhs.Name_RemoveRValueReference();  // T | const{T}
 
-    if (type_name_is_const(unref_lhs)) {  // &&{const{T}}
-      if (rhs.Is(unref_lhs))
-        return true;  // &&{const{T}} <- const{T}
+    if (type_name_is_const(unref_lhs)) {   // &&{const{T}}
+      if (rhs.Is(unref_lhs)) return true;  // &&{const{T}} <- const{T}
 
       const auto raw_lhs = type_name_remove_const(unref_lhs);  // T
 
-      if (rhs.Is(raw_lhs))
-        return true;  // &&{const{T}} <- T
+      if (rhs.Is(raw_lhs)) return true;  // &&{const{T}} <- T
 
       if (raw_lhs == rhs.Name_RemoveRValueReference())
         return true;  // &&{const{T}} <- &&{T}
     } else {
-      if (rhs.Is(unref_lhs))
-        return true;  // &&{T} <- T
+      if (rhs.Is(unref_lhs)) return true;  // &&{T} <- T
     }
-  } else {  // T
-    if (lhs.Is(rhs.Name_RemoveRValueReference()))
-      return true;  // T <- &&{T}
+  } else {                                                      // T
+    if (lhs.Is(rhs.Name_RemoveRValueReference())) return true;  // T <- &&{T}
   }
 
   return false;
@@ -124,13 +123,11 @@ constexpr bool My::MyDRefl::is_pointer_array_compatible(
     std::string_view lhs, std::string_view rhs) noexcept {
   if (type_name_is_reference(lhs)) {
     lhs = type_name_remove_reference(lhs);
-    if (type_name_is_const(lhs))
-      return false;
+    if (type_name_is_const(lhs)) return false;
   }
   rhs = type_name_remove_cvref(rhs);
 
-  if (lhs == rhs)
-    return true;
+  if (lhs == rhs) return true;
 
   std::string_view lhs_ele;
   if (type_name_is_pointer(lhs))
@@ -154,19 +151,15 @@ constexpr bool My::MyDRefl::is_pointer_array_compatible(
 template <typename T>
 struct My::MyDRefl::get_container_size_type
     : std::type_identity<typename T::size_type> {};
-
 template <typename T>
 struct My::MyDRefl::get_container_size_type<T&>
     : My::MyDRefl::get_container_size_type<T> {};
-
 template <typename T>
 struct My::MyDRefl::get_container_size_type<T&&>
     : My::MyDRefl::get_container_size_type<T> {};
-
 template <typename T, std::size_t N>
 struct My::MyDRefl::get_container_size_type<T[N]>
     : std::type_identity<std::size_t> {};
-
 template <typename T>
 struct My::MyDRefl::get_container_size_type<T[]>
     : std::type_identity<std::size_t> {};

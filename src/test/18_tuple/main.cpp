@@ -1,4 +1,4 @@
-#include <MyDRefl/MyDRefl.h>
+#include <MyDRefl/MyDRefl.hpp>
 #include <iostream>
 #include <tuple>
 
@@ -45,8 +45,7 @@ int main() {
     std::cout << v.tuple_element(i).GetName() << " (" << i << "): " << v.get(i)
               << std::endl;
 
-  for (std::size_t i{0}; i < v.tuple_size(); i++)
-    v.get(i) = i;
+  for (std::size_t i{0}; i < v.tuple_size(); i++) v.get(i) = i;
 
   for (std::size_t i{0}; i < v.tuple_size(); i++)
     std::cout << v.tuple_element(i).GetName() << " (" << i << "): " << v.get(i)

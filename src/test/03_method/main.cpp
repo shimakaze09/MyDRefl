@@ -1,5 +1,4 @@
-#include <MyDRefl/MyDRefl.h>
-
+#include <MyDRefl/MyDRefl.hpp>
 #include <cmath>
 #include <iostream>
 

@@ -1,5 +1,4 @@
-#include <MyDRefl/MyDRefl.h>
-
+#include <MyDRefl/MyDRefl.hpp>
 #include <iostream>
 
 using namespace My;
@@ -8,15 +7,12 @@ using namespace My::MyDRefl;
 struct A {
   float a;
 };
-
 struct B : A {
   float b;
 };
-
 struct C : A {
   float c;
 };
-
 struct D : B, C {
   float d;
 };

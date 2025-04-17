@@ -1,4 +1,4 @@
-#include <MyDRefl/MyDRefl.h>
+#include <MyDRefl/MyDRefl.hpp>
 #include <iostream>
 
 using namespace My;
@@ -6,7 +6,6 @@ using namespace My::MyDRefl;
 
 struct C {
   C() { std::cout << "C ctor" << std::endl; }
-
   ~C() { std::cout << "C dtor" << std::endl; }
 };
 

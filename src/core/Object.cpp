@@ -1,9 +1,9 @@
-#include <MyDRefl/Object.h>
-#include <MyDRefl/ReflMngr.h>
-#include <MyDRefl/ranges/FieldRange.h>
-#include <MyDRefl/ranges/MethodRange.h>
-#include <MyDRefl/ranges/ObjectTree.h>
-#include <MyDRefl/ranges/VarRange.h>
+#include <MyDRefl/Object.hpp>
+#include <MyDRefl/ReflMngr.hpp>
+#include <MyDRefl/ranges/FieldRange.hpp>
+#include <MyDRefl/ranges/MethodRange.hpp>
+#include <MyDRefl/ranges/ObjectTree.hpp>
+#include <MyDRefl/ranges/VarRange.hpp>
 
 using namespace My;
 using namespace My::MyDRefl;

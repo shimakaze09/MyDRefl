@@ -1,8 +1,8 @@
-#include <MyDRefl/MyDRefl.h>
+#include <MyDRefl/MyDRefl.hpp>
 #include <iostream>
 
-#include "A.h"
-#include "B.h"
+#include "A.hpp"
+#include "B.hpp"
 
 using namespace My;
 using namespace My::MyDRefl;

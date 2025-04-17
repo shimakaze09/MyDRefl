@@ -1,6 +1,6 @@
 #pragma once
 
-#include <MyDRefl/ReflMngr.h>
+#include <MyDRefl/ReflMngr.hpp>
 
 namespace My::MyDRefl::details {
 void ReflMngrInitUtil_0(ReflMngr& mngr);

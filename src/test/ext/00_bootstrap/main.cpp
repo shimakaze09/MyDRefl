@@ -1,6 +1,6 @@
-#include <MyDRefl/MyDRefl.h>
 #include <MyDRefl_ext/Bootstrap.h>
 
+#include <MyDRefl/MyDRefl.hpp>
 #include <iostream>
 
 using namespace My;

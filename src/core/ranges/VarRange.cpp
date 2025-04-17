@@ -1,5 +1,5 @@
-#include <MyDRefl/ReflMngr.h>
-#include <MyDRefl/ranges/VarRange.h>
+#include <MyDRefl/ReflMngr.hpp>
+#include <MyDRefl/ranges/VarRange.hpp>
 
 using namespace My;
 using namespace My::MyDRefl;

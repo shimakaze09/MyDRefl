@@ -1,4 +1,4 @@
-#include <MyDRefl/MyDRefl.h>
+#include <MyDRefl/MyDRefl.hpp>
 #include <cmath>
 #include <iostream>
 
@@ -7,26 +7,19 @@ using namespace My::MyDRefl;
 
 struct Funcs {
   void f(double) { std::cout << "f(double)" << std::endl; }
-
   void f(std::uint8_t&) { std::cout << "f(std::uint8_t&)" << std::endl; }
-
   void f(const std::uint8_t&) {
     std::cout << "f(const std::uint8_t&)" << std::endl;
   }
-
   void f(std::uint8_t&&) { std::cout << "f(std::uint8_t&&)" << std::endl; }
-
   void f(const std::uint8_t&&) {
     std::cout << "f(const std::uint8_t&&)" << std::endl;
   }
-
   void f(ObjectView obj) {
     std::cout << "f(ObjectView) [" << obj.GetType().GetName() << "]" << obj
               << std::endl;
   }
-
   void g(const char*) { std::cout << "g(const char*)" << std::endl; }
-
   void g(int (&&)[]) { std::cout << "g(int(&&)[])" << std::endl; }
 };
 

@@ -1,5 +1,5 @@
-#include <MyDRefl/ReflMngr.h>
-#include <MyDRefl/ranges/MethodRange.h>
+#include <MyDRefl/ReflMngr.hpp>
+#include <MyDRefl/ranges/MethodRange.hpp>
 
 using namespace My;
 using namespace My::MyDRefl;

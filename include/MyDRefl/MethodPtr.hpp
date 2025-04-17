@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Object.h"
+#include "Object.hpp"
 
 // #include <vector>
 
@@ -16,9 +16,7 @@ class MyDRefl_core_CLASS_API MethodPtr {
             ParamList paramList = {});
 
   MethodFlag GetMethodFlag() const noexcept { return flag; }
-
   const Type& GetResultType() const noexcept { return result_type; }
-
   const ParamList& GetParamList() const noexcept { return paramList; }
 
   bool IsDistinguishableWith(const MethodPtr& rhs) const noexcept {

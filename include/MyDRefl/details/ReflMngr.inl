@@ -56,13 +56,11 @@ struct wrap_function_call<TypeList<Args...>> {
                                       std::index_sequence<Ns...>) {
     return (buffer_as<Obj>(ptr).*func_ptr)(auto_get_arg<Args>(args[Ns])...);
   }
-
   template <auto func_ptr, std::size_t... Ns>
   static constexpr decltype(auto) run(ArgsView args,
                                       std::index_sequence<Ns...>) {
     return func_ptr(auto_get_arg<Args>(args[Ns])...);
   }
-
   template <typename Obj, typename Func, typename MaybeConstVoidPtr,
             std::size_t... Ns>
   static constexpr decltype(auto) run(MaybeConstVoidPtr ptr, Func&& func,
@@ -75,7 +73,6 @@ struct wrap_function_call<TypeList<Args...>> {
                                       auto_get_arg<Args>(args[Ns])...);
     }
   }
-
   template <typename Func, std::size_t... Ns>
   static constexpr decltype(auto) run(Func&& func, ArgsView args,
                                       std::index_sequence<Ns...>) {
@@ -229,7 +226,6 @@ constexpr auto wrap_static_function(Func&& func) noexcept {
 
 template <typename ArgList>
 struct GenerateParamListHelper;
-
 template <typename... Args>
 struct GenerateParamListHelper<TypeList<Args...>> {
   static ParamList get() noexcept(sizeof...(Args) == 0) {
@@ -239,7 +235,6 @@ struct GenerateParamListHelper<TypeList<Args...>> {
 
 template <typename T, typename FixedArgList, typename... LeftArgs>
 struct register_ctor_impl;
-
 template <typename T, typename... FixedArgs>
 struct register_ctor_impl<T, TypeList<FixedArgs...>> {
   static void run(ReflMngr& mngr) {
@@ -247,7 +242,6 @@ struct register_ctor_impl<T, TypeList<FixedArgs...>> {
       mngr.AddConstructor<T, FixedArgs...>();
   }
 };
-
 template <typename T, typename... FixedArgs, typename LeftArg0,
           typename... LeftArgs>
 struct register_ctor_impl<T, TypeList<FixedArgs...>, LeftArg0, LeftArgs...> {
@@ -379,8 +373,7 @@ void register_variant_ctor_assign(ReflMngr& mngr) {
                          [](T& t, const Elem& elem) -> T& { return t = elem; });
 
   if constexpr (!std::is_fundamental_v<Elem>) {
-    if constexpr (type_ctor<T, Elem&&>)
-      mngr.AddConstructor<T, Elem&&>();
+    if constexpr (type_ctor<T, Elem&&>) mngr.AddConstructor<T, Elem&&>();
     if constexpr (operator_assignment<T, Elem&&>)
       mngr.AddMemberMethod(
           NameIDRegistry::Meta::operator_assignment,
@@ -399,8 +392,7 @@ struct TypeAutoRegister_Default {
   static void run(ReflMngr& mngr) {
     if constexpr (std::is_default_constructible_v<T> && !std::is_trivial_v<T>)
       mngr.AddConstructor<T>();
-    if constexpr (type_ctor_copy<T>)
-      mngr.AddConstructor<T, const T&>();
+    if constexpr (type_ctor_copy<T>) mngr.AddConstructor<T, const T&>();
     if constexpr (type_ctor_move<T> && !std::is_trivial_v<T>)
       mngr.AddConstructor<T, T&&>();
     if constexpr (std::is_destructible_v<T> && !std::is_trivial_v<T>)
@@ -812,7 +804,6 @@ struct TypeAutoRegister_Default {
       if constexpr (type_ctor<T, const Elem&>)
         mngr.AddConstructor<T, const Elem&>();
       if constexpr (operator_assignment<T, const Elem&>) {
-
         mngr.AddMemberMethod(NameIDRegistry::Meta::operator_assignment,
                              [](T& t, const Elem& elem) -> T& {
                                t = elem;
@@ -821,8 +812,7 @@ struct TypeAutoRegister_Default {
       }
 
       if constexpr (!std::is_fundamental_v<Elem>) {
-        if constexpr (type_ctor<T, Elem&&>)
-          mngr.AddConstructor<T, Elem&&>();
+        if constexpr (type_ctor<T, Elem&&>) mngr.AddConstructor<T, Elem&&>();
         if constexpr (operator_assignment<T, Elem&&>)
           mngr.AddMemberMethod(
               NameIDRegistry::Meta::operator_assignment,
@@ -1691,8 +1681,7 @@ MethodPtr ReflMngr::GenerateConstructorPtr() {
 template <typename T>
 MethodPtr ReflMngr::GenerateDestructorPtr() {
   return GenerateMemberMethodPtr([](T& obj) {
-    if constexpr (!std::is_trivially_destructible_v<T>)
-      obj.~T();
+    if constexpr (!std::is_trivially_destructible_v<T>) obj.~T();
   });
 }
 
@@ -1732,8 +1721,7 @@ void ReflMngr::RegisterType() {
     else if constexpr (std::is_reference_v<T>)
       RegisterType<std::remove_cvref_t<T>>();
     else {
-      if (typeinfos.contains(Type_of<T>))
-        return;
+      if (typeinfos.contains(Type_of<T>)) return;
 
       tregistry.Register<T>();
       RegisterType(Type_of<T>, std::is_empty_v<T> ? 0 : sizeof(T), alignof(T),
@@ -1760,8 +1748,8 @@ bool ReflMngr::AddField(Name name, AttrSet attrs) {
 }
 
 template <typename T>
-requires std::negation_v<std::is_same<std::decay_t<T>, FieldInfo>> bool
-ReflMngr::AddField(Name name, T&& data, AttrSet attrs) {
+  requires std::negation_v<std::is_same<std::decay_t<T>, FieldInfo>>
+bool ReflMngr::AddField(Name name, T&& data, AttrSet attrs) {
   using RawT = std::remove_cv_t<std::remove_reference_t<T>>;
   if constexpr (std::is_member_object_pointer_v<RawT>)
     return AddField(Type_of<member_pointer_traits_object<RawT>>, name,
@@ -1805,7 +1793,6 @@ bool ReflMngr::AddConstructor(AttrSet attrs) {
   return AddMethod(Type_of<T>, NameIDRegistry::Meta::ctor,
                    {GenerateConstructorPtr<T, Args...>(), std::move(attrs)});
 }
-
 template <typename T>
 bool ReflMngr::AddDestructor(AttrSet attrs) {
   return AddMethod(Type_of<T>, NameIDRegistry::Meta::dtor,

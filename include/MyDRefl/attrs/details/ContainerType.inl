@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../Util.h"
-
 #include <set>
+
+#include "../../Util.hpp"
 
 template <typename Key, typename Compare, typename Allocator>
 struct My::MyDRefl::SpecializeIsSet<std::set<Key, Compare, Allocator>>
@@ -233,9 +233,7 @@ concept IsStack = true && container_top<T> && container_top<const T> &&
                   container_pop<T> && container_swap<T>;
 
 template <typename T>
-concept IsPriorityQueue = IsStack<T> && requires {
-  typename T::value_compare;
-};
+concept IsPriorityQueue = IsStack<T> && requires { typename T::value_compare; };
 
 template <typename T>
 concept IsQueue = true && container_front<T> && container_front<const T> &&

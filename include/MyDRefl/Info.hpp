@@ -2,8 +2,8 @@
 
 #include <set>
 
-#include "FieldPtr.h"
-#include "MethodPtr.h"
+#include "FieldPtr.hpp"
+#include "MethodPtr.hpp"
 
 namespace My::MyDRefl {
 using Attr = SharedObject;

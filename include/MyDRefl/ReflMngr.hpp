@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Info.h"
+#include "Info.hpp"
 
 namespace My::MyDRefl {
 constexpr Type GlobalType = TypeIDRegistry::Meta::global;
@@ -30,7 +30,6 @@ class MyDRefl_core_CLASS_API ReflMngr {
   std::pmr::synchronized_pool_resource* GetTemporaryResource() const {
     return &temporary_resource;
   }
-
   std::pmr::synchronized_pool_resource* GetObjectResource() const {
     return &object_resource;
   }

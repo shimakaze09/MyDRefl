@@ -1,8 +1,8 @@
 #pragma once
 
-#include <small_vector.h>
+#include <USmallFlat/small_vector.hpp>
 
-#include "../Object.h"
+#include "../Object.hpp"
 
 namespace My::MyDRefl::Ranges {
 struct MyDRefl_core_CLASS_API Derived {

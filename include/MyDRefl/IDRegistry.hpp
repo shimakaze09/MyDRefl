@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Basic.h"
+#include "Basic.hpp"
 
 // #include <string>
 // #include <unordered_map>
@@ -32,7 +32,6 @@ class IDRegistry {
 
  protected:
   std::pmr::polymorphic_allocator<char> get_allocator() { return &resource; }
-
   mutable std::shared_mutex smutex;
 
  private:
@@ -195,11 +194,10 @@ class MyDRefl_core_CLASS_API NameIDRegistry : public IDRegistry<NameID, Name> {
   using IDRegistry<NameID, Name>::Register;
 
   Name Register(Name n) { return Register(n.GetID(), n.GetView()); }
-
   Name Nameof(NameID ID) const;
 };
 
-class TypeIDRegistry : public IDRegistry<TypeID, Type> {
+class MyDRefl_core_CLASS_API TypeIDRegistry : public IDRegistry<TypeID, Type> {
  public:
   struct Meta {
     static constexpr Type global{"__global"};

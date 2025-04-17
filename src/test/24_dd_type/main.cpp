@@ -1,4 +1,4 @@
-#include <MyDRefl/MyDRefl.h>
+#include <MyDRefl/MyDRefl.hpp>
 #include <cmath>
 #include <iostream>
 
@@ -9,11 +9,8 @@ struct Empty {};
 
 struct Base0 {
   int data0;
-
   Base0() : data0{1} { std::cout << "ctor: Base0" << std::endl; }
-
   ~Base0() { std::cout << "dtor: Base0" << std::endl; }
-
   friend std::ostream& operator<<(std::ostream& os, const Base0& b) {
     os << b.data0;
     return os;
@@ -22,9 +19,7 @@ struct Base0 {
 
 struct Base1 {
   double data1;
-
   ~Base1() { std::cout << "dtor: Base1" << std::endl; }
-
   friend std::ostream& operator<<(std::ostream& os, const Base1& b) {
     os << b.data1;
     return os;
@@ -33,11 +28,8 @@ struct Base1 {
 
 struct Field2 {
   char data2;
-
   Field2() : data2{'c'} { std::cout << "ctor: Field2" << std::endl; }
-
   ~Field2() { std::cout << "dtor: Field2" << std::endl; }
-
   friend std::ostream& operator<<(std::ostream& os, const Field2& b) {
     os << b.data2;
     return os;
@@ -46,7 +38,6 @@ struct Field2 {
 
 struct Field3 {
   int data3;
-
   friend std::ostream& operator<<(std::ostream& os, const Field3& b) {
     os << b.data3;
     return os;
@@ -56,8 +47,8 @@ struct Field3 {
 /*
 struct A : Base0, Empty, Base1 {
     Field2 f2;
-	Empty empty;
-	Field3 f3;
+        Empty empty;
+        Field3 f3;
 };
 */
 

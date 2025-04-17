@@ -1,6 +1,6 @@
 #include <MyDRefl_ext/Bootstrap.h>
 
-#include "Bootstrap_helper.h"
+#include "Bootstrap_helper.hpp"
 
 MyDRefl_ext_Bootstrap_API void My_MyDRefl_ext_Bootstrap() {
   My::MyDRefl::ext::details::Bootstrap_helper_utemplate();

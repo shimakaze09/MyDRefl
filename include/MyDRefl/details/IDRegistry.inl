@@ -85,8 +85,7 @@ template <typename T, typename U>
 void IDRegistry<T, U>::UnregisterUnmanaged(T ID) {
   std::shared_lock rlock{smutex};  // read id2name
   auto target = id2name.find(ID);
-  if (target == id2name.end())
-    return;
+  if (target == id2name.end()) return;
   rlock.unlock();
 
   assert(IsUnmanaged(ID));
@@ -117,8 +116,7 @@ template <typename T, typename U>
 void IDRegistry<T, U>::ClearUnmanaged() noexcept {
   std::lock_guard wlock{smutex};
 
-  for (const auto& ID : unmanagedIDs)
-    id2name.erase(ID);
+  for (const auto& ID : unmanagedIDs) id2name.erase(ID);
   unmanagedIDs.clear();
 }
 #endif  // !NDEBUG

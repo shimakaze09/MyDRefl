@@ -1,6 +1,6 @@
-#include "Vector.h"
+#include "Vector.hpp"
 
-#include <MyDRefl/MyDRefl.h>
+#include <MyDRefl/MyDRefl.hpp>
 
 void RegisterVector() {
   My::MyDRefl::Mngr.RegisterType<Vector>();

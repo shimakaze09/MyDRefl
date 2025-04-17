@@ -1,6 +1,6 @@
-#include "A.h"
+#include "A.hpp"
 
-#include <MyDRefl/MyDRefl.h>
+#include <MyDRefl/MyDRefl.hpp>
 
 void RegisterA() {
   My::MyDRefl::Mngr.RegisterType<A>();

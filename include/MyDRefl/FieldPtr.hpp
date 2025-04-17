@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Object.h"
-
 #include <variant>
 
+#include "Object.hpp"
+
 namespace My::MyDRefl {
-class MyDRefl_core_CLASS_API  FieldPtr {
+class MyDRefl_core_CLASS_API FieldPtr {
  public:
   //
   // Buffer

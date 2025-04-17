@@ -1,9 +1,9 @@
-#include "Bootstrap_helper.h"
+#include "Bootstrap_helper.hpp"
 
 using namespace My;
 using namespace My::MyDRefl;
 
-void My::MyDRefl::ext::details::Bootstrap_helper_mytemplate() {
+void My::MyDRefl::ext::details::Bootstrap_helper_utemplate() {
   // MyTemplate
   Mngr.RegisterType<NameID>();
   Mngr.AddConstructor<NameID, std::size_t>();

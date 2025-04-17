@@ -1,5 +1,4 @@
-#include <MyDRefl/MyDRefl.h>
-
+#include <MyDRefl/MyDRefl.hpp>
 #include <array>
 #include <iostream>
 
@@ -9,48 +8,41 @@ using namespace My::MyDRefl;
 struct Vec {
   float x;
   float y;
-
   Vec operator+(float k) const noexcept {
     Vec rst;
     rst.x = x + k;
     rst.y = y + k;
     return rst;
   }
-
   Vec operator+(const Vec& v) const noexcept {
     Vec rst;
     rst.x = x + v.x;
     rst.y = y + v.y;
     return rst;
   }
-
   Vec operator-(const Vec& v) const noexcept {
     Vec rst;
     rst.x = x - v.x;
     rst.y = y - v.y;
     return rst;
   }
-
   Vec operator*(const Vec& v) const noexcept {
     Vec rst;
     rst.x = x * v.x;
     rst.y = y * v.y;
     return rst;
   }
-
   Vec operator/(const Vec& v) const noexcept {
     Vec rst;
     rst.x = x / v.x;
     rst.y = y / v.y;
     return rst;
   }
-
   Vec& operator+=(const Vec& v) noexcept {
     x += v.x;
     y += v.y;
     return *this;
   }
-
   float operator[](std::size_t v) const noexcept {
     if (v == 0)
       return x;
