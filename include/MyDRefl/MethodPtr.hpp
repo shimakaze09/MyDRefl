@@ -7,7 +7,7 @@
 namespace My::MyDRefl {
 using ParamList = std::vector<Type>;
 
-class MyDRefl_core_CLASS_API MethodPtr {
+class MyDRefl_core_API MethodPtr {
  public:
   using Func = std::function<void(void*, void*, ArgsView)>;
 

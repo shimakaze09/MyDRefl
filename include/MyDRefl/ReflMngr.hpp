@@ -6,7 +6,7 @@ namespace My::MyDRefl {
 constexpr Type GlobalType = TypeIDRegistry::Meta::global;
 constexpr ObjectView Global = {GlobalType, nullptr};
 
-class MyDRefl_core_CLASS_API ReflMngr {
+class MyDRefl_core_API ReflMngr {
  public:
   static ReflMngr& Instance() noexcept;
 

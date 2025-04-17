@@ -4,9 +4,9 @@
 
 namespace My::MyDRefl {
 // DFS
-class MyDRefl_core_CLASS_API MethodRange {
+class MyDRefl_core_API MethodRange {
  public:
-  class MyDRefl_core_CLASS_API iterator {
+  class MyDRefl_core_API iterator {
    public:
     using value_type = std::pair<const Name, MethodInfo>;
     using reference = value_type&;

@@ -10,7 +10,7 @@ namespace My::MyDRefl {
 // referenced object)
 using ArgPtrBuffer = void* const*;
 
-class MyDRefl_core_CLASS_API ArgsView {
+class MyDRefl_core_API ArgsView {
  public:
   constexpr ArgsView() noexcept : buffer{nullptr} {}
   constexpr ArgsView(ArgPtrBuffer buffer,
@@ -42,7 +42,7 @@ TempArgsView(Args&&... args) -> TempArgsView<sizeof...(Args)>;
 MyDRefl_core_API std::pmr::synchronized_pool_resource*
 ReflMngr_GetTemporaryResource();
 
-class MyDRefl_core_CLASS_API ObjectView {
+class MyDRefl_core_API ObjectView {
  public:
   constexpr ObjectView() noexcept : ptr{nullptr} {}
   constexpr ObjectView(Type type, void* ptr) noexcept : type{type}, ptr{ptr} {}
@@ -376,7 +376,7 @@ class MyDRefl_core_CLASS_API ObjectView {
   void* ptr;  // if type is reference, ptr is a pointer of referenced object
 };
 
-class MyDRefl_core_CLASS_API SharedObject : public ObjectView {
+class MyDRefl_core_API SharedObject : public ObjectView {
  public:
   using ObjectView::ObjectView;
   using ObjectView::operator=;

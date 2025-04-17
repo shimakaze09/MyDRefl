@@ -48,7 +48,7 @@ class IDRegistry {
 #endif  // NDEBUG
 };
 
-class MyDRefl_core_CLASS_API NameIDRegistry : public IDRegistry<NameID, Name> {
+class MyDRefl_core_API NameIDRegistry : public IDRegistry<NameID, Name> {
  public:
   struct Meta {
     // operators
@@ -197,7 +197,7 @@ class MyDRefl_core_CLASS_API NameIDRegistry : public IDRegistry<NameID, Name> {
   Name Nameof(NameID ID) const;
 };
 
-class MyDRefl_core_CLASS_API TypeIDRegistry : public IDRegistry<TypeID, Type> {
+class MyDRefl_core_API TypeIDRegistry : public IDRegistry<TypeID, Type> {
  public:
   struct Meta {
     static constexpr Type global{"__global"};

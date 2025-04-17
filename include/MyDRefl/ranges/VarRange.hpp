@@ -3,11 +3,11 @@
 #include "common.hpp"
 
 namespace My::MyDRefl {
-class MyDRefl_core_CLASS_API VarRange {
+class MyDRefl_core_API VarRange {
  public:
   // DFS
   // TypeInfo* and BaseInfo* maybe nullptr
-  class MyDRefl_core_CLASS_API iterator {
+  class MyDRefl_core_API iterator {
    public:
     using value_type = std::tuple<Name, ObjectView>;
     using reference = const value_type&;

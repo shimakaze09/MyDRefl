@@ -7,7 +7,7 @@
 
 namespace My::MyDRefl {
 using Attr = SharedObject;
-struct MyDRefl_core_CLASS_API AttrLess {
+struct MyDRefl_core_API AttrLess {
   using is_transparent = int;
   bool operator()(const Attr& lhs, const Attr& rhs) const noexcept {
     return lhs.GetType() < rhs.GetType();
@@ -21,7 +21,7 @@ struct MyDRefl_core_CLASS_API AttrLess {
 };
 using AttrSet = std::set<Attr, AttrLess>;
 
-class MyDRefl_core_CLASS_API BaseInfo {
+class MyDRefl_core_API BaseInfo {
  public:
   BaseInfo() noexcept = default;
   BaseInfo(InheritCastFunctions funcs) : funcs{std::move(funcs)} {
@@ -51,12 +51,12 @@ class MyDRefl_core_CLASS_API BaseInfo {
   InheritCastFunctions funcs;
 };
 
-struct MyDRefl_core_CLASS_API FieldInfo {
+struct MyDRefl_core_API FieldInfo {
   FieldPtr fieldptr;
   AttrSet attrs;
 };
 
-struct MyDRefl_core_CLASS_API MethodInfo {
+struct MyDRefl_core_API MethodInfo {
   MethodPtr methodptr;
   AttrSet attrs;
 };
@@ -65,7 +65,7 @@ struct MyDRefl_core_CLASS_API MethodInfo {
 // https://docs.microsoft.com/en-us/cpp/cpp/trivial-standard-layout-and-pod-types?view=msvc-160
 // if the type is trivial, it must contains a copy-ctor for type-convertion, and
 // can't register default ctor, dtor
-struct MyDRefl_core_CLASS_API TypeInfo {
+struct MyDRefl_core_API TypeInfo {
   size_t size;
   size_t alignment;
   bool is_polymorphic;

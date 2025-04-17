@@ -4,9 +4,9 @@
 
 namespace My::MyDRefl {
 // DFS
-class MyDRefl_core_CLASS_API FieldRange {
+class MyDRefl_core_API FieldRange {
  public:
-  class MyDRefl_core_CLASS_API iterator {
+  class MyDRefl_core_API iterator {
    public:
     using value_type = std::pair<const Name, FieldInfo>;
     using reference = value_type&;

@@ -5,7 +5,7 @@
 #include "../Object.hpp"
 
 namespace My::MyDRefl::Ranges {
-struct MyDRefl_core_CLASS_API Derived {
+struct MyDRefl_core_API Derived {
   ObjectView obj;
   TypeInfo* typeinfo;  // not nullptr
   std::unordered_map<Type, BaseInfo>::iterator curbase;
