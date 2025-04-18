@@ -6,7 +6,7 @@ IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
             TEST
             MODE EXE
             PCH
-            "${PROJECT_SOURCE_DIR}/include/UDRefl/UDRefl.hpp"
+            "${PROJECT_SOURCE_DIR}/include/MyDRefl/MyDRefl.hpp"
             LIB
             My::MyDRefl_core
     )
@@ -14,7 +14,7 @@ ELSE()
     ADD_TARGET(
             TEST
             MODE EXE
-            PCH_REUSE_FROM UDRefl_core
+            PCH_REUSE_FROM MyDRefl_core
             LIB
             My::MyDRefl_core
     )
