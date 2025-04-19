@@ -2,7 +2,7 @@
 
 template <typename Enum>
   requires std::is_enum_v<Enum>
-constexpr decltype(auto) My::MyDRefl::enum_cast(Enum&& e) noexcept {
+constexpr decltype(auto) Smkz::MyDRefl::enum_cast(Enum&& e) noexcept {
   using E = decltype(e);
   using T = std::underlying_type_t<std::remove_cvref_t<Enum>>;
   if constexpr (std::is_reference_v<E>) {
@@ -28,30 +28,30 @@ constexpr decltype(auto) My::MyDRefl::enum_cast(Enum&& e) noexcept {
 
 template <typename Enum>
   requires std::is_enum_v<Enum>
-constexpr bool My::MyDRefl::enum_empty(const Enum& e) noexcept {
+constexpr bool Smkz::MyDRefl::enum_empty(const Enum& e) noexcept {
   using T = std::underlying_type_t<Enum>;
   return static_cast<T>(e);
 }
 
 template <typename Enum>
   requires std::is_enum_v<Enum>
-constexpr bool My::MyDRefl::enum_single(const Enum& e) noexcept {
+constexpr bool Smkz::MyDRefl::enum_single(const Enum& e) noexcept {
   using T = std::underlying_type_t<Enum>;
   return (static_cast<T>(e) & (static_cast<T>(e) - 1)) == static_cast<T>(0);
 }
 
 template <typename Enum>
   requires std::is_enum_v<Enum>
-constexpr bool My::MyDRefl::enum_contain_any(const Enum& e,
-                                             const Enum& flag) noexcept {
+constexpr bool Smkz::MyDRefl::enum_contain_any(const Enum& e,
+                                               const Enum& flag) noexcept {
   using T = std::underlying_type_t<Enum>;
   return static_cast<T>(e) & static_cast<T>(flag);
 }
 
 template <typename Enum>
   requires std::is_enum_v<Enum>
-constexpr bool My::MyDRefl::enum_contain(const Enum& e,
-                                         const Enum& flag) noexcept {
+constexpr bool Smkz::MyDRefl::enum_contain(const Enum& e,
+                                           const Enum& flag) noexcept {
   using T = std::underlying_type_t<Enum>;
   const auto flag_T = static_cast<T>(flag);
   return (static_cast<T>(e) & flag_T) == flag_T;
@@ -59,7 +59,7 @@ constexpr bool My::MyDRefl::enum_contain(const Enum& e,
 
 template <typename Enum>
   requires std::is_enum_v<Enum>
-constexpr Enum My::MyDRefl::enum_combine(
+constexpr Enum Smkz::MyDRefl::enum_combine(
     std::initializer_list<Enum> flags) noexcept {
   using T = std::underlying_type_t<Enum>;
   T rst = 0;
@@ -69,21 +69,21 @@ constexpr Enum My::MyDRefl::enum_combine(
 
 template <typename Enum>
   requires std::is_enum_v<Enum>
-constexpr Enum My::MyDRefl::enum_remove(const Enum& e,
-                                        const Enum& flag) noexcept {
+constexpr Enum Smkz::MyDRefl::enum_remove(const Enum& e,
+                                          const Enum& flag) noexcept {
   using T = std::underlying_type_t<Enum>;
   return static_cast<Enum>(static_cast<T>(e) & (~static_cast<T>(flag)));
 }
 
 template <typename Enum>
   requires std::is_enum_v<Enum>
-constexpr Enum My::MyDRefl::enum_within(const Enum& e,
-                                        const Enum& flag) noexcept {
+constexpr Enum Smkz::MyDRefl::enum_within(const Enum& e,
+                                          const Enum& flag) noexcept {
   using T = std::underlying_type_t<Enum>;
   return static_cast<Enum>(static_cast<T>(e) & (static_cast<T>(flag)));
 }
 
-constexpr bool My::MyDRefl::is_ref_compatible(Type lhs, Type rhs) noexcept {
+constexpr bool Smkz::MyDRefl::is_ref_compatible(Type lhs, Type rhs) noexcept {
   if (lhs == rhs) return true;
 
   if (lhs.IsLValueReference()) {  // &{T} | &{const{T}}
@@ -119,7 +119,7 @@ constexpr bool My::MyDRefl::is_ref_compatible(Type lhs, Type rhs) noexcept {
   return false;
 }
 
-constexpr bool My::MyDRefl::is_pointer_array_compatible(
+constexpr bool Smkz::MyDRefl::is_pointer_array_compatible(
     std::string_view lhs, std::string_view rhs) noexcept {
   if (type_name_is_reference(lhs)) {
     lhs = type_name_remove_reference(lhs);
@@ -149,17 +149,17 @@ constexpr bool My::MyDRefl::is_pointer_array_compatible(
 }
 
 template <typename T>
-struct My::MyDRefl::get_container_size_type
+struct Smkz::MyDRefl::get_container_size_type
     : std::type_identity<typename T::size_type> {};
 template <typename T>
-struct My::MyDRefl::get_container_size_type<T&>
-    : My::MyDRefl::get_container_size_type<T> {};
+struct Smkz::MyDRefl::get_container_size_type<T&>
+    : Smkz::MyDRefl::get_container_size_type<T> {};
 template <typename T>
-struct My::MyDRefl::get_container_size_type<T&&>
-    : My::MyDRefl::get_container_size_type<T> {};
+struct Smkz::MyDRefl::get_container_size_type<T&&>
+    : Smkz::MyDRefl::get_container_size_type<T> {};
 template <typename T, std::size_t N>
-struct My::MyDRefl::get_container_size_type<T[N]>
+struct Smkz::MyDRefl::get_container_size_type<T[N]>
     : std::type_identity<std::size_t> {};
 template <typename T>
-struct My::MyDRefl::get_container_size_type<T[]>
+struct Smkz::MyDRefl::get_container_size_type<T[]>
     : std::type_identity<std::size_t> {};

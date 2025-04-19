@@ -1,9 +1,9 @@
 #include "Bootstrap_helper.hpp"
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
-void My::MyDRefl::ext::details::Bootstrap_helper_ranges_objecttree() {
+void Smkz::MyDRefl::ext::details::Bootstrap_helper_ranges_objecttree() {
   Mngr.RegisterType<ObjectTree>();
   Mngr.AddConstructor<ObjectTree, ObjectView>();
   Mngr.AddConstructor<ObjectTree, Type>();

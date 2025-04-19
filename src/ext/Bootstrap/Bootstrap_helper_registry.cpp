@@ -1,7 +1,7 @@
 #include "Bootstrap_helper.hpp"
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
 template <typename T, typename U>
 void RegisterIDRegistry() {
@@ -16,7 +16,7 @@ void RegisterIDRegistry() {
   Mngr.AddMethod<&W::Clear>("Clear");
 }
 
-void My::MyDRefl::ext::details::Bootstrap_helper_registry() {
+void Smkz::MyDRefl::ext::details::Bootstrap_helper_registry() {
   RegisterIDRegistry<NameID, Name>();
   Mngr.RegisterType<NameIDRegistry>();
   Mngr.AddMethod<MemFuncOf<NameIDRegistry, Name(Name)>::get(

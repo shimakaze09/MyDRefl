@@ -5,11 +5,11 @@
 #include <MyDRefl/ranges/ObjectTree.hpp>
 #include <MyDRefl/ranges/VarRange.hpp>
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
 MyDRefl_core_API std::pmr::synchronized_pool_resource*
-My::MyDRefl::ReflMngr_GetTemporaryResource() {
+Smkz::MyDRefl::ReflMngr_GetTemporaryResource() {
   return Mngr.GetTemporaryResource();
 }
 

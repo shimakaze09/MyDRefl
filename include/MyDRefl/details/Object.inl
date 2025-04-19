@@ -40,7 +40,7 @@
     return lhs;                                      \
   }
 
-namespace My::MyDRefl::details {
+namespace Smkz::MyDRefl::details {
 template <typename T>
 constexpr Type ArgType(
     const std::remove_const_t<std::remove_reference_t<T>>& arg) noexcept {
@@ -60,9 +60,9 @@ constexpr void* ArgPtr(const T& arg) noexcept {
   else
     return const_cast<void*>(static_cast<const void*>(&arg));
 }
-}  // namespace My::MyDRefl::details
+}  // namespace Smkz::MyDRefl::details
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 constexpr ObjectView ArgsView::operator[](size_t idx) const noexcept {
   return {argTypes[idx], buffer[idx]};
 }
@@ -486,32 +486,33 @@ inline void ObjectView::reset() const {
   Invoke<void>(NameIDRegistry::Meta::optional_reset, ArgsView{},
                MethodFlag::Variable);
 }
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl
 
 template <>
-struct std::hash<My::MyDRefl::ObjectView> {
-  std::size_t operator()(const My::MyDRefl::ObjectView& obj) const noexcept {
+struct std::hash<Smkz::MyDRefl::ObjectView> {
+  std::size_t operator()(const Smkz::MyDRefl::ObjectView& obj) const noexcept {
     return obj.GetType().GetID().GetValue() ^
            std::hash<const void*>()(obj.GetPtr());
   }
 };
 
 template <>
-struct std::hash<My::MyDRefl::SharedObject> {
-  std::size_t operator()(const My::MyDRefl::SharedObject& obj) const noexcept {
+struct std::hash<Smkz::MyDRefl::SharedObject> {
+  std::size_t operator()(
+      const Smkz::MyDRefl::SharedObject& obj) const noexcept {
     return obj.GetType().GetID().GetValue() ^
            std::hash<const void*>()(obj.GetPtr());
   }
 };
 
 namespace std {
-inline void swap(My::MyDRefl::SharedObject& left,
-                 My::MyDRefl::SharedObject& right) noexcept {
+inline void swap(Smkz::MyDRefl::SharedObject& left,
+                 Smkz::MyDRefl::SharedObject& right) noexcept {
   left.Swap(right);
 }
 }  // namespace std
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 inline bool operator==(const ObjectView& lhs, const ObjectView& rhs) {
   return lhs.Invoke<bool>(NameIDRegistry::Meta::operator_eq, TempArgsView{rhs},
                           MethodFlag::Const) ||
@@ -561,7 +562,7 @@ DEFINE_OPERATOR_RSHIFT(std::ifstream, ObjectView)
 DEFINE_OPERATOR_RSHIFT(std::iostream, ObjectView)
 DEFINE_OPERATOR_RSHIFT(std::stringstream, ObjectView)
 DEFINE_OPERATOR_RSHIFT(std::fstream, ObjectView)
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl
 
 #undef DEFINE_OPERATOR_RSHIFT
 #undef DEFINE_OPERATOR_LSHIFT

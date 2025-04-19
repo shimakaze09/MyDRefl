@@ -8,8 +8,8 @@ INIT_MYCMAKE(VERSION 0.6.4)
 
 INIT_PROJECT()
 
-ADD_DEP(MyTemplate 0.7.2)
-ADD_DEP(MySmallFlat 0.2.2)
+ADD_DEP(MyTemplate 0.7.3)
+ADD_DEP(MySmallFlat 0.2.3)
 
 INCLUDE(cmake/Platform.cmake)
 

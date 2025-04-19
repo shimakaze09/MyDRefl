@@ -5,10 +5,10 @@
 #include "../../Util.hpp"
 
 template <typename Key, typename Compare, typename Allocator>
-struct My::MyDRefl::SpecializeIsSet<std::set<Key, Compare, Allocator>>
+struct Smkz::MyDRefl::SpecializeIsSet<std::set<Key, Compare, Allocator>>
     : std::true_type {};
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 template <typename T>
 concept IsRawArray =
     true && container_begin<T&> && container_begin<const T&> &&
@@ -277,4 +277,4 @@ concept IsContainerType =
     false || IsRawArray<T> || IsDeque<T> || IsForwardList<T> || IsList<T> ||
     IsMultiSet<T> || IsUnorderedMultiSet<T> || IsStack<T> || IsQueue<T> ||
     IsTuple<T> || IsSpan<T> || IsVariant<T> || IsOptional<T>;
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl

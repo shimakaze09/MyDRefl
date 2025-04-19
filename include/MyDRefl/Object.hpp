@@ -5,7 +5,7 @@
 
 // #include <span>
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 // pointer const array type (pointer is const, and pointer to non - const /
 // referenced object)
 using ArgPtrBuffer = void* const*;
@@ -423,6 +423,6 @@ class MyDRefl_core_API SharedObject : public ObjectView {
 
 template <typename T>
 constexpr ObjectView ObjectView_of = {Type_of<T>, nullptr};
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl
 
 #include "details/Object.inl"

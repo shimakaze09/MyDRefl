@@ -2,8 +2,8 @@
 #include <array>
 #include <iostream>
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
 struct Vec {
   float x;

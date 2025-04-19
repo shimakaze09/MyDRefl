@@ -1,8 +1,8 @@
 #include <MyDRefl/ReflMngr.hpp>
 #include <MyDRefl/ranges/ObjectTree.hpp>
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
 void ObjectTree::iterator::update() {
   switch (mode) {
@@ -110,7 +110,7 @@ ObjectTree::iterator ObjectTree::iterator::operator++(int) {
   return iter;
 }
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 MyDRefl_core_API bool operator==(const ObjectTree::iterator& lhs,
                                  const ObjectTree::iterator& rhs) {
   return lhs.deriveds == rhs.deriveds && lhs.mode == rhs.mode;
@@ -120,4 +120,4 @@ MyDRefl_core_API bool operator!=(const ObjectTree::iterator& lhs,
                                  const ObjectTree::iterator& rhs) {
   return !(lhs == rhs);
 }
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl

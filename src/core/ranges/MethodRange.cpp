@@ -1,8 +1,8 @@
 #include <MyDRefl/ReflMngr.hpp>
 #include <MyDRefl/ranges/MethodRange.hpp>
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
 MethodRange::iterator::iterator(ObjectTree::iterator typeiter, MethodFlag flag)
     : typeiter{std::move(typeiter)},
@@ -57,7 +57,7 @@ MethodRange::iterator MethodRange::iterator::operator++(int) {
   return iter;
 }
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 MyDRefl_core_API bool operator==(const MethodRange::iterator& lhs,
                                  const MethodRange::iterator& rhs) {
   assert(lhs.flag == rhs.flag);
@@ -79,4 +79,4 @@ MyDRefl_core_API bool operator!=(const MethodRange::iterator& lhs,
                                  const MethodRange::iterator& rhs) {
   return !(lhs == rhs);
 }
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl

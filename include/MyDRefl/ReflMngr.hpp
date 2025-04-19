@@ -2,7 +2,7 @@
 
 #include "Info.hpp"
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 constexpr Type GlobalType = TypeIDRegistry::Meta::global;
 constexpr ObjectView Global = {GlobalType, nullptr};
 
@@ -367,6 +367,6 @@ class MyDRefl_core_API ReflMngr {
 inline static ReflMngr& Mngr = ReflMngr::Instance();
 inline static const ObjectView MngrView = {Type_of<ReflMngr>,
                                            &ReflMngr::Instance()};
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl
 
 #include "details/ReflMngr.inl"

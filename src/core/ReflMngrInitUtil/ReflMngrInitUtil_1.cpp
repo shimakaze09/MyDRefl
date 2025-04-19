@@ -1,8 +1,8 @@
 #include "ReflMngrInitUtil.hpp"
 
-using namespace My::MyDRefl;
+using namespace Smkz::MyDRefl;
 
-void My::MyDRefl::details::ReflMngrInitUtil_1(ReflMngr& mngr) {
+void Smkz::MyDRefl::details::ReflMngrInitUtil_1(ReflMngr& mngr) {
   mngr.RegisterType<std::int8_t>();
   mngr.RegisterType<std::int16_t>();
   mngr.RegisterType<std::int32_t>();

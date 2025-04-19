@@ -11,7 +11,7 @@
 #include <unordered_set>
 #endif  // !NDEBUG
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 // name must end with 0
 // thread-safe
 template <typename T, typename U>
@@ -230,6 +230,6 @@ class MyDRefl_core_API TypeIDRegistry : public IDRegistry<TypeID, Type> {
   Type RegisterAddConstLValueReference(Type type);
   Type RegisterAddConstRValueReference(Type type);
 };
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl
 
 #include "details/IDRegistry.inl"

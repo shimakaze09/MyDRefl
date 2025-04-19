@@ -3,8 +3,8 @@
 
 #include "Vector.hpp"
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
 void Serializer(ObjectView obj) {
   if (type_name_is_arithmetic(obj.GetType().GetName()))

@@ -1,6 +1,6 @@
 #include <MyDRefl/FieldPtr.hpp>
 
-using namespace My::MyDRefl;
+using namespace Smkz::MyDRefl;
 
 ObjectView FieldPtr::Var() {
   return std::visit(

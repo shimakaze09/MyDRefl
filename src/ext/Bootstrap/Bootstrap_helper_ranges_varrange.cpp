@@ -1,9 +1,9 @@
 #include "Bootstrap_helper.hpp"
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
-void My::MyDRefl::ext::details::Bootstrap_helper_ranges_varrange() {
+void Smkz::MyDRefl::ext::details::Bootstrap_helper_ranges_varrange() {
   Mngr.RegisterType<VarRange>();
   Mngr.AddConstructor<VarRange, ObjectView, FieldFlag>();
   Mngr.AddConstructor<VarRange, ObjectView>();

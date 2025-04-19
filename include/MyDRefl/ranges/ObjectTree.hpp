@@ -4,7 +4,7 @@
 
 #include "common.hpp"
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 class MyDRefl_core_API ObjectTree {
  public:
   // DFS
@@ -63,4 +63,4 @@ class MyDRefl_core_API ObjectTree {
 
 template <typename T>
 static constexpr ObjectTree ObjectTree_of = ObjectTree{ObjectView_of<T>};
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl

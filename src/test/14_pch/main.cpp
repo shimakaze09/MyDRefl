@@ -4,8 +4,8 @@
 #include "A.hpp"
 #include "B.hpp"
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
 int main() {
   RegisterA();

@@ -2,8 +2,8 @@
 #include <iostream>
 #include <variant>
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
 int main() {
   Mngr.RegisterType<std::variant<int, float, double>>();

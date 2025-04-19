@@ -1,9 +1,9 @@
 #include "Bootstrap_helper.hpp"
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
-void My::MyDRefl::ext::details::Bootstrap_helper_object() {
+void Smkz::MyDRefl::ext::details::Bootstrap_helper_object() {
   Mngr.RegisterType<ArgPtrBuffer>();
 
   Mngr.RegisterType<ArgsView>();

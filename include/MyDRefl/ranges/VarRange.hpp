@@ -2,7 +2,7 @@
 
 #include "common.hpp"
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 class MyDRefl_core_API VarRange {
  public:
   // DFS
@@ -81,4 +81,4 @@ class MyDRefl_core_API VarRange {
 
 template <typename T, FieldFlag flag = FieldFlag::Unowned>
 static constexpr VarRange VarRange_of = VarRange{ObjectView_of<T>, flag};
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl

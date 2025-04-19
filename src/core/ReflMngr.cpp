@@ -5,10 +5,10 @@
 #include "InvokeUtil.hpp"
 #include "ReflMngrInitUtil/ReflMngrInitUtil.hpp"
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
-namespace My::MyDRefl::details {
+namespace Smkz::MyDRefl::details {
 static ObjectView StaticCast_BaseToDerived(ObjectView obj, Type type) {
   assert(obj.GetType().GetCVRefMode() == CVRefMode::None);
 
@@ -52,7 +52,7 @@ static ObjectView DynamicCast_BaseToDerived(ObjectView obj, Type type) {
 
   return {};
 }
-}  // namespace My::MyDRefl::details
+}  // namespace Smkz::MyDRefl::details
 
 ReflMngr::ReflMngr() {
   RegisterType(GlobalType, 0, 1, false, true);

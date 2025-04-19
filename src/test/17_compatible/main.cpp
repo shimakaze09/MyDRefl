@@ -2,8 +2,8 @@
 #include <cmath>
 #include <iostream>
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
 struct Funcs {
   void f(double) { std::cout << "f(double)" << std::endl; }

@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace My::MyDRefl::details {
+namespace Smkz::MyDRefl::details {
 template <typename F>
 struct WrapFuncTraits;
 
@@ -1537,9 +1537,9 @@ struct TypeAutoRegister_Default {
 
 template <typename T>
 struct TypeAutoRegister : TypeAutoRegister_Default<T> {};
-};  // namespace My::MyDRefl::details
+};  // namespace Smkz::MyDRefl::details
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 //
 // Factory
 ////////////
@@ -1853,4 +1853,4 @@ bool ReflMngr::IsConstructible(Type type) const {
   constexpr Type argTypes[] = {Type_of<Args>...};
   return IsConstructible(type, std::span<const Type>{argTypes});
 }
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl

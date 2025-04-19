@@ -2,8 +2,8 @@
 #include <cmath>
 #include <iostream>
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
 int main() {
   std::cout << "//" << std::endl

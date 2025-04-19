@@ -5,7 +5,7 @@
 #include "FieldPtr.hpp"
 #include "MethodPtr.hpp"
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 using Attr = SharedObject;
 struct MyDRefl_core_API AttrLess {
   using is_transparent = int;
@@ -75,9 +75,9 @@ struct MyDRefl_core_API TypeInfo {
   std::unordered_map<Type, BaseInfo> baseinfos;
   AttrSet attrs;
 };
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl
 
 template <>
-constexpr auto My::type_name<My::MyDRefl::AttrSet>() noexcept {
-  return TSTR("My::MyDRefl::AttrSet");
+constexpr auto Smkz::type_name<Smkz::MyDRefl::AttrSet>() noexcept {
+  return TSTR("Smkz::MyDRefl::AttrSet");
 }

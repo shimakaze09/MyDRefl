@@ -4,7 +4,7 @@
 
 // #include <vector>
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 using ParamList = std::vector<Type>;
 
 class MyDRefl_core_API MethodPtr {
@@ -36,4 +36,4 @@ class MyDRefl_core_API MethodPtr {
   Type result_type;
   ParamList paramList;
 };
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl

@@ -1,8 +1,8 @@
 #include "ReflMngrInitUtil.hpp"
 
-using namespace My::MyDRefl;
+using namespace Smkz::MyDRefl;
 
-void My::MyDRefl::details::ReflMngrInitUtil_0(ReflMngr& mngr) {
+void Smkz::MyDRefl::details::ReflMngrInitUtil_0(ReflMngr& mngr) {
   mngr.RegisterType<ContainerType>();
   mngr.AddField<ContainerType::Array>("Array");
   mngr.AddField<ContainerType::Deque>("Deque");

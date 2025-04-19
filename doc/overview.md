@@ -39,7 +39,7 @@ It can also leverage C++ types and template metaprogramming to significantly sim
 
 ## 3. Usage
 
-Essentially, the dynamic library can do almost anything that C++ can do. All interfaces reside in My::MyDRefl::ReflMngr. For convenience, an ObjectView is provided, containing some ReflMngr interfaces. ObjectView itself does not manage object memory, so it is called a “view.” For memory management, there is SharedObject, which manages object memory.
+Essentially, the dynamic library can do almost anything that C++ can do. All interfaces reside in Smkz::MyDRefl::ReflMngr. For convenience, an ObjectView is provided, containing some ReflMngr interfaces. ObjectView itself does not manage object memory, so it is called a “view.” For memory management, there is SharedObject, which manages object memory.
 
 Some basic operations are described in README.md.
 

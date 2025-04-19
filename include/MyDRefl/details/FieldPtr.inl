@@ -1,6 +1,6 @@
 #pragma once
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 constexpr FieldFlag FieldPtr::GetFieldFlag() const noexcept {
   switch (data.index()) {
     case 0:
@@ -17,4 +17,4 @@ constexpr FieldFlag FieldPtr::GetFieldFlag() const noexcept {
       return FieldFlag::None;
   }
 }
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl

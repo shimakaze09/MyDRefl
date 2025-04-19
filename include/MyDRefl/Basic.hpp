@@ -28,7 +28,7 @@
 
 // #include <memory>
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 enum class MethodFlag {
   Variable = 0b001,
   Const = 0b010,
@@ -109,4 +109,4 @@ class FieldRange;
 class MethodRange;
 
 class ReflMngr;
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl

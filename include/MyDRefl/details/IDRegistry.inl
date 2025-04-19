@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cstring>
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 template <typename T, typename U>
 IDRegistry<T, U>::IDRegistry()
     : id2name{&resource}
@@ -146,4 +146,4 @@ bool TypeIDRegistry::IsRegistered() const {
   static_assert(!std::is_volatile_v<T>);
   return IDRegistry<TypeID, Type>::IsRegistered(TypeID_of<T>);
 }
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl

@@ -1,8 +1,8 @@
 #include "ReflMngrInitUtil.hpp"
 
-using namespace My::MyDRefl;
+using namespace Smkz::MyDRefl;
 
-void My::MyDRefl::details::ReflMngrInitUtil_5(ReflMngr& mngr) {
+void Smkz::MyDRefl::details::ReflMngrInitUtil_5(ReflMngr& mngr) {
   mngr.RegisterType<std::string_view>();
   mngr.AddConstructor<std::string_view, const char* const&>();
   mngr.AddConstructor<std::string_view, const char* const&,

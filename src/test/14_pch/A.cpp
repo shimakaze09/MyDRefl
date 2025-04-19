@@ -3,6 +3,6 @@
 #include <MyDRefl/MyDRefl.hpp>
 
 void RegisterA() {
-  My::MyDRefl::Mngr.RegisterType<A>();
-  My::MyDRefl::Mngr.AddField<&A::data>("data");
+  Smkz::MyDRefl::Mngr.RegisterType<A>();
+  Smkz::MyDRefl::Mngr.AddField<&A::data>("data");
 }

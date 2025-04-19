@@ -2,8 +2,8 @@
 #include <iostream>
 #include <tuple>
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
 int main() {
   Mngr.RegisterType<std::tuple<int, float, double>>();

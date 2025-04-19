@@ -1,8 +1,8 @@
 #include <MyDRefl/ReflMngr.hpp>
 #include <MyDRefl/ranges/VarRange.hpp>
 
-using namespace My;
-using namespace My::MyDRefl;
+using namespace Smkz;
+using namespace Smkz::MyDRefl;
 
 VarRange::iterator::iterator(ObjectTree::iterator typeiter,
                              CVRefMode cvref_mode, FieldFlag flag)
@@ -41,19 +41,19 @@ mode_0:
           ObjectView var = curfield->second.fieldptr.Var(
               std::get<ObjectView>(*typeiter).GetPtr());
           switch (cvref_mode) {
-            case My::CVRefMode::Left:
+            case Smkz::CVRefMode::Left:
               std::get<ObjectView>(value) = var.AddLValueReference();
               break;
-            case My::CVRefMode::Right:
+            case Smkz::CVRefMode::Right:
               std::get<ObjectView>(value) = var.AddRValueReference();
               break;
-            case My::CVRefMode::Const:
+            case Smkz::CVRefMode::Const:
               std::get<ObjectView>(value) = var.AddConst();
               break;
-            case My::CVRefMode::ConstLeft:
+            case Smkz::CVRefMode::ConstLeft:
               std::get<ObjectView>(value) = var.AddConstLValueReference();
               break;
-            case My::CVRefMode::ConstRight:
+            case Smkz::CVRefMode::ConstRight:
               std::get<ObjectView>(value) = var.AddConstRValueReference();
               break;
             default:
@@ -85,7 +85,7 @@ VarRange::iterator VarRange::iterator::operator++(int) {
   return iter;
 }
 
-namespace My::MyDRefl {
+namespace Smkz::MyDRefl {
 MyDRefl_core_API bool operator==(const VarRange::iterator& lhs,
                                  const VarRange::iterator& rhs) {
   assert(lhs.flag == rhs.flag);
@@ -108,4 +108,4 @@ MyDRefl_core_API bool operator!=(const VarRange::iterator& lhs,
                                  const VarRange::iterator& rhs) {
   return !(lhs == rhs);
 }
-}  // namespace My::MyDRefl
+}  // namespace Smkz::MyDRefl
