@@ -1,8 +1,8 @@
 #include "ReflMngrInitUtil.hpp"
 
-using namespace Smkz::MyDRefl;
+using namespace My::MyDRefl;
 
-namespace Smkz::MyDRefl::details {
+namespace My::MyDRefl::details {
 template <typename To, typename From>
 void AddConvertCtor(ReflMngr& mngr) {
   static_assert(std::is_convertible_v<From, To>);
@@ -28,9 +28,9 @@ void RegisterArithmeticConvertion(ReflMngr& mngr) {
   AddConvertCtor<T, float>(mngr);
   AddConvertCtor<T, double>(mngr);
 }
-}  // namespace Smkz::MyDRefl::details
+}  // namespace My::MyDRefl::details
 
-void Smkz::MyDRefl::details::ReflMngrInitUtil_4(ReflMngr& mngr) {
+void My::MyDRefl::details::ReflMngrInitUtil_4(ReflMngr& mngr) {
   details::RegisterArithmeticConvertion<bool>(mngr);
   details::RegisterArithmeticConvertion<std::int8_t>(mngr);
   details::RegisterArithmeticConvertion<std::int16_t>(mngr);

@@ -1,8 +1,8 @@
 #include <MyDRefl/MyDRefl.hpp>
 #include <iostream>
 
-using namespace Smkz;
-using namespace Smkz::MyDRefl;
+using namespace My;
+using namespace My::MyDRefl;
 
 struct A {
   float a{0.f};

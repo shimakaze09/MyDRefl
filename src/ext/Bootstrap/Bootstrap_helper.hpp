@@ -4,7 +4,7 @@
 
 #include <MyDRefl/MyDRefl.hpp>
 
-namespace Smkz::MyDRefl::ext::details {
+namespace My::MyDRefl::ext::details {
 void Bootstrap_helper_utemplate();
 void Bootstrap_helper_attrs_ContainerType();
 void Bootstrap_helper_basic();
@@ -25,4 +25,4 @@ void Bootstrap_helper_ranges_varrange();
 void Bootstrap_helper_reflmngr_0();
 void Bootstrap_helper_reflmngr_1();
 void Bootstrap_helper_reflmngr_2();
-}  // namespace Smkz::MyDRefl::ext::details
+}  // namespace My::MyDRefl::ext::details

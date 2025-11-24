@@ -4,7 +4,7 @@
 
 #include "../Object.hpp"
 
-namespace Smkz::MyDRefl::Ranges {
+namespace My::MyDRefl::Ranges {
 struct MyDRefl_core_API Derived {
   ObjectView obj;
   TypeInfo* typeinfo;  // not nullptr
@@ -16,4 +16,4 @@ struct MyDRefl_core_API Derived {
            lhs.obj.GetPtr() == rhs.obj.GetPtr() && lhs.curbase == rhs.curbase;
   }
 };
-}  // namespace Smkz::MyDRefl::Ranges
+}  // namespace My::MyDRefl::Ranges

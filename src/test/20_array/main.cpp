@@ -2,8 +2,8 @@
 #include <cmath>
 #include <iostream>
 
-using namespace Smkz;
-using namespace Smkz::MyDRefl;
+using namespace My;
+using namespace My::MyDRefl;
 
 struct Arr {
   int data[5];

@@ -1,8 +1,8 @@
 #include <MyDRefl/ReflMngr.hpp>
 #include <MyDRefl/ranges/ObjectTree.hpp>
 
-using namespace Smkz;
-using namespace Smkz::MyDRefl;
+using namespace My;
+using namespace My::MyDRefl;
 
 void ObjectTree::iterator::update() {
   switch (mode) {
@@ -24,7 +24,8 @@ mode_0:
   }
 
   deriveds.push_back({.obj = std::get<ObjectView>(value),
-                      .typeinfo = std::get<TypeInfo*>(value)});
+                      .typeinfo = std::get<TypeInfo*>(value),
+                      .curbase = {}});
 
   curbase_valid = false;
 
@@ -42,7 +43,8 @@ mode_0:
 
     while (deriveds.back().curbase !=
            deriveds.back().typeinfo->baseinfos.end()) {
-      if (!deriveds.back().curbase->second.IsVirtual()) break;
+      if (!deriveds.back().curbase->second.IsVirtual())
+        break;
 
       if (std::find(visitedVBs.begin(), visitedVBs.end(),
                     deriveds.back().curbase->first) == visitedVBs.end()) {
@@ -82,7 +84,8 @@ mode_0:
     // push derived
     if (std::get<TypeInfo*>(value)) {
       deriveds.push_back({.obj = std::get<ObjectView>(value),
-                          .typeinfo = std::get<TypeInfo*>(value)});
+                          .typeinfo = std::get<TypeInfo*>(value),
+                          .curbase = {}});
       curbase_valid = false;
     }
   }
@@ -92,7 +95,7 @@ mode_0:
 }
 
 ObjectTree::iterator::iterator(ObjectView obj, bool begin_or_end)
-    : mode{begin_or_end ? 0 : -1}, curbase_valid{true} {
+    : curbase_valid{true}, mode{begin_or_end ? 0 : -1} {
   if (begin_or_end) {
     auto target = Mngr.typeinfos.find(obj.GetType());
     value = {target == Mngr.typeinfos.end() ? nullptr : &target->second, obj};
@@ -110,7 +113,7 @@ ObjectTree::iterator ObjectTree::iterator::operator++(int) {
   return iter;
 }
 
-namespace Smkz::MyDRefl {
+namespace My::MyDRefl {
 MyDRefl_core_API bool operator==(const ObjectTree::iterator& lhs,
                                  const ObjectTree::iterator& rhs) {
   return lhs.deriveds == rhs.deriveds && lhs.mode == rhs.mode;
@@ -120,4 +123,4 @@ MyDRefl_core_API bool operator!=(const ObjectTree::iterator& lhs,
                                  const ObjectTree::iterator& rhs) {
   return !(lhs == rhs);
 }
-}  // namespace Smkz::MyDRefl
+}  // namespace My::MyDRefl

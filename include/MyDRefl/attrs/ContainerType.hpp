@@ -4,7 +4,7 @@
 
 #include "../Util.hpp"
 
-namespace Smkz::MyDRefl {
+namespace My::MyDRefl {
 // TODO: list, forward_list, stack, queue
 
 // RawArray -> Array -> Vector
@@ -50,6 +50,6 @@ struct SpecializeIsSet : std::false_type {};
 template<typename T>
 concept Is* = ...;
 */
-}  // namespace Smkz::MyDRefl
+}  // namespace My::MyDRefl
 
 #include "details/ContainerType.inl"

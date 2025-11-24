@@ -1,7 +1,7 @@
 #include <MyDRefl/IDRegistry.hpp>
 
-using namespace Smkz;
-using namespace Smkz::MyDRefl;
+using namespace My;
+using namespace My::MyDRefl;
 
 #define MY_MYDREFL_META_GET_ID_VIEW(meta) meta.GetID(), meta.GetView()
 #define MY_MYDREFL_META_GET_ID_NAME(meta) meta.GetID(), meta.GetName()

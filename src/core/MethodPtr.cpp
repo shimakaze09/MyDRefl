@@ -1,6 +1,6 @@
 #include <MyDRefl/MethodPtr.hpp>
 
-using namespace Smkz::MyDRefl;
+using namespace My::MyDRefl;
 
 MethodPtr::MethodPtr(Func func, MethodFlag flag, Type result_type,
                      ParamList paramList)

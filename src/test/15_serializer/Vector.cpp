@@ -3,6 +3,6 @@
 #include <MyDRefl/MyDRefl.hpp>
 
 void RegisterVector() {
-  Smkz::MyDRefl::Mngr.RegisterType<Vector>();
-  Smkz::MyDRefl::Mngr.AddField<&Vector::data>("data");
+  My::MyDRefl::Mngr.RegisterType<Vector>();
+  My::MyDRefl::Mngr.AddField<&Vector::data>("data");
 }

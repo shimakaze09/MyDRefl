@@ -1,9 +1,9 @@
 #include "Bootstrap_helper.hpp"
 
-using namespace Smkz;
-using namespace Smkz::MyDRefl;
+using namespace My;
+using namespace My::MyDRefl;
 
-void Smkz::MyDRefl::ext::details::Bootstrap_helper_basic() {
+void My::MyDRefl::ext::details::Bootstrap_helper_basic() {
   Mngr.AddField(GlobalType, "MaxArgNum",
                 FieldInfo{Mngr.GenerateFieldPtr<&MaxArgNum>()});
 

@@ -4,7 +4,7 @@
 
 #include "Object.hpp"
 
-namespace Smkz::MyDRefl {
+namespace My::MyDRefl {
 class MyDRefl_core_API FieldPtr {
  public:
   //
@@ -92,6 +92,6 @@ class MyDRefl_core_API FieldPtr {
   Type type;
   Data data;
 };
-}  // namespace Smkz::MyDRefl
+}  // namespace My::MyDRefl
 
 #include "details/FieldPtr.inl"

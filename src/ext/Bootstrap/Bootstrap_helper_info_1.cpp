@@ -1,9 +1,9 @@
 #include "Bootstrap_helper.hpp"
 
-using namespace Smkz;
-using namespace Smkz::MyDRefl;
+using namespace My;
+using namespace My::MyDRefl;
 
-void Smkz::MyDRefl::ext::details::Bootstrap_helper_info_1() {
+void My::MyDRefl::ext::details::Bootstrap_helper_info_1() {
   Mngr.RegisterType<AttrSet>();
 
   Mngr.AddField<&FieldInfo::attrs>("attrs");

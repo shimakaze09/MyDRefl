@@ -5,7 +5,7 @@
 #include <MyTemplate/Type.hpp>
 #include <span>
 
-namespace Smkz::MyDRefl::details {
+namespace My::MyDRefl::details {
 // parameter <- argument
 // - same
 // - reference
@@ -116,4 +116,4 @@ class NewArgsGuard {
   ArgsView new_args;
   BufferGuard type_buffer;
 };
-}  // namespace Smkz::MyDRefl::details
+}  // namespace My::MyDRefl::details

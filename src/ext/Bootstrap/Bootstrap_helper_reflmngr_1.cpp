@@ -1,8 +1,8 @@
 #include "Bootstrap_helper.hpp"
 
-using namespace Smkz;
-using namespace Smkz::MyDRefl;
+using namespace My;
+using namespace My::MyDRefl;
 
-void Smkz::MyDRefl::ext::details::Bootstrap_helper_reflmngr_1() {
+void My::MyDRefl::ext::details::Bootstrap_helper_reflmngr_1() {
   Mngr.AddField<&ReflMngr::typeinfos>("typeinfos");
 }

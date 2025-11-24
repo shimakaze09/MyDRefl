@@ -40,7 +40,7 @@ template <typename T>
 struct variant_size;
 }
 
-namespace Smkz::MyDRefl {
+namespace My::MyDRefl {
 using Offsetor = std::function<void*(void*)>;
 using Destructor = std::function<void(const void*)>;
 using DeleteFunc = std::function<void(void*)>;  // destruct + free
@@ -984,6 +984,6 @@ concept container_unique = requires(T t) {
 
 template <typename T>
 concept container_sort = requires(T t) { t.sort(); };
-}  // namespace Smkz::MyDRefl
+}  // namespace My::MyDRefl
 
 #include "details/Util.inl"

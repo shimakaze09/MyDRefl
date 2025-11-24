@@ -2,7 +2,7 @@
 
 #include "ObjectTree.hpp"
 
-namespace Smkz::MyDRefl {
+namespace My::MyDRefl {
 // DFS
 class MyDRefl_core_API FieldRange {
  public:
@@ -58,4 +58,4 @@ class MyDRefl_core_API FieldRange {
 
 template <typename T, FieldFlag flag = FieldFlag::All>
 static constexpr FieldRange FieldRange_of = FieldRange{ObjectView_of<T>, flag};
-}  // namespace Smkz::MyDRefl
+}  // namespace My::MyDRefl

@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace Smkz::MyDRefl::details {
+namespace My::MyDRefl::details {
 template <typename F>
 struct WrapFuncTraits;
 
@@ -56,11 +56,13 @@ struct wrap_function_call<TypeList<Args...>> {
                                       std::index_sequence<Ns...>) {
     return (buffer_as<Obj>(ptr).*func_ptr)(auto_get_arg<Args>(args[Ns])...);
   }
+
   template <auto func_ptr, std::size_t... Ns>
   static constexpr decltype(auto) run(ArgsView args,
                                       std::index_sequence<Ns...>) {
     return func_ptr(auto_get_arg<Args>(args[Ns])...);
   }
+
   template <typename Obj, typename Func, typename MaybeConstVoidPtr,
             std::size_t... Ns>
   static constexpr decltype(auto) run(MaybeConstVoidPtr ptr, Func&& func,
@@ -73,6 +75,7 @@ struct wrap_function_call<TypeList<Args...>> {
                                       auto_get_arg<Args>(args[Ns])...);
     }
   }
+
   template <typename Func, std::size_t... Ns>
   static constexpr decltype(auto) run(Func&& func, ArgsView args,
                                       std::index_sequence<Ns...>) {
@@ -209,7 +212,7 @@ constexpr auto wrap_static_function(Func&& func) noexcept {
                                             ArgsView args) mutable {
     if constexpr (!std::is_void_v<Return>) {
       using NonCVReturn = std::remove_cv_t<Return>;
-      NonCVReturn rst = details::wrap_function_call<ArgList>::template run(
+      NonCVReturn rst = details::wrap_function_call<ArgList>::run(
           std::forward<Func>(f), args, IndexSeq{});
       if (result_buffer) {
         if constexpr (std::is_reference_v<Return>)
@@ -218,14 +221,15 @@ constexpr auto wrap_static_function(Func&& func) noexcept {
           new (result_buffer) NonCVReturn{std::move(rst)};
       }
     } else
-      details::wrap_function_call<ArgList>::template run(std::forward<Func>(f),
-                                                         args, IndexSeq{});
+      details::wrap_function_call<ArgList>::run(std::forward<Func>(f), args,
+                                                IndexSeq{});
   };
   return wrapped_function;
 }
 
 template <typename ArgList>
 struct GenerateParamListHelper;
+
 template <typename... Args>
 struct GenerateParamListHelper<TypeList<Args...>> {
   static ParamList get() noexcept(sizeof...(Args) == 0) {
@@ -235,6 +239,7 @@ struct GenerateParamListHelper<TypeList<Args...>> {
 
 template <typename T, typename FixedArgList, typename... LeftArgs>
 struct register_ctor_impl;
+
 template <typename T, typename... FixedArgs>
 struct register_ctor_impl<T, TypeList<FixedArgs...>> {
   static void run(ReflMngr& mngr) {
@@ -242,6 +247,7 @@ struct register_ctor_impl<T, TypeList<FixedArgs...>> {
       mngr.AddConstructor<T, FixedArgs...>();
   }
 };
+
 template <typename T, typename... FixedArgs, typename LeftArg0,
           typename... LeftArgs>
 struct register_ctor_impl<T, TypeList<FixedArgs...>, LeftArg0, LeftArgs...> {
@@ -373,7 +379,8 @@ void register_variant_ctor_assign(ReflMngr& mngr) {
                          [](T& t, const Elem& elem) -> T& { return t = elem; });
 
   if constexpr (!std::is_fundamental_v<Elem>) {
-    if constexpr (type_ctor<T, Elem&&>) mngr.AddConstructor<T, Elem&&>();
+    if constexpr (type_ctor<T, Elem&&>)
+      mngr.AddConstructor<T, Elem&&>();
     if constexpr (operator_assignment<T, Elem&&>)
       mngr.AddMemberMethod(
           NameIDRegistry::Meta::operator_assignment,
@@ -392,7 +399,8 @@ struct TypeAutoRegister_Default {
   static void run(ReflMngr& mngr) {
     if constexpr (std::is_default_constructible_v<T> && !std::is_trivial_v<T>)
       mngr.AddConstructor<T>();
-    if constexpr (type_ctor_copy<T>) mngr.AddConstructor<T, const T&>();
+    if constexpr (type_ctor_copy<T>)
+      mngr.AddConstructor<T, const T&>();
     if constexpr (type_ctor_move<T> && !std::is_trivial_v<T>)
       mngr.AddConstructor<T, T&&>();
     if constexpr (std::is_destructible_v<T> && !std::is_trivial_v<T>)
@@ -812,7 +820,8 @@ struct TypeAutoRegister_Default {
       }
 
       if constexpr (!std::is_fundamental_v<Elem>) {
-        if constexpr (type_ctor<T, Elem&&>) mngr.AddConstructor<T, Elem&&>();
+        if constexpr (type_ctor<T, Elem&&>)
+          mngr.AddConstructor<T, Elem&&>();
         if constexpr (operator_assignment<T, Elem&&>)
           mngr.AddMemberMethod(
               NameIDRegistry::Meta::operator_assignment,
@@ -1537,9 +1546,9 @@ struct TypeAutoRegister_Default {
 
 template <typename T>
 struct TypeAutoRegister : TypeAutoRegister_Default<T> {};
-};  // namespace Smkz::MyDRefl::details
+};  // namespace My::MyDRefl::details
 
-namespace Smkz::MyDRefl {
+namespace My::MyDRefl {
 //
 // Factory
 ////////////
@@ -1558,7 +1567,7 @@ FieldPtr ReflMngr::GenerateFieldPtr() {
 
     RegisterType<Value>();
     if constexpr (has_virtual_base_v<Obj>) {
-      return {Type_of<Value>, field_offsetor<field_data>()};
+      return {Type_of<Value>, Offsetor{field_offsetor<field_data>()}};
     } else {
       return {Type_of<Value>, field_forward_offset_value(field_data)};
     }
@@ -1662,7 +1671,6 @@ ParamList ReflMngr::GenerateParamList() noexcept(sizeof...(Params) == 0) {
 
 template <auto funcptr>
 MethodPtr ReflMngr::GenerateMethodPtr() {
-  using FuncPtr = decltype(funcptr);
   using Traits = FuncTraits<decltype(funcptr)>;
   using ArgList = typename Traits::ArgList;
   using Return = typename Traits::Return;
@@ -1681,7 +1689,8 @@ MethodPtr ReflMngr::GenerateConstructorPtr() {
 template <typename T>
 MethodPtr ReflMngr::GenerateDestructorPtr() {
   return GenerateMemberMethodPtr([](T& obj) {
-    if constexpr (!std::is_trivially_destructible_v<T>) obj.~T();
+    if constexpr (!std::is_trivially_destructible_v<T>)
+      obj.~T();
   });
 }
 
@@ -1721,7 +1730,8 @@ void ReflMngr::RegisterType() {
     else if constexpr (std::is_reference_v<T>)
       RegisterType<std::remove_cvref_t<T>>();
     else {
-      if (typeinfos.contains(Type_of<T>)) return;
+      if (typeinfos.contains(Type_of<T>))
+        return;
 
       tregistry.Register<T>();
       RegisterType(Type_of<T>, std::is_empty_v<T> ? 0 : sizeof(T), alignof(T),
@@ -1793,6 +1803,7 @@ bool ReflMngr::AddConstructor(AttrSet attrs) {
   return AddMethod(Type_of<T>, NameIDRegistry::Meta::ctor,
                    {GenerateConstructorPtr<T, Args...>(), std::move(attrs)});
 }
+
 template <typename T>
 bool ReflMngr::AddDestructor(AttrSet attrs) {
   return AddMethod(Type_of<T>, NameIDRegistry::Meta::dtor,
@@ -1853,4 +1864,4 @@ bool ReflMngr::IsConstructible(Type type) const {
   constexpr Type argTypes[] = {Type_of<Args>...};
   return IsConstructible(type, std::span<const Type>{argTypes});
 }
-}  // namespace Smkz::MyDRefl
+}  // namespace My::MyDRefl

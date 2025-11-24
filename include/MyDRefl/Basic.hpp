@@ -28,7 +28,7 @@
 
 // #include <memory>
 
-namespace Smkz::MyDRefl {
+namespace My::MyDRefl {
 enum class MethodFlag {
   Variable = 0b001,
   Const = 0b010,
@@ -68,6 +68,7 @@ struct IsObjectOrView {
   static constexpr bool value =
       std::is_same_v<U, ObjectView> || std::is_same_v<U, SharedObject>;
 };
+
 template <typename T>
 constexpr bool IsObjectOrView_v = IsObjectOrView<T>::value;
 template <typename T>
@@ -75,14 +76,15 @@ concept NonObjectAndView = !IsObjectOrView_v<T>;
 
 template <typename T>
 T MoveResult(Type type, void* result_buffer) noexcept(
-    std::is_reference_v<T> || std::is_nothrow_destructible_v<T> &&
-                                  std::is_nothrow_move_constructible_v<T>) {
+    std::is_reference_v<T> || (std::is_nothrow_destructible_v<T> &&
+                               std::is_nothrow_move_constructible_v<T>)) {
   if constexpr (!std::is_void_v<T>) {
     assert(result_buffer);
 
     if constexpr (!std::is_reference_v<T> &&
                   std::is_default_constructible_v<T>) {
-      if (type != Type_of<T>) return {};
+      if (type != Type_of<T>)
+        return {};
     } else
       assert(type == Type_of<T>);
 
@@ -109,4 +111,4 @@ class FieldRange;
 class MethodRange;
 
 class ReflMngr;
-}  // namespace Smkz::MyDRefl
+}  // namespace My::MyDRefl

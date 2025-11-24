@@ -2,7 +2,7 @@
 
 #include <MyDRefl/MyDRefl.hpp>
 
-using namespace Smkz::MyDRefl;
+using namespace My::MyDRefl;
 
 bool details::IsPriorityCompatible(std::span<const Type> params,
                                    std::span<const Type> argTypes) {

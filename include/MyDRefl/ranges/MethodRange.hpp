@@ -2,7 +2,7 @@
 
 #include "ObjectTree.hpp"
 
-namespace Smkz::MyDRefl {
+namespace My::MyDRefl {
 // DFS
 class MyDRefl_core_API MethodRange {
  public:
@@ -59,4 +59,4 @@ class MyDRefl_core_API MethodRange {
 template <typename T, MethodFlag flag = MethodFlag::All>
 static constexpr MethodRange MethodRange_of =
     MethodRange{ObjectView_of<T>, flag};
-}  // namespace Smkz::MyDRefl
+}  // namespace My::MyDRefl

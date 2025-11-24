@@ -1,13 +1,13 @@
 #include <MyDRefl/MyDRefl.hpp>
 #include <iostream>
 
-using namespace Smkz;
-using namespace Smkz::MyDRefl;
+using namespace My;
+using namespace My::MyDRefl;
 
 enum class Color { Red, Green, Blue };
 
 int main() {
-  Mngr.AddDynamicField<const std::string>(GlobalType, "author", "Smkz");
+  Mngr.AddDynamicField<const std::string>(GlobalType, "author", "My");
   Mngr.AddDynamicField<const Color>(GlobalType, "theme", Color::Red);
   Mngr.AddDynamicField<const size_t>(Type_of<int>, "bits", sizeof(int) * 8);
 
