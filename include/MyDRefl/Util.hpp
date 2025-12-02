@@ -1,5 +1,7 @@
 #pragma once
 
+#include "config.hpp"
+
 #include <MyTemplate/Func.hpp>
 #include <MyTemplate/Type.hpp>
 #include <cstdint>
@@ -59,6 +61,7 @@ struct field_offsetor_impl;
 template <typename Obj, typename T, T Obj::* fieldptr>
 struct field_offsetor_impl<fieldptr> {
   static_assert(!std::is_function_v<T>);
+
   static constexpr auto get() noexcept {
     return [](void* ptr) noexcept -> void* {
       return &(reinterpret_cast<Obj*>(ptr)->*fieldptr);
@@ -137,7 +140,9 @@ Destructor destructor() {
   else {
     static_assert(std::is_destructible_v<T>);
     if constexpr (!std::is_trivially_destructible_v<T>) {
-      return [](const void* ptr) { reinterpret_cast<const T*>(ptr)->~T(); };
+      return [](const void* ptr) {
+        reinterpret_cast<const T*>(ptr)->~T();
+      };
     } else
       return {};
   }
@@ -521,7 +526,7 @@ using get_container_size_type_t = typename get_container_size_type<T>::type;
 
 template <typename T, typename... Args>
 concept type_ctor = std::is_constructible_v<T, Args...> &&
-                    requires(Args... args) { T{std::forward<Args>(args)...}; };
+                    requires(Args... args) { T(std::forward<Args>(args)...); };
 template <typename T>
 concept type_ctor_copy =
     std::is_copy_constructible_v<T> && type_ctor<T, const T&>;

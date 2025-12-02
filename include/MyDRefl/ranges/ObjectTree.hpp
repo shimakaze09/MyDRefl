@@ -24,6 +24,7 @@ class MyDRefl_core_API ObjectTree {
     iterator operator++(int);
 
     reference operator*() const noexcept { return value; }
+
     pointer operator->() const noexcept { return &value; }
 
     MyDRefl_core_API friend bool operator==(const iterator& lhs,
@@ -32,6 +33,7 @@ class MyDRefl_core_API ObjectTree {
                                             const iterator& rhs);
 
     bool Valid() const noexcept { return mode != -1; }
+
     std::span<const Ranges::Derived> GetDeriveds() const noexcept {
       return {deriveds.begin(), deriveds.end()};
     }
@@ -49,12 +51,13 @@ class MyDRefl_core_API ObjectTree {
     value_type value;
   };
 
-  constexpr ObjectTree(ObjectView obj) noexcept
+  constexpr explicit ObjectTree(ObjectView obj) noexcept
       : obj{obj.RemoveConstReference()} {}
 
-  constexpr ObjectTree(Type type) noexcept : obj{ObjectView{type}} {}
+  constexpr explicit ObjectTree(Type type) noexcept : obj{ObjectView{type}} {}
 
   iterator begin() const { return {obj, true}; }
+
   iterator end() const noexcept { return {obj, false}; }
 
  private:

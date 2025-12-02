@@ -8,4 +8,6 @@ void My::MyDRefl::details::ReflMngrInitUtil_6(ReflMngr& mngr) {
   mngr.AddConstructor<std::string, const char* const&>();
   mngr.AddConstructor<std::string, const char* const&,
                       const std::string::size_type&>();
+  mngr.AddConstructor<std::string, const std::string::size_type&,
+                      const std::string::value_type&>();
 }

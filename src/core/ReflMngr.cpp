@@ -68,6 +68,7 @@ ReflMngr::ReflMngr() {
   details::ReflMngrInitUtil_4(*this);
   details::ReflMngrInitUtil_5(*this);
   details::ReflMngrInitUtil_6(*this);
+  details::ReflMngrInitUtil_7(*this);
 }
 
 ReflMngr& ReflMngr::Instance() noexcept {
@@ -84,8 +85,10 @@ TypeInfo* ReflMngr::GetTypeInfo(Type type) const {
 
 SharedObject ReflMngr::GetTypeAttr(Type type, Type attr_type) const {
   TypeInfo* typeinfo = GetTypeInfo(type);
-  if (!typeinfo)
+  if (!typeinfo) {
+    assert(false);
     return {};
+  }
 
   auto target = typeinfo->attrs.find(attr_type);
   if (target == typeinfo->attrs.end())
@@ -278,8 +281,10 @@ Type ReflMngr::RegisterType(Type type, std::span<const Type> bases,
 
 Name ReflMngr::AddField(Type type, Name field_name, FieldInfo fieldinfo) {
   auto* typeinfo = GetTypeInfo(type);
-  if (!typeinfo)
+  if (!typeinfo) {
+    assert(false);
     return {};
+  }
   auto ftarget = typeinfo->fieldinfos.find(field_name);
   if (ftarget != typeinfo->fieldinfos.end())
     return {};
@@ -312,8 +317,11 @@ Name ReflMngr::AddMethod(Type type, Name method_name, MethodInfo methodinfo) {
 
 Name ReflMngr::AddTrivialDefaultConstructor(Type type) {
   auto target = typeinfos.find(type);
-  if (target == typeinfos.end() || target->second.is_polymorphic ||
-      ContainsVirtualBase(type))
+  if (target == typeinfos.end()) {
+    assert(false);
+    return {};
+  }
+  if (target->second.is_polymorphic || ContainsVirtualBase(type))
     return {};
   for (const auto& [basetype, baseinfo] : target->second.baseinfos) {
     assert(!baseinfo.IsPolymorphic());  // type isn't polymorphic => bases

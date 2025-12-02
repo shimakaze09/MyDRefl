@@ -91,6 +91,14 @@ constexpr decltype(auto) ObjectView::As() const noexcept {
     return *ptr;
 }
 
+template <typename T>
+auto SharedObject::AsShared() const {
+  static_assert(!std::is_reference_v<T>);
+  assert(!IsObjectView());
+  assert(GetType().template Is<T>());
+  return std::reinterpret_pointer_cast<T>(buffer);
+}
+
 //////////////
 // ReflMngr //
 //////////////

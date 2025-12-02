@@ -13,11 +13,15 @@ using ArgPtrBuffer = void* const*;
 class MyDRefl_core_API ArgsView {
  public:
   constexpr ArgsView() noexcept : buffer{nullptr} {}
+
   constexpr ArgsView(ArgPtrBuffer buffer,
                      std::span<const Type> argTypes) noexcept
       : buffer{buffer}, argTypes{argTypes} {}
+
   constexpr ArgPtrBuffer Buffer() const noexcept { return buffer; }
+
   constexpr std::span<const Type> Types() const noexcept { return argTypes; }
+
   constexpr ObjectView operator[](size_t idx) const noexcept;
 
  private:
@@ -30,12 +34,14 @@ class TempArgsView {
  public:
   template <typename... Args>
   TempArgsView(Args&&... args) noexcept;
+
   operator ArgsView() const&& noexcept { return {argptr_buffer, argTypes}; }
 
  private:
   const Type argTypes[N];
   void* const argptr_buffer[N];
 };
+
 template <typename... Args>
 TempArgsView(Args&&... args) -> TempArgsView<sizeof...(Args)>;
 
@@ -45,9 +51,12 @@ ReflMngr_GetTemporaryResource();
 class MyDRefl_core_API ObjectView {
  public:
   constexpr ObjectView() noexcept : ptr{nullptr} {}
+
   constexpr ObjectView(Type type, void* ptr) noexcept : type{type}, ptr{ptr} {}
+
   explicit constexpr ObjectView(Type type) noexcept
       : ObjectView{type, nullptr} {}
+
   template <typename T>
     requires std::negation_v<std::is_reference<T>> &&
              std::negation_v<std::is_same<std::remove_cvref_t<T>, Type>> &&
@@ -57,6 +66,7 @@ class MyDRefl_core_API ObjectView {
                    const_cast<void*>(static_cast<const void*>(&obj))} {}
 
   constexpr const Type& GetType() const noexcept { return type; }
+
   constexpr void* const& GetPtr() const noexcept { return ptr; }
 
   explicit operator bool() const noexcept;
@@ -383,17 +393,23 @@ class MyDRefl_core_API SharedObject : public ObjectView {
 
   SharedObject(Type type, SharedBuffer buffer) noexcept
       : ObjectView{type}, buffer{std::move(buffer)} {
-    ptr = buffer.get();
+    ptr = this->buffer.get();
   }
+
   constexpr explicit SharedObject(ObjectView obj) noexcept : ObjectView{obj} {}
 
   template <typename T>
   SharedObject(Type type, std::shared_ptr<T> buffer) noexcept
       : ObjectView{type, buffer.get()}, buffer{std::move(buffer)} {}
 
+  template <typename T>
+  explicit SharedObject(std::unique_ptr<T>&& buffer) noexcept
+      : ObjectView{Type_of<T>, buffer.get()}, buffer{std::move(buffer)} {}
+
   template <typename Deleter>
   SharedObject(ObjectView obj, Deleter d) noexcept
       : ObjectView{obj}, buffer{obj.GetPtr(), std::move(d)} {}
+
   template <typename U, typename Deleter, typename Alloc>
   SharedObject(ObjectView obj, Deleter d, Alloc alloc) noexcept
       : ObjectView{obj}, buffer{obj.GetPtr(), std::move(d), alloc} {}
@@ -405,6 +421,7 @@ class MyDRefl_core_API SharedObject : public ObjectView {
   }
 
   SharedBuffer& GetBuffer() noexcept { return buffer; }
+
   const SharedBuffer& GetBuffer() const noexcept { return buffer; }
 
   long UseCount() const noexcept { return buffer.use_count(); }
@@ -416,6 +433,23 @@ class MyDRefl_core_API SharedObject : public ObjectView {
     std::swap(ptr, rhs.ptr);
     buffer.swap(rhs.buffer);
   }
+
+  template <typename T>
+  auto AsShared() const;
+
+  //////////////
+  // ReflMngr //
+  //////////////
+
+  //
+  // Cast
+  /////////
+
+  SharedObject StaticCast_DerivedToBase(Type base) const;
+  SharedObject StaticCast_BaseToDerived(Type derived) const;
+  SharedObject DynamicCast_BaseToDerived(Type derived) const;
+  SharedObject StaticCast(Type type) const;
+  SharedObject DynamicCast(Type type) const;
 
  private:
   SharedBuffer buffer;  // if type is reference/void, buffer is empty

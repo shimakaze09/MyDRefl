@@ -19,6 +19,7 @@ class MyDRefl_core_API MethodRange {
     iterator operator++(int);
 
     reference operator*() const noexcept { return *curmethod; }
+
     pointer operator->() const noexcept { return curmethod.operator->(); }
 
     MyDRefl_core_API friend bool operator==(const iterator& lhs,
@@ -27,10 +28,13 @@ class MyDRefl_core_API MethodRange {
                                             const iterator& rhs);
 
     bool Valid() const noexcept { return typeiter.Valid(); }
+
     std::span<const Ranges::Derived> GetDeriveds() const noexcept {
       return typeiter.GetDeriveds();
     }
+
     ObjectView GetObjectView() const { return std::get<ObjectView>(*typeiter); }
+
     TypeInfo* GetTypeInfo() const { return std::get<TypeInfo*>(*typeiter); }
 
    private:
@@ -43,12 +47,18 @@ class MyDRefl_core_API MethodRange {
 
   constexpr MethodRange(ObjectView obj, MethodFlag flag) noexcept
       : objtree{ObjectTree{obj}}, flag{flag} {}
+
   constexpr explicit MethodRange(ObjectView obj) noexcept
       : MethodRange{obj, MethodFlag::All} {}
+
   constexpr explicit MethodRange(Type type) noexcept
       : MethodRange{ObjectView{type}, MethodFlag::All} {}
 
+  constexpr MethodRange(Type type, MethodFlag flag) noexcept
+      : MethodRange{ObjectView{type}, flag} {}
+
   iterator begin() const { return {objtree.begin(), flag}; }
+
   iterator end() const noexcept { return {objtree.end(), flag}; }
 
  private:

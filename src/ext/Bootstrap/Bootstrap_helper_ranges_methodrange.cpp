@@ -8,6 +8,7 @@ void My::MyDRefl::ext::details::Bootstrap_helper_ranges_methodrange() {
   Mngr.AddConstructor<MethodRange, ObjectView, MethodFlag>();
   Mngr.AddConstructor<MethodRange, ObjectView>();
   Mngr.AddConstructor<MethodRange, Type>();
+  Mngr.AddConstructor<MethodRange, Type, MethodFlag>();
   Mngr.AddConstructor<MethodRange::iterator, ObjectTree::iterator>();
   Mngr.AddConstructor<MethodRange::iterator, ObjectTree::iterator,
                       MethodFlag>();

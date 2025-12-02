@@ -5,6 +5,24 @@
 #include <sstream>
 
 namespace My::MyDRefl::details {
+template <bool NeedRegisterFieldType, typename T, typename... Args>
+FieldPtr GenerateDynamicFieldPtr(ReflMngr& mngr, Args&&... args) {
+  static_assert(!std::is_reference_v<T> && !std::is_volatile_v<T>);
+  using RawT = std::remove_const_t<T>;
+  if constexpr (NeedRegisterFieldType)
+    mngr.RegisterType<RawT>();
+  else
+    assert(mngr.GetTypeInfo(Type_of<T>));
+  mngr.AddConstructor<RawT, Args...>();
+  if constexpr (FieldPtr::IsBufferable<RawT>()) {
+    FieldPtr::Buffer buffer =
+        FieldPtr::ConvertToBuffer(T{std::forward<Args>(args)...});
+    return FieldPtr{Type_of<T>, buffer};
+  } else
+    return FieldPtr{mngr.MakeShared(Type_of<RawT>,
+                                    TempArgsView{std::forward<Args>(args)...})};
+}
+
 template <typename F>
 struct WrapFuncTraits;
 
@@ -831,24 +849,6 @@ struct TypeAutoRegister_Default {
 
     // container
 
-    // - ctor
-
-    if constexpr (container_ctor_cnt<T>)
-      mngr.AddConstructor<T, const typename T::size_type&>();
-    if constexpr (container_ctor_clvalue<T>)
-      mngr.AddConstructor<T, const typename T::value_type&>();
-    if constexpr (container_ctor_rvalue<T>)
-      mngr.AddConstructor<T, typename T::value_type&&>();
-    if constexpr (container_ctor_cnt_value<T>)
-      mngr.AddConstructor<T, const typename T::size_type&,
-                          const typename T::value_type&>();
-    if constexpr (container_ctor_ptr_cnt<T>)
-      mngr.AddConstructor<T, const typename T::pointer_type&,
-                          const typename T::size_type&>();
-    if constexpr (container_ctor_ptr_ptr<T>)
-      mngr.AddConstructor<T, const typename T::pointer_type&,
-                          const typename T::pointer_type&>();
-
     // - assign
 
     if constexpr (container_assign<T>)
@@ -1489,6 +1489,14 @@ struct TypeAutoRegister_Default {
       mngr.AddTypeAttr(Type_of<T>,
                        mngr.MakeShared(Type_of<ContainerType>,
                                        TempArgsView{ContainerType::Span}));
+    else if constexpr (IsVariant<T>)
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::Variant}));
+    else if constexpr (IsOptional<T>)
+      mngr.AddTypeAttr(Type_of<T>,
+                       mngr.MakeShared(Type_of<ContainerType>,
+                                       TempArgsView{ContainerType::Optional}));
 
     // - type
 
@@ -1516,8 +1524,11 @@ struct TypeAutoRegister_Default {
         if constexpr (container_const_pointer_type<T>)
           mngr.RegisterType<typename T::const_pointer>();
       }
-      if constexpr (container_iterator<T>)
+      if constexpr (container_iterator<T>) {
         mngr.RegisterType<typename T::iterator>();
+        if constexpr (IsMultiSet<T> || IsUnorderedMultiSet<T>)
+          mngr.RegisterType<std::pair<typename T::iterator, bool>>();
+      }
       if constexpr (container_const_iterator<T>)
         mngr.RegisterType<typename T::const_iterator>();
       if constexpr (container_local_iterator<T>)
@@ -1553,33 +1564,36 @@ namespace My::MyDRefl {
 // Factory
 ////////////
 
-template <auto field_data>
+template <auto field_data, bool NeedRegisterFieldType>
 FieldPtr ReflMngr::GenerateFieldPtr() {
   using FieldData = decltype(field_data);
   if constexpr (std::is_pointer_v<FieldData>) {
     using Value = std::remove_pointer_t<FieldData>;
-    RegisterType<Value>();
+    if constexpr (NeedRegisterFieldType)
+      RegisterType<Value>();
     return {Type_of<Value>, ptr_const_cast(field_data)};
   } else if constexpr (std::is_member_object_pointer_v<FieldData>) {
     using Traits = member_pointer_traits<FieldData>;
     using Obj = typename Traits::object;
     using Value = typename Traits::value;
 
-    RegisterType<Value>();
+    if constexpr (NeedRegisterFieldType)
+      RegisterType<Value>();
     if constexpr (has_virtual_base_v<Obj>) {
       return {Type_of<Value>, Offsetor{field_offsetor<field_data>()}};
     } else {
       return {Type_of<Value>, field_forward_offset_value(field_data)};
     }
   } else if constexpr (std::is_enum_v<FieldData>) {
-    RegisterType<FieldData>();
+    if constexpr (NeedRegisterFieldType)
+      RegisterType<FieldData>();
     auto buffer = FieldPtr::ConvertToBuffer(field_data);
     return {Type_of<const FieldData>, buffer};
   } else
     static_assert(always_false<FieldData>);
 }
 
-template <typename T>
+template <typename T, bool NeedRegisterFieldType>
 FieldPtr ReflMngr::GenerateFieldPtr(T&& data) {
   using RawT = std::remove_cv_t<std::remove_reference_t<T>>;
   static_assert(!std::is_same_v<RawT, std::size_t>);
@@ -1588,7 +1602,8 @@ FieldPtr ReflMngr::GenerateFieldPtr(T&& data) {
     using Obj = typename Traits::object;
     using Value = typename Traits::value;
     tregistry.Register<Value>();
-    RegisterType<Value>();
+    if constexpr (NeedRegisterFieldType)
+      RegisterType<Value>();
     if constexpr (has_virtual_base_v<Obj>) {
       return {Type_of<Value>, field_offsetor(data)};
     } else {
@@ -1599,11 +1614,13 @@ FieldPtr ReflMngr::GenerateFieldPtr(T&& data) {
                        !std::is_void_v<std::remove_pointer_t<RawT>>) {
     using Value = std::remove_pointer_t<RawT>;
     tregistry.Register<Value>();
-    RegisterType<Value>();
+    if constexpr (NeedRegisterFieldType)
+      RegisterType<Value>();
     return {Type_of<Value>, ptr_const_cast(data)};
   } else if constexpr (std::is_enum_v<RawT>) {
     tregistry.Register<RawT>();
-    RegisterType<RawT>();
+    if constexpr (NeedRegisterFieldType)
+      RegisterType<RawT>();
     auto buffer = FieldPtr::ConvertToBuffer(data);
     return {Type_of<const RawT>, buffer};
   } else {
@@ -1622,7 +1639,8 @@ FieldPtr ReflMngr::GenerateFieldPtr(T&& data) {
       static_assert(!std::is_void_v<Value>);
 
       tregistry.Register<Value>();
-      RegisterType<Value>();
+      if constexpr (NeedRegisterFieldType)
+        RegisterType<Value>();
 
       auto offsetor = [f = std::forward<T>(data)](void* obj) -> void* {
         return f(reinterpret_cast<Obj*>(obj));
@@ -1631,7 +1649,8 @@ FieldPtr ReflMngr::GenerateFieldPtr(T&& data) {
       return {Type_of<Value>, offsetor};
     } else if constexpr (std::is_reference_v<Ret>) {
       tregistry.Register<Ret>();
-      RegisterType<Ret>();
+      if constexpr (NeedRegisterFieldType)
+        RegisterType<Ret>();
 
       auto offsetor = [f = std::forward<T>(data)](void* obj) -> void* {
         return &f(reinterpret_cast<Obj*>(obj));
@@ -1645,17 +1664,14 @@ FieldPtr ReflMngr::GenerateFieldPtr(T&& data) {
 
 template <typename T, typename... Args>
 FieldPtr ReflMngr::GenerateDynamicFieldPtr(Args&&... args) {
-  static_assert(!std::is_reference_v<T> && !std::is_volatile_v<T>);
-  using RawT = std::remove_const_t<T>;
-  RegisterType<RawT>();
-  AddConstructor<RawT, Args...>();
-  if constexpr (FieldPtr::IsBufferable<RawT>()) {
-    FieldPtr::Buffer buffer =
-        FieldPtr::ConvertToBuffer(T{std::forward<Args>(args)...});
-    return FieldPtr{Type_of<T>, buffer};
-  } else
-    return FieldPtr{
-        MakeShared(Type_of<RawT>, TempArgsView{std::forward<Args>(args)...})};
+  return details::GenerateDynamicFieldPtr<true, T>(*this,
+                                                   std::forward<Args>(args)...);
+}
+
+template <typename T, typename... Args>
+FieldPtr ReflMngr::SimpleGenerateDynamicFieldPtr(Args&&... args) {
+  return details::GenerateDynamicFieldPtr<false, T>(
+      *this, std::forward<Args>(args)...);
 }
 
 template <typename... Params>
@@ -1682,8 +1698,14 @@ MethodPtr ReflMngr::GenerateMethodPtr() {
 
 template <typename T, typename... Args>
 MethodPtr ReflMngr::GenerateConstructorPtr() {
-  return GenerateMemberMethodPtr(
-      [](T& obj, Args... args) { new (&obj) T{std::forward<Args>(args)...}; });
+  return GenerateMemberMethodPtr([](T& obj, Args... args) {
+    if constexpr (std::is_constructible_v<T, Args...>)
+      new (&obj) T(std::forward<Args>(args)...);
+    else if constexpr (std::is_aggregate_v<T>)
+      new (&obj) T{std::forward<Args>(args)...};
+    else
+      static_assert(always_false<T>);
+  });
 }
 
 template <typename T>
@@ -1742,31 +1764,34 @@ void ReflMngr::RegisterType() {
   }
 }
 
-template <auto field_data>
+template <auto field_data, bool NeedRegisterFieldType>
 bool ReflMngr::AddField(Name name, AttrSet attrs) {
   using FieldData = decltype(field_data);
   if constexpr (std::is_enum_v<FieldData>) {
     return AddField(Type_of<const FieldData>, name,
-                    {GenerateFieldPtr<field_data>(), std::move(attrs)});
+                    {GenerateFieldPtr<field_data, NeedRegisterFieldType>(),
+                     std::move(attrs)});
   } else if constexpr (std::is_member_object_pointer_v<FieldData>) {
     return AddField(Type_of<member_pointer_traits_object<FieldData>>, name,
-                    {GenerateFieldPtr<field_data>(), std::move(attrs)});
+                    {GenerateFieldPtr<field_data, NeedRegisterFieldType>(),
+                     std::move(attrs)});
   } else
     static_assert(always_false<FieldData>,
                   "if field_data is a static field, use AddField(Type, name, "
                   "field_data, attrs)");
 }
 
-template <typename T>
+template <typename T, bool NeedRegisterFieldType>
   requires std::negation_v<std::is_same<std::decay_t<T>, FieldInfo>>
 bool ReflMngr::AddField(Name name, T&& data, AttrSet attrs) {
   using RawT = std::remove_cv_t<std::remove_reference_t<T>>;
   if constexpr (std::is_member_object_pointer_v<RawT>)
-    return AddField(Type_of<member_pointer_traits_object<RawT>>, name,
-                    std::forward<T>(data), std::move(attrs));
+    return AddField<T, NeedRegisterFieldType>(
+        Type_of<member_pointer_traits_object<RawT>>, name,
+        std::forward<T>(data), std::move(attrs));
   else if constexpr (std::is_enum_v<RawT>)
-    return AddField(Type_of<const RawT>, name, std::forward<T>(data),
-                    std::move(attrs));
+    return AddField<T, NeedRegisterFieldType>(
+        Type_of<const RawT>, name, std::forward<T>(data), std::move(attrs));
   else {
     using Traits = FuncTraits<RawT>;
 
@@ -1776,8 +1801,8 @@ bool ReflMngr::AddField(Name name, T&& data, AttrSet attrs) {
     static_assert(std::is_pointer_v<ObjPtr>);
     using Obj = std::remove_pointer_t<ObjPtr>;
 
-    return AddField(Type_of<Obj>, name, std::forward<T>(data),
-                    std::move(attrs));
+    return AddField<T, NeedRegisterFieldType>(
+        Type_of<Obj>, name, std::forward<T>(data), std::move(attrs));
   }
 }
 

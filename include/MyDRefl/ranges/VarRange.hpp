@@ -28,6 +28,7 @@ class MyDRefl_core_API VarRange {
     iterator operator++(int);
 
     reference operator*() const noexcept { return value; }
+
     pointer operator->() const noexcept { return &value; }
 
     MyDRefl_core_API friend bool operator==(const iterator& lhs,
@@ -42,7 +43,9 @@ class MyDRefl_core_API VarRange {
     }
 
     ObjectView GetObjectView() const { return std::get<ObjectView>(*typeiter); }
+
     TypeInfo* GetTypeInfo() const { return std::get<TypeInfo*>(*typeiter); }
+
     FieldInfo& GetFieldInfo() const { return curfield->second; }
 
    private:
@@ -67,10 +70,15 @@ class MyDRefl_core_API VarRange {
 
   constexpr explicit VarRange(ObjectView obj) noexcept
       : VarRange{obj, FieldFlag::All} {}
+
   constexpr explicit VarRange(Type type) noexcept
       : VarRange{ObjectView{type}, FieldFlag::Unowned} {}
 
+  constexpr VarRange(Type type, FieldFlag flag) noexcept
+      : VarRange{ObjectView{type}, flag} {}
+
   iterator begin() const { return {objtree.begin(), cvref_mode, flag}; }
+
   iterator end() const noexcept { return {objtree.end(), cvref_mode, flag}; }
 
  private:

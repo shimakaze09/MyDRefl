@@ -42,9 +42,9 @@ class MyDRefl_core_API FieldPtr {
   // Constructor
   ////////////////
 
-  constexpr FieldPtr() noexcept = default;
+  FieldPtr() noexcept = default;
 
-  constexpr FieldPtr(Type type, std::size_t forward_offset_value) noexcept
+  FieldPtr(Type type, std::size_t forward_offset_value) noexcept
       : type{type}, data{forward_offset_value} {
     assert(type);
   }
@@ -54,11 +54,11 @@ class MyDRefl_core_API FieldPtr {
     assert(type && std::get<1>(data));
   }
 
-  constexpr FieldPtr(Type type, void* ptr) noexcept : type{type}, data{ptr} {
+  FieldPtr(Type type, void* ptr) noexcept : type{type}, data{ptr} {
     assert(type && ptr);
   }
 
-  explicit constexpr FieldPtr(ObjectView static_obj) noexcept
+  explicit FieldPtr(ObjectView static_obj) noexcept
       : type{static_obj.GetType()}, data{static_obj.GetPtr()} {
     assert(type && static_obj.GetPtr());
   }
@@ -68,14 +68,14 @@ class MyDRefl_core_API FieldPtr {
     assert(type && std::get<3>(data));
   }
 
-  constexpr FieldPtr(Type type, const Buffer& buffer) noexcept
+  FieldPtr(Type type, const Buffer& buffer) noexcept
       : type{type}, data{buffer} {
     assert(type);
   }
 
-  constexpr Type GetType() const noexcept { return type; }
+  Type GetType() const noexcept { return type; }
 
-  constexpr FieldFlag GetFieldFlag() const noexcept;
+  FieldFlag GetFieldFlag() const noexcept;
 
   // unowned
   ObjectView Var();
@@ -93,5 +93,3 @@ class MyDRefl_core_API FieldPtr {
   Data data;
 };
 }  // namespace My::MyDRefl
-
-#include "details/FieldPtr.inl"
